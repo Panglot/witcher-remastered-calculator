@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wild Hunt Skill Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Wild Hunt Skill Planner</h1>
+    <p class="lede">Witcher 3 Remastered (5.0) skill trees with the in-game layout, three ranks per skill, and the four slot groups with mutagens. A skill opens when any skill it is connected to has a point.</p>
+  </header>
+
+  <section class="summary" aria-label="Points summary">
+    <div class="budget">
+      <label for="budget">Points you have <input id="budget" type="number" min="0" max="200" value="4" class="num"></label>
+      <span>Spent <span class="big num" id="spent">0</span></span>
+      <span>Left <span class="big num" id="left">0</span></span>
+    </div>
+    <div class="passives" id="passives"></div>
+    <div class="actions">
+      <button class="btn" id="resetTree" type="button">Clear tree</button>
+      <button class="btn" id="resetAll" type="button">Clear all</button>
+    </div>
+  </section>
+
+  <section class="arch" aria-label="Archetypes">
+    <h2>Highlight an archetype</h2>
+    <div class="chips" id="archChips"></div>
+  </section>
+
+  <div class="bench">
+    <section class="board" aria-label="Skill tree">
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="treewrap" id="treewrap"></div>
+      <div class="hint">Click a skill to select it. Double-click adds a point, right-click removes one. With a skill focused, + and − keys also work.</div>
+    </section>
+
+    <div class="side">
+      <section class="card" id="detail" aria-live="polite"></section>
+
+      <section class="card" aria-label="Skill slots">
+        <h2>Slots and mutagens</h2>
+        <div class="groups" id="groups"></div>
+        <div class="unslotted" id="unslotted"></div>
+        <p class="meta" style="margin:0">Only slotted skills are active. Each group's mutagen gets one extra copy of its bonus per matching-colour skill (original-game rule, not yet checked in the Remaster). General skills match no mutagen.</p>
+      </section>
+
+      <section class="card share" aria-label="Saved builds">
+        <div class="share-head"><h2>Saved builds</h2><span class="dirty" id="dirty" hidden>Unsaved changes</span></div>
+        <div class="saverow">
+          <label class="field" for="buildName">Build name
+            <input id="buildName" type="text" maxlength="60" placeholder="e.g. Crossbow and bombs" autocomplete="off">
+          </label>
+          <button class="btn primary" id="saveBuild" type="button">Save</button>
+        </div>
+        <span class="meta" id="saveMsg" role="status"></span>
+        <ul class="buildlist" id="buildList"></ul>
+        <details class="codebox">
+          <summary>Build code (copy and paste)</summary>
+          <textarea id="code" spellcheck="false" aria-label="Build code"></textarea>
+          <div class="actions">
+            <button class="btn" id="copy" type="button">Copy code</button>
+            <button class="btn" id="load" type="button">Load pasted code</button>
+            <span class="meta" id="codeMsg"></span>
+          </div>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <section class="fine" aria-label="Data sources">
+    <h2>What the data rests on</h2>
+    <p><b>Tree layout and connections</b> are read from your in-game screenshots. <b>One-parent unlock</b> is confirmed in-game (a point in Efficiency opened all three skills below it). Lines are treated as two-way; whether a lower skill can open an upper one is untested.</p>
+    <p><b>Skill text</b> is the rank 1 tooltip. Skills marked "Checked in-game" were compared against your screenshots; the rest come from Hack the Minotaur's list, which matched on every skill checked so far. Rank 2 and 3 values are not published anywhere yet.</p>
+    <p><b>Not modelled:</b> the four extra slots from Blood and Wine mutations, slot unlock levels, and mutagen base values.</p>
+  </section>
+</div>
+<script src="data/rules.js"></script>
+<script src="data/trees/combat.js"></script>
+<script src="data/trees/signs.js"></script>
+<script src="data/trees/alchemy.js"></script>
+<script src="data/trees/general.js"></script>
+<script src="data/archetypes.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
