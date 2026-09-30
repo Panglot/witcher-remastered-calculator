@@ -1,7 +1,5 @@
 // Alchemy tree. Layout and links are read from in-game screenshots.
-window.W3R_DATA = window.W3R_DATA || { trees: {} };
-
-W3R_DATA.trees.alchemy = {
+export default {
   name: "Alchemy",
   color: "var(--alchemy)",
   dark: "#223a1b",

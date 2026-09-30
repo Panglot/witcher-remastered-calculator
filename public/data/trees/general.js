@@ -1,7 +1,5 @@
 // General tree. Layout and links are read from in-game screenshots.
-window.W3R_DATA = window.W3R_DATA || { trees: {} };
-
-W3R_DATA.trees.general = {
+export default {
   name: "General",
   color: "var(--general)",
   dark: "#46331a",

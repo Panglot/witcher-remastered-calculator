@@ -1,7 +1,5 @@
 // Signs tree. Layout and links are read from in-game screenshots.
-window.W3R_DATA = window.W3R_DATA || { trees: {} };
-
-W3R_DATA.trees.signs = {
+export default {
   name: "Signs",
   color: "var(--signs)",
   dark: "#1c2f4a",

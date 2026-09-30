@@ -136,27 +136,10 @@ button { cursor: pointer; }
 .share textarea { width: 100%; min-height: 64px; background: var(--bg); border: 1px solid var(--line); padding: 8px; font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 12px; resize: vertical; }
 .field { display: grid; gap: 4px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--muted); }
 .field input { background: var(--bg); border: 1px solid var(--line); padding: 6px 8px; font-family: var(--font-body); font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--fg); }
-.codebox { display: grid; gap: 8px; }
-.codebox summary { cursor: pointer; font-size: 13px; color: var(--muted); }
-.codebox[open] summary { margin-bottom: 8px; }
-.codebox .actions { margin-top: 8px; }
+.share .subhead { margin-top: 6px; }
+#shareMsg:empty { display: none; }
 .ok-msg { color: var(--alchemy); }
-.share-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.dirty { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; color: var(--warn); }
-.saverow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
-.saverow .btn { min-height: 35px; }
-#saveMsg:empty { display: none; }
 .bad-msg { color: var(--bad); }
-.buildlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 320px; overflow-y: auto; }
-.buildlist .empty-list { font-size: 13px; color: var(--faint); padding: 4px 0; }
-.build { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid var(--line); border-left: 4px solid var(--line); background: var(--bg); padding: 6px 8px; }
-.build.current { border-left-color: var(--mark); background: var(--panel-2); }
-.build .binfo { display: grid; min-width: 0; }
-.build .bname { font-weight: 500; overflow-wrap: anywhere; }
-.build .meta { display: block; }
-.build .actions { flex: none; gap: 6px; }
-.build .btn { padding: 4px 10px; font-size: 13px; }
-.build .btn.danger { border-color: var(--bad); color: var(--bad); }
 .fine { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 90ch; }
 .fine p { margin: 0; }
 .fine b { color: var(--fg); font-weight: 500; }

@@ -1,7 +1,5 @@
 // Combat tree. Layout and links are read from in-game screenshots.
-window.W3R_DATA = window.W3R_DATA || { trees: {} };
-
-W3R_DATA.trees.combat = {
+export default {
   name: "Combat",
   color: "var(--combat)",
   dark: "#4a1f1b",

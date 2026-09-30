@@ -52,25 +52,24 @@
         <p class="meta" style="margin:0">Only slotted skills are active. Each group's mutagen gets one extra copy of its bonus per matching-colour skill (original-game rule, not yet checked in the Remaster). General skills match no mutagen.</p>
       </section>
 
-      <section class="card share" aria-label="Saved builds">
-        <div class="share-head"><h2>Saved builds</h2><span class="dirty" id="dirty" hidden>Unsaved changes</span></div>
-        <div class="saverow">
-          <label class="field" for="buildName">Build name
-            <input id="buildName" type="text" maxlength="60" placeholder="e.g. Crossbow and bombs" autocomplete="off">
-          </label>
-          <button class="btn primary" id="saveBuild" type="button">Save</button>
+      <section class="card share" aria-label="Share build">
+        <h2>Share build</h2>
+        <label class="field" for="buildName">Build name
+          <input id="buildName" type="text" maxlength="60" placeholder="e.g. Crossbow and bombs" autocomplete="off">
+        </label>
+        <div class="actions">
+          <button class="btn primary" id="copyCode" type="button">Copy code</button>
+          <button class="btn" id="exportFile" type="button">Export file</button>
         </div>
-        <span class="meta" id="saveMsg" role="status"></span>
-        <ul class="buildlist" id="buildList"></ul>
-        <details class="codebox">
-          <summary>Build code (copy and paste)</summary>
-          <textarea id="code" spellcheck="false" aria-label="Build code"></textarea>
-          <div class="actions">
-            <button class="btn" id="copy" type="button">Copy code</button>
-            <button class="btn" id="load" type="button">Load pasted code</button>
-            <span class="meta" id="codeMsg"></span>
-          </div>
-        </details>
+        <h2 class="subhead">Load a build</h2>
+        <textarea id="pasteCode" spellcheck="false" placeholder="Paste a build code (W3R1.…)" aria-label="Build code to load"></textarea>
+        <div class="actions">
+          <button class="btn" id="loadCode" type="button">Load code</button>
+          <button class="btn" id="importFile" type="button">Import file</button>
+          <input id="importInput" type="file" accept=".txt,text/plain" hidden>
+        </div>
+        <span class="meta" id="shareMsg" role="status"></span>
+        <p class="meta" style="margin:0">Your current build is kept in this browser between visits. Export a file or copy the code to keep it safe or move it elsewhere.</p>
       </section>
     </div>
   </div>
@@ -82,12 +81,6 @@
     <p><b>Not modelled:</b> the four extra slots from Blood and Wine mutations, slot unlock levels, and mutagen base values.</p>
   </section>
 </div>
-<script src="data/rules.js"></script>
-<script src="data/trees/combat.js"></script>
-<script src="data/trees/signs.js"></script>
-<script src="data/trees/alchemy.js"></script>
-<script src="data/trees/general.js"></script>
-<script src="data/archetypes.js"></script>
-<script src="app.js"></script>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>

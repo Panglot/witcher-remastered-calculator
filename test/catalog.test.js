@@ -1,0 +1,38 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import data from "../public/data/index.js";
+import { createCatalog } from "../public/src/core/catalog.js";
+
+test("game data has no problems (unknown links, duplicate ids, bad archetypes)", () => {
+  assert.deepEqual(createCatalog(data).problems, []);
+});
+
+test("every tree has a root skill and every skill is reachable from one", () => {
+  const cat = createCatalog(data);
+  for (const t of cat.order) {
+    const skills = cat.skillsIn(t);
+    const reached = new Set(skills.filter(s => s.root).map(s => s.id));
+    assert.ok(reached.size > 0, `${t} has no root skill`);
+    const queue = [...reached];
+    while (queue.length) cat.nodes[queue.shift()].nb.forEach(n => { if (!reached.has(n)) { reached.add(n); queue.push(n); } });
+    assert.deepEqual(skills.filter(s => !reached.has(s.id)).map(s => s.id), [], `unreachable skills in ${t}`);
+  }
+});
+
+test("no two skills in a tree share a grid cell", () => {
+  const cat = createCatalog(data);
+  for (const t of cat.order) {
+    const cells = cat.skillsIn(t).map(s => `${s.col},${s.row}`);
+    assert.equal(new Set(cells).size, cells.length, `overlapping skills in ${t}`);
+  }
+});
+
+test("catalog reports data mistakes instead of throwing", () => {
+  const cat = createCatalog({
+    rules: { ...data.rules, treeOrder: ["a", "missing"] },
+    trees: { a: { skills: [{ id: "x", name: "X" }, { id: "x", name: "X again" }], links: ["x-nope"] } },
+    archetypes: [{ id: "arch", ids: ["ghost"] }]
+  });
+  assert.equal(cat.problems.length, 4);
+  assert.deepEqual(cat.order, ["a"]);
+});
