@@ -115,7 +115,7 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `backdrop/` | `dna.png`, `fog.png`, `panorama-<region>.jpg` (10 regions) |
 | `tree/` | `bg-<tree>.png` (combat, signs, alchemy, general, mutations), `frame.png`, `separator.png` |
 | `tabs/` | `<tree>.png`, `<tree>-hover.png`, `<tree>-selected.png`, `<tree>-bar.png` |
-| `node/` | `border-<color>`, `core-border-<color>`, `equipped-<color>`, `equipped-overlay`, `pip-<color>`, `pip-off`, `selected`, `tooltip-hint` (PNG), `lock.svg` |
+| `node/` | `border-<color>`, `core-border-<color>`, `equipped-<color>`, `equipped-overlay`, `pip-<color>`, `pip-fill`, `selected`, `tooltip-hint` (PNG), `lock.svg` |
 | `skills/` | `<tree>/<skill id>.png` (137) + `skills.json` (`skill`, `tree`, `core`, `iconPath`, `file`) |
 | `slots/` | `fill-<color>`, `glow-<colors>`, `divider-ornament` (PNG), `frame.svg`, `lock.svg`, `divider.svg` |
 | `mutagens/` | `item-<color>-<lesser/normal/greater>.png`, `diamond-frame.svg`, `connectors/corner-<color>.svg`, `connectors/line-<colors>.svg` |

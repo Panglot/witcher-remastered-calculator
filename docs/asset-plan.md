@@ -51,7 +51,7 @@ public/assets/ui/
   backdrop/        dna, fog, panorama-<region>.jpg (10)
   tree/            bg-<tree> (5), frame, separator
   tabs/            <tree>, <tree>-hover, <tree>-selected, <tree>-bar (x5)
-  node/            border-<color>, core-border-<color>, equipped-<color>, equipped-overlay, pip-<color>, pip-off,
+  node/            border-<color>, core-border-<color>, equipped-<color>, equipped-overlay, pip-<color>, pip-fill,
                    selected, tooltip-hint, lock.svg
   skills/          <tree>/<skill id>.png (137), skills.json
   slots/           fill-<color>, glow-<colors>, frame.svg, lock.svg, divider.svg, divider-ornament

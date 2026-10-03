@@ -63,7 +63,7 @@
     "node/pip-green.png": {"from": "atlas", "movie": "character", "sub": 21},
     "node/pip-red.png": {"from": "atlas", "movie": "character", "sub": 23},
     "node/pip-yellow.png": {"from": "atlas", "movie": "character", "sub": 25},
-    "node/pip-off.png": {"from": "atlas", "movie": "character", "sub": 28},
+    "node/pip-fill.png": {"from": "atlas", "movie": "character", "sub": 28, "note": "Rank fill, drawn over pip-<color> for each learned rank"},
     "node/selected.png": {"from": "atlas", "movie": "character", "sub": 462, "note": "mcStateSelectedActive frame around the focused node"},
     "node/tooltip-hint.png": {"from": "atlas", "movie": "character", "sub": 470},
     "node/lock.svg": {"from": "svg", "movie": "character", "shape": 431, "note": "SlotSkillGridRef.iconLock, white at 75% alpha, drawn at 0.5 scale"},

@@ -211,12 +211,20 @@ export function mountAssetDemo(app) {
   const tile = (inner, label, pad = 16) =>
     `<figure class="gtile"><svg viewBox="${-pad} ${-pad} ${SOCKET + 2 * pad} ${SOCKET + 2 * pad}" width="${SOCKET + 2 * pad}" height="${SOCKET + 2 * pad}" aria-hidden="true">${inner}</svg><figcaption>${label}</figcaption></figure>`;
 
-  // The diamond turned like gr1_mutagen, centred on the tile.
+  // The diamond turned like gr1_mutagen, centred on the tile. The turned frame is wider than a
+  // socket, so the padding comes from the frame's corners under that matrix.
   function diamondTile(o, label) {
     const [a, b, c, d] = art.layout("mutagen-slots").gr1_mutagen.matrix;
     const h = SOCKET / 2;
     const m = [a, b, c, d, h - (a + c) * h, h - (b + d) * h];
-    return tile(`<g transform="${matrix(m)}">${pieces.diamond(o)}</g>`, label);
+    const FRAME = "mutagens/diamond-frame.svg";
+    const [w, fh] = art.size(FRAME), [ox, oy] = art.origin(FRAME);
+    // How far each turned corner lands outside the 0..SOCKET square.
+    const overflow = [[-ox, -oy], [w - ox, -oy], [-ox, fh - oy], [w - ox, fh - oy]].flatMap(([x, y]) => {
+      const tx = a * x + c * y + m[4], ty = b * x + d * y + m[5];
+      return [-tx, tx - SOCKET, -ty, ty - SOCKET];
+    });
+    return tile(`<g transform="${matrix(m)}">${pieces.diamond(o)}</g>`, label, Math.ceil(Math.max(...overflow)) + 2);
   }
 
   function states() {

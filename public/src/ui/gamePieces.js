@@ -45,14 +45,16 @@ export function createPieces(art) {
   const icon = (file, alpha = 1) =>
     img(file, ICON_INSET, ICON_INSET, (SOCKET - 2 * ICON_INSET) / SOCKET, alpha < 1 ? ` opacity="${alpha}"` : "");
 
-  // Rank pips centred on the layout's mcSkillPoints. Learned ranks use the light pip (by eye).
+  // Rank pips centred on the layout's mcSkillPoints. Every rank draws the empty coloured pip;
+  // learned ranks add the fill on top, so the frame stays visible around it.
   function pips(at, rank, color, max = 3) {
     const [, , , , cx, cy] = at.matrix;
+    const layer = file => box(file, -PIP.size / 2, -PIP.size / 2, PIP.size, PIP.size);
     let out = "";
     for (let i = 0; i < max; i++) {
       const x = cx + (i - (max - 1) / 2) * PIP.step;
-      const file = i < rank ? "node/pip-off.png" : `node/pip-${color}.png`;
-      out += `<g transform="translate(${fmt(x)} ${fmt(cy)}) rotate(45)">${box(file, -PIP.size / 2, -PIP.size / 2, PIP.size, PIP.size)}</g>`;
+      const fill = i < rank ? layer("node/pip-fill.png") : "";
+      out += `<g transform="translate(${fmt(x)} ${fmt(cy)}) rotate(45)">${layer(`node/pip-${color}.png`)}${fill}</g>`;
     }
     return out;
   }

@@ -512,14 +512,15 @@
     40
    ]
   },
-  "node/pip-off.png": {
+  "node/pip-fill.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 28,
    "size": [
     40,
     40
-   ]
+   ],
+   "note": "Rank fill, drawn over pip-<color> for each learned rank"
   },
   "node/selected.png": {
    "from": "atlas",
