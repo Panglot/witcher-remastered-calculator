@@ -1,0 +1,518 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "MC_MODULE_SkillsSlots",
+ "children": {
+  "groupBonusBkg1_2": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    0.99998,
+    0.0,
+    0.0,
+    1.0,
+    238.0,
+    280.15
+   ]
+  },
+  "groupBonusBkg3_1": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    0.99998,
+    0.0,
+    0.0,
+    1.0,
+    238.0,
+    419.15
+   ]
+  },
+  "groupBonusBkg4_1": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    -1.0,
+    0.0,
+    0.0,
+    1.0,
+    1151.95,
+    419.15
+   ]
+  },
+  "groupBonusBkg2_2": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    -1.0,
+    0.0,
+    0.0,
+    1.0,
+    1151.95,
+    280.15
+   ]
+  },
+  "groupBonusBkg1_1": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    0.99998,
+    0.0,
+    0.0,
+    1.0,
+    238.0,
+    50.0
+   ]
+  },
+  "groupBonusBkg2_1": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    -1.0,
+    0.0,
+    0.0,
+    1.0,
+    1152.0,
+    50.0
+   ]
+  },
+  "groupBonusBkg3_2": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    0.99998,
+    0.0,
+    0.0,
+    1.0,
+    238.0,
+    645.0
+   ]
+  },
+  "groupBonusBkg4_2": {
+   "character": 691,
+   "class": "mc_bonus_bkg_new_43",
+   "matrix": [
+    -1.0,
+    0.0,
+    0.0,
+    1.0,
+    1152.0,
+    645.0
+   ]
+  },
+  "txtBonus1_1p": {
+   "character": 692,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    396.35,
+    76.4
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus1_2p": {
+   "character": 693,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    396.35,
+    306.55
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus3_1p": {
+   "character": 694,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    396.35,
+    445.1
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus3_2p": {
+   "character": 695,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    396.35,
+    667.0
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus2_1p": {
+   "character": 696,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    980.1,
+    75.7
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus2_2p": {
+   "character": 697,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    980.1,
+    305.8
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus4_1p": {
+   "character": 698,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    980.1,
+    445.1
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus4_2p": {
+   "character": 699,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    980.1,
+    671.0
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     108.35,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus1_2": {
+   "character": 700,
+   "class": null,
+   "matrix": [
+    0.99841,
+    0.0,
+    0.0,
+    1.0,
+    307.4,
+    306.55
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     178.0,
+     30.65
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "left"
+   }
+  },
+  "txtBonus2_2": {
+   "character": 701,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    868.05,
+    305.85
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     172.5,
+     29.65
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus3_1": {
+   "character": 702,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    308.75,
+    445.1
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     177.15,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "left"
+   }
+  },
+  "txtBonus4_1": {
+   "character": 703,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    868.05,
+    445.1
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     172.95,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus2_1": {
+   "character": 704,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    868.1,
+    75.7
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     172.5,
+     29.65
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus1_1": {
+   "character": 705,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    307.4,
+    76.4
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     178.0,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "left"
+   }
+  },
+  "txtBonus4_2": {
+   "character": 706,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    868.1,
+    670.95
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     172.95,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "txtBonus3_2": {
+   "character": 707,
+   "class": null,
+   "matrix": [
+    0.99683,
+    0.0,
+    0.0,
+    1.0,
+    308.75,
+    667.0
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     177.15,
+     29.35
+    ],
+    "size": 23.0,
+    "color": "#ffffffff",
+    "align": "left"
+   }
+  },
+  "mcHighlight": {
+   "character": 414,
+   "class": "ModuleHighlight",
+   "matrix": [
+    1.44318,
+    0.0,
+    0.0,
+    1.0,
+    342.85,
+    50.0
+   ]
+  },
+  "socketsList": {
+   "character": 668,
+   "class": "SocketsList",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    420.3,
+    278.1
+   ]
+  },
+  "mcSlotsNormal": {
+   "character": 710,
+   "class": "mc_slotContainer_1_52",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    253.8,
+    58.25
+   ]
+  },
+  "mcSlotsMutation": {
+   "character": 711,
+   "class": "mc_slotContainer_2_81",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    342.2,
+    21.95
+   ]
+  }
+ }
+}

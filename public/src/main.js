@@ -13,6 +13,8 @@ import { mountDetail } from "./ui/detail.js";
 import { mountSlots } from "./ui/slots.js";
 import { mountArchetypes } from "./ui/archetypes.js";
 import { mountShare } from "./ui/share.js";
+import { mountPages } from "./ui/pages.js";
+import { mountAssetDemo } from "./ui/assetDemo.js";
 
 const catalog = createCatalog(data);
 catalog.problems.forEach(p => console.error(p));
@@ -35,15 +37,17 @@ const app = {
   }
 };
 
-// Render order follows this list.
+// Render order follows this list. Pages goes first so the others see which page is shown.
 app.views = {
+  pages: mountPages(app),
   summary: mountSummary(app),
   tabs: mountTabs(app),
   tree: mountTree(app),
   detail: mountDetail(app),
   slots: mountSlots(app),
   archetypes: mountArchetypes(app),
-  share: mountShare(app)
+  share: mountShare(app),
+  assetDemo: mountAssetDemo(app)
 };
 
 app.render();

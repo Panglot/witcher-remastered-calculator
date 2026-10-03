@@ -13,10 +13,17 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Wild Hunt Skill Planner</h1>
+    <div class="topbar">
+      <h1>Wild Hunt Skill Planner</h1>
+      <nav class="pagenav" id="pageNav" aria-label="Pages">
+        <a href="#planner" data-nav="planner">Planner</a>
+        <a href="#demo" data-nav="demo">Asset demo</a>
+      </nav>
+    </div>
     <p class="lede">Witcher 3 Remastered (5.0) skill trees with the in-game layout, three ranks per skill, and the four slot groups with mutagens. A skill opens when any skill it is connected to has a point.</p>
   </header>
 
+  <main class="page" id="pagePlanner" data-page="planner">
   <section class="summary" aria-label="Points summary">
     <div class="budget">
       <label for="budget">Points you have <input id="budget" type="number" min="0" max="200" value="4" class="num"></label>
@@ -80,6 +87,15 @@
     <p><b>Skill text</b> is the rank 1 tooltip. Skills marked "Checked in-game" were compared against your screenshots; the rest come from Hack the Minotaur's list, which matched on every skill checked so far. Rank 2 and 3 values are not published anywhere yet.</p>
     <p><b>Not modelled:</b> the four extra slots from Blood and Wine mutations, slot unlock levels, and mutagen base values.</p>
   </section>
+  </main>
+
+  <!-- Filled by src/ui/assetDemo.js the first time it's opened. -->
+  <main class="page gdemo" id="pageDemo" data-page="demo" aria-label="Asset demo" hidden></main>
+
+  <footer class="legal">
+    <p>Unofficial fan work, not approved or endorsed by CD PROJEKT RED. The Witcher and all related names, icons and assets are property of CD PROJEKT RED.</p>
+    <p>Free and non-commercial, made for the community.</p>
+  </footer>
 </div>
 <script type="module" src="src/main.js"></script>
 </body>

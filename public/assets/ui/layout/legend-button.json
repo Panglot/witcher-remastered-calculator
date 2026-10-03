@@ -1,0 +1,171 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "InputFeedbackButtonRef",
+ "children": {
+  "mcClickRect": {
+   "character": 107,
+   "class": "InputFeedbackButton_kb_background",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    7.05,
+    -5.1
+   ]
+  },
+  "tfKeyLabel": {
+   "character": 538,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    99.4,
+    -11.75
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     60.25,
+     28.2
+    ],
+    "size": 22.0,
+    "color": "#cabb9fff",
+    "align": "left"
+   }
+  },
+  "mcKeyboardIcon": {
+   "character": 537,
+   "class": "InputFeedbackButton_keyboardButton",
+   "matrix": [
+    0.75,
+    0.0,
+    0.0,
+    0.75,
+    0.0,
+    -19.5
+   ]
+  },
+  "mcIconPS5": {
+   "character": 545,
+   "class": "InputFeedbackButton_icon_ps5_29",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    19.3,
+    0.1
+   ]
+  },
+  "mcIconPS4": {
+   "character": 546,
+   "class": "InputFeedbackButton_icon_ps_32",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    19.3,
+    0.1
+   ]
+  },
+  "mcIconSteam": {
+   "character": 547,
+   "class": "InputFeedbackButton_icon_steam_33",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    19.3,
+    0.0
+   ]
+  },
+  "mcIconXbox": {
+   "character": 548,
+   "class": "InputFeedbackButton_icon_xbox_34",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    19.4,
+    0.0
+   ]
+  },
+  "mcIconSwitch": {
+   "character": 549,
+   "class": "InputFeedbackButton_icon_switch_35",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    19.4,
+    0.0
+   ]
+  },
+  "mcMouseIcon": {
+   "character": 405,
+   "class": "InputFeedbackButton_mouseIcon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.85,
+    -19.9
+   ]
+  },
+  "textField": {
+   "character": 550,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    27.0,
+    -11.7
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     60.25,
+     28.2
+    ],
+    "size": 22.0,
+    "color": "#c68e5bff",
+    "align": "left"
+   }
+  },
+  "tfHoldPrefix": {
+   "character": 551,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    89.25,
+    -11.75
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     8.2,
+     28.2
+    ],
+    "size": 22.0,
+    "color": "#ffffffff",
+    "align": "left"
+   }
+  }
+ }
+}

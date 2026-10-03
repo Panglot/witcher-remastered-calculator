@@ -1,0 +1,174 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "SlotSkillSocketRef",
+ "children": {
+  "mcSizeAnchor": {
+   "character": 429,
+   "class": "SkillsSlots_ActiveBackground_new_59",
+   "matrix": [
+    0.99995,
+    0.0,
+    0.0,
+    0.99998,
+    0.0,
+    0.0
+   ]
+  },
+  "colorBorder": {
+   "character": 429,
+   "class": "SkillsSlots_ActiveBackground_new_59",
+   "matrix": [
+    0.99985,
+    0.0,
+    0.0,
+    1.00041,
+    0.0,
+    0.0
+   ]
+  },
+  "mcColorBorder": {
+   "character": 641,
+   "class": "SlotSkillSocket_edgeglow_62",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    32.0,
+    32.0
+   ]
+  },
+  "mcRuneGlow": {
+   "character": 643,
+   "class": null,
+   "matrix": [
+    1.08929,
+    0.0,
+    0.0,
+    1.08911,
+    32.0,
+    32.0
+   ]
+  },
+  "iconLock": {
+   "character": 255,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    3.9,
+    4.75
+   ]
+  },
+  "mcStateSelectedActive": {
+   "character": 513,
+   "class": null,
+   "matrix": [
+    1.19945,
+    0.0,
+    0.0,
+    1.27283,
+    32.0,
+    31.95
+   ]
+  },
+  "mcStateSelectedPassive": {
+   "character": 466,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  },
+  "mcStateDropTarget": {
+   "character": 509,
+   "class": null,
+   "matrix": [
+    1.18823,
+    0.0,
+    0.0,
+    1.18805,
+    32.0,
+    32.0
+   ]
+  },
+  "mcStateDropReady": {
+   "character": 506,
+   "class": null,
+   "matrix": [
+    1.18761,
+    0.0,
+    0.0,
+    1.18683,
+    32.0,
+    32.0
+   ]
+  },
+  "mcCollapsedTooltipIcon": {
+   "character": 472,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    22.5,
+    45.0
+   ]
+  },
+  "equipedIcon": {
+   "character": 446,
+   "class": "SkillsSlots_equipedIcon_new_70",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  },
+  "mcHoldAnimBlock": {
+   "character": 448,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    0.875,
+    0.0,
+    4.0
+   ]
+  },
+  "mcSkillPoints": {
+   "character": 492,
+   "class": "SlotPointIndicator",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    32.0,
+    62.0
+   ]
+  },
+  "mcHitArea": {
+   "character": 493,
+   "class": null,
+   "matrix": [
+    1.34424,
+    0.0,
+    0.0,
+    1.34387,
+    31.8,
+    32.15
+   ]
+  }
+ }
+}

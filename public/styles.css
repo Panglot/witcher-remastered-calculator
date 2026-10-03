@@ -1,6 +1,8 @@
 /* Layout: summary bar on top, then a two-column workbench — skill tree board on the left,
    selected skill + mutagen slot board on the right. Stacks to one column on phones.
    Single deliberate dark look, like the in-game character panel. */
+@font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
   color-scheme: dark;
   --bg: #15120e;
@@ -19,6 +21,19 @@
   --bad: #e2675d;
   --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
   --font-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  /* In-game Character screen text (docs/game-assets.md). Used by the asset demo for now. */
+  --font-game: "D-DIN Condensed", var(--font-display);
+  --game-text: #ffffff;
+  --game-points: #95866e;
+  --game-count: #aa9578;
+  --game-type: #999999;
+  --game-level: #a09588;
+  --game-next: #c6bc9d;
+  --game-req: #bf0000;
+  --game-key: #c0ae8c;
+  --game-label: #c68e5b;
+  --game-hold: #cd7d03;
+  --game-tooltip: rgba(14, 14, 15, .87);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -29,6 +44,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 h1 { font-size: 30px; text-transform: uppercase; letter-spacing: .06em; }
 h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
 .lede { color: var(--muted); margin: 4px 0 0; max-width: 70ch; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
+.pagenav { display: flex; gap: 6px; }
+.pagenav a { border: 1px solid var(--line); padding: 4px 12px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 14px; color: var(--muted); text-decoration: none; }
+.pagenav a:hover { border-color: var(--muted); color: var(--fg); }
+.pagenav a[aria-current="page"] { border-color: var(--mark); background: var(--panel-2); color: var(--fg); }
+.page { display: grid; gap: 16px; min-width: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
@@ -143,6 +164,8 @@ button { cursor: pointer; }
 .fine { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 90ch; }
 .fine p { margin: 0; }
 .fine b { color: var(--fg); font-weight: 500; }
+.legal { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 4px; }
+.legal p { margin: 0; }
 
 @media (max-width: 900px) {
   .bench { grid-template-columns: minmax(0, 1fr); }
@@ -153,3 +176,56 @@ button { cursor: pointer; }
   h1 { font-size: 24px; }
   .tab { font-size: 14px; letter-spacing: .06em; }
 }
+
+/* Asset demo (ui/assetDemo.js). SVG pieces are in game px; the viewBox scales them. */
+.gdemo .subhead { font-size: 14px; margin-top: 4px; }
+.gdemo .subhead .meta, .treetag .meta { display: inline; font-family: var(--font-body); text-transform: none; letter-spacing: 0; }
+.gcontrols { display: flex; justify-content: space-between; align-items: end; gap: 10px 16px; flex-wrap: wrap; }
+.gregion { grid-auto-flow: column; align-items: center; gap: 8px; }
+.gregion select { background: var(--bg); border: 1px solid var(--line); padding: 4px 6px; font-family: var(--font-body); font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--fg); }
+.gscreenwrap { overflow-x: auto; border: 1px solid var(--line); background: #040404; }
+.gscreen { display: block; width: 100%; min-width: 880px; height: auto; }
+.gscreen text, .gbonus text { font-family: var(--font-game); }
+.gtab { cursor: pointer; }
+.gtab .hov, .gtab:hover .ico { display: none; }
+.gtab:hover .hov { display: inline; }
+.gline { stroke-width: 1; opacity: .45; }
+.gline.lit { opacity: 1; }
+.gpair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.gtiles { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.gtile { margin: 0; display: grid; justify-items: center; gap: 2px; padding: 6px 4px 6px; background: #0b0b0b; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.gtile svg { display: block; }
+.gtiles > img { background: #0b0b0b; border: 1px solid var(--line); padding: 4px; box-sizing: content-box; }
+.gbonuses { display: flex; flex-wrap: wrap; gap: 8px; }
+.gbonus { display: block; width: 284px; max-width: 100%; height: auto; background: #0b0b0b; }
+.giconrow { display: grid; gap: 4px; }
+.gicons { display: flex; flex-wrap: wrap; gap: 4px; }
+.gicons img { display: block; background: #0b0b0b; border: 1px solid var(--line); padding: 4px; box-sizing: content-box; }
+.gtype { display: grid; gap: 10px; background: #0b0b0b; border: 1px solid var(--line); padding: 12px 14px; }
+.gtype-row { display: grid; gap: 0; }
+.gtype-sample { font-family: var(--font-game); line-height: 1.15; overflow-wrap: anywhere; }
+.gtype code { font-size: 12px; }
+
+/* Game key legend: centred buttons 15px apart, key cap recoloured from #675943 to #191919 through a mask. */
+.glegend-wrap { background: #040404; border: 1px solid var(--line); padding: 14px 8px; overflow-x: auto; }
+.glegend { display: flex; justify-content: center; align-items: center; gap: 15px; height: 100%; font-family: var(--font-game); }
+.gbtn { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.gkey { display: inline-grid; place-items: center; width: 38px; height: 42px; position: relative; color: var(--game-key); font-size: 28px; line-height: 1; isolation: isolate; }
+.gkey::before { content: ""; position: absolute; inset: 0; z-index: -1; background: #191919; -webkit-mask: url("assets/ui/legend/key.svg") center / 100% 100% no-repeat; mask: url("assets/ui/legend/key.svg") center / 100% 100% no-repeat; }
+.glabel { color: var(--game-label); font-size: 22px; }
+.ghold { color: var(--game-hold); }
+
+/* Game skill tooltip: gray header with its frame, translucent panel. Text positions from layout/tooltip.json. */
+.gtip { width: min(500px, 100%); background: var(--game-tooltip); box-shadow: 0 6px 18px #000; font-family: var(--font-game); color: var(--game-text); padding-bottom: 12px; }
+.gtip-head { position: relative; height: 79px; }
+.gtip-head img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gtip-head span { position: absolute; white-space: nowrap; line-height: 1.2; }
+.gtip-name { left: 10px; top: 11px; font-size: 24px; }
+.gtip-type { right: 10px; top: 12px; font-size: 24px; color: var(--game-type); }
+.gtip-level { left: 10px; top: 46px; font-size: 25px; color: var(--game-level); }
+.gtip-level b { color: var(--game-text); font-weight: 400; }
+.gtip-req { right: 10px; top: 47px; font-size: 23px; color: var(--game-req); }
+.gtip p { margin: 8px 11px 0; font-size: 24px; line-height: 1.2; }
+.gtip .gtip-next { font-size: 23px; color: var(--game-next); margin-top: 12px; }
+@media (max-width: 900px) { .gpair { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 440px) { .gtip-req { display: none; } }

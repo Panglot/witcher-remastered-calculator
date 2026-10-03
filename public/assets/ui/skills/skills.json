@@ -1,0 +1,961 @@
+[
+  {
+    "skill": "sword_1",
+    "tree": "Sword",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\sword_1.png",
+    "file": "sword/sword_1.png"
+  },
+  {
+    "skill": "sword_2",
+    "tree": "Sword",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\sword_2.png",
+    "file": "sword/sword_2.png"
+  },
+  {
+    "skill": "sword_3",
+    "tree": "Sword",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\sword_3.png",
+    "file": "sword/sword_3.png"
+  },
+  {
+    "skill": "sword_4",
+    "tree": "Sword",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\sword_4.png",
+    "file": "sword/sword_4.png"
+  },
+  {
+    "skill": "sword_5",
+    "tree": "Sword",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\sword_5.png",
+    "file": "sword/sword_5.png"
+  },
+  {
+    "skill": "magic_1",
+    "tree": "Signs",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\magic_1.png",
+    "file": "signs/magic_1.png"
+  },
+  {
+    "skill": "magic_2",
+    "tree": "Signs",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\magic_2.png",
+    "file": "signs/magic_2.png"
+  },
+  {
+    "skill": "magic_3",
+    "tree": "Signs",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\magic_3.png",
+    "file": "signs/magic_3.png"
+  },
+  {
+    "skill": "magic_4",
+    "tree": "Signs",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\magic_4.png",
+    "file": "signs/magic_4.png"
+  },
+  {
+    "skill": "magic_5",
+    "tree": "Signs",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\magic_5.png",
+    "file": "signs/magic_5.png"
+  },
+  {
+    "skill": "alchemy_1",
+    "tree": "Alchemy",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\alchemy_1.png",
+    "file": "alchemy/alchemy_1.png"
+  },
+  {
+    "skill": "alchemy_2",
+    "tree": "Alchemy",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\alchemy_2.png",
+    "file": "alchemy/alchemy_2.png"
+  },
+  {
+    "skill": "alchemy_3",
+    "tree": "Alchemy",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\alchemy_3.png",
+    "file": "alchemy/alchemy_3.png"
+  },
+  {
+    "skill": "alchemy_4",
+    "tree": "Alchemy",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\alchemy_4.png",
+    "file": "alchemy/alchemy_4.png"
+  },
+  {
+    "skill": "alchemy_5",
+    "tree": "Alchemy",
+    "core": true,
+    "iconPath": "icons\\Skills\\core\\alchemy_5.png",
+    "file": "alchemy/alchemy_5.png"
+  },
+  {
+    "skill": "sword_s21",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s21.png",
+    "file": "sword/sword_s21.png"
+  },
+  {
+    "skill": "sword_s17",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s17.png",
+    "file": "sword/sword_s17.png"
+  },
+  {
+    "skill": "sword_s1",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s1.png",
+    "file": "sword/sword_s1.png"
+  },
+  {
+    "skill": "sword_s5",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s5.png",
+    "file": "sword/sword_s5.png"
+  },
+  {
+    "skill": "sword_s4",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s4.png",
+    "file": "sword/sword_s4.png"
+  },
+  {
+    "skill": "sword_s8",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s8.png",
+    "file": "sword/sword_s8.png"
+  },
+  {
+    "skill": "sword_s2",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s2.png",
+    "file": "sword/sword_s2.png"
+  },
+  {
+    "skill": "sword_s6",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s6.png",
+    "file": "sword/sword_s6.png"
+  },
+  {
+    "skill": "sword_s10",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s10.png",
+    "file": "sword/sword_s10.png"
+  },
+  {
+    "skill": "sword_s9",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s9.png",
+    "file": "sword/sword_s9.png"
+  },
+  {
+    "skill": "sword_s11",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s3.png",
+    "file": "sword/sword_s11.png"
+  },
+  {
+    "skill": "sword_s3",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s11.png",
+    "file": "sword/sword_s3.png"
+  },
+  {
+    "skill": "sword_s13",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s13.png",
+    "file": "sword/sword_s13.png"
+  },
+  {
+    "skill": "sword_s15",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s15.png",
+    "file": "sword/sword_s15.png"
+  },
+  {
+    "skill": "sword_s7",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s12.png",
+    "file": "sword/sword_s7.png"
+  },
+  {
+    "skill": "sword_s12",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s7.png",
+    "file": "sword/sword_s12.png"
+  },
+  {
+    "skill": "sword_s16",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s16.png",
+    "file": "sword/sword_s16.png"
+  },
+  {
+    "skill": "sword_s18",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s18.png",
+    "file": "sword/sword_s18.png"
+  },
+  {
+    "skill": "sword_s20",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s20.png",
+    "file": "sword/sword_s20.png"
+  },
+  {
+    "skill": "sword_s19",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\sword_s19.png",
+    "file": "sword/sword_s19.png"
+  },
+  {
+    "skill": "magic_s20",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s20.png",
+    "file": "signs/magic_s20.png"
+  },
+  {
+    "skill": "magic_s1",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s1.png",
+    "file": "signs/magic_s1.png"
+  },
+  {
+    "skill": "magic_s12",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s6.png",
+    "file": "signs/magic_s12.png"
+  },
+  {
+    "skill": "magic_s6",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s12.png",
+    "file": "signs/magic_s6.png"
+  },
+  {
+    "skill": "magic_s8",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s8.png",
+    "file": "signs/magic_s8.png"
+  },
+  {
+    "skill": "magic_s2",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s2.png",
+    "file": "signs/magic_s2.png"
+  },
+  {
+    "skill": "magic_s7",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s7.png",
+    "file": "signs/magic_s7.png"
+  },
+  {
+    "skill": "magic_s9",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s9.png",
+    "file": "signs/magic_s9.png"
+  },
+  {
+    "skill": "magic_s10",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s10.png",
+    "file": "signs/magic_s10.png"
+  },
+  {
+    "skill": "magic_s3",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s3.png",
+    "file": "signs/magic_s3.png"
+  },
+  {
+    "skill": "magic_s16",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s11.png",
+    "file": "signs/magic_s16.png"
+  },
+  {
+    "skill": "magic_s11",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s16.png",
+    "file": "signs/magic_s11.png"
+  },
+  {
+    "skill": "magic_s13",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s14.png",
+    "file": "signs/magic_s13.png"
+  },
+  {
+    "skill": "magic_s4",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s4.png",
+    "file": "signs/magic_s4.png"
+  },
+  {
+    "skill": "magic_s15",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s13.png",
+    "file": "signs/magic_s15.png"
+  },
+  {
+    "skill": "magic_s14",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s15.png",
+    "file": "signs/magic_s14.png"
+  },
+  {
+    "skill": "magic_s17",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s17.png",
+    "file": "signs/magic_s17.png"
+  },
+  {
+    "skill": "magic_s5",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s5.png",
+    "file": "signs/magic_s5.png"
+  },
+  {
+    "skill": "magic_s18",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s18.png",
+    "file": "signs/magic_s18.png"
+  },
+  {
+    "skill": "magic_s19",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\magic_s19.png",
+    "file": "signs/magic_s19.png"
+  },
+  {
+    "skill": "alchemy_s1",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s1.png",
+    "file": "alchemy/alchemy_s1.png"
+  },
+  {
+    "skill": "alchemy_s2",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s2.png",
+    "file": "alchemy/alchemy_s2.png"
+  },
+  {
+    "skill": "alchemy_s3",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s3.png",
+    "file": "alchemy/alchemy_s3.png"
+  },
+  {
+    "skill": "alchemy_s4",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s4.png",
+    "file": "alchemy/alchemy_s4.png"
+  },
+  {
+    "skill": "alchemy_s12",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s21.png",
+    "file": "alchemy/alchemy_s12.png"
+  },
+  {
+    "skill": "alchemy_s5",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s5.png",
+    "file": "alchemy/alchemy_s5.png"
+  },
+  {
+    "skill": "alchemy_s6",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s6.png",
+    "file": "alchemy/alchemy_s6.png"
+  },
+  {
+    "skill": "alchemy_s7",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s7.png",
+    "file": "alchemy/alchemy_s7.png"
+  },
+  {
+    "skill": "alchemy_s9",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s9.png",
+    "file": "alchemy/alchemy_s9.png"
+  },
+  {
+    "skill": "alchemy_s10",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s10.png",
+    "file": "alchemy/alchemy_s10.png"
+  },
+  {
+    "skill": "alchemy_s8",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s8.png",
+    "file": "alchemy/alchemy_s8.png"
+  },
+  {
+    "skill": "alchemy_s11",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s11.png",
+    "file": "alchemy/alchemy_s11.png"
+  },
+  {
+    "skill": "alchemy_s18",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s18.png",
+    "file": "alchemy/alchemy_s18.png"
+  },
+  {
+    "skill": "alchemy_s13",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s13.png",
+    "file": "alchemy/alchemy_s13.png"
+  },
+  {
+    "skill": "alchemy_s19",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s19.png",
+    "file": "alchemy/alchemy_s19.png"
+  },
+  {
+    "skill": "alchemy_s14",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s14.png",
+    "file": "alchemy/alchemy_s14.png"
+  },
+  {
+    "skill": "alchemy_s16",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s16.png",
+    "file": "alchemy/alchemy_s16.png"
+  },
+  {
+    "skill": "alchemy_s20",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s20.png",
+    "file": "alchemy/alchemy_s20.png"
+  },
+  {
+    "skill": "alchemy_s15",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s15.png",
+    "file": "alchemy/alchemy_s15.png"
+  },
+  {
+    "skill": "alchemy_s17",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\alchemy_s17.png",
+    "file": "alchemy/alchemy_s17.png"
+  },
+  {
+    "skill": "perk_1",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_32.png",
+    "file": "perks/perk_1.png"
+  },
+  {
+    "skill": "perk_2",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_18.png",
+    "file": "perks/perk_2.png"
+  },
+  {
+    "skill": "perk_4",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_33.png",
+    "file": "perks/perk_4.png"
+  },
+  {
+    "skill": "perk_5",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_7.png",
+    "file": "perks/perk_5.png"
+  },
+  {
+    "skill": "perk_6",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_8.png",
+    "file": "perks/perk_6.png"
+  },
+  {
+    "skill": "perk_7",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_9.png",
+    "file": "perks/perk_7.png"
+  },
+  {
+    "skill": "perk_9",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_23.png",
+    "file": "perks/perk_9.png"
+  },
+  {
+    "skill": "perk_10",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_17.png",
+    "file": "perks/perk_10.png"
+  },
+  {
+    "skill": "perk_11",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_16.png",
+    "file": "perks/perk_11.png"
+  },
+  {
+    "skill": "perk_12",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\s_perk_30.png",
+    "file": "perks/perk_12.png"
+  },
+  {
+    "skill": "sword_s22",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\muscle_memory.png",
+    "file": "sword/sword_s22.png"
+  },
+  {
+    "skill": "sword_s23",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\strength_training.png",
+    "file": "sword/sword_s23.png"
+  },
+  {
+    "skill": "sword_s24",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\precise_blows.png",
+    "file": "sword/sword_s24.png"
+  },
+  {
+    "skill": "sword_s25",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\crushing_blows.png",
+    "file": "sword/sword_s25.png"
+  },
+  {
+    "skill": "sword_s26",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\anatomical_knowledge.png",
+    "file": "sword/sword_s26.png"
+  },
+  {
+    "skill": "sword_s27",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\crippling_shot.png",
+    "file": "sword/sword_s27.png"
+  },
+  {
+    "skill": "sword_s28",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\sunder_armor.png",
+    "file": "sword/sword_s28.png"
+  },
+  {
+    "skill": "sword_s29",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\crippling_strikes.png",
+    "file": "sword/sword_s29.png"
+  },
+  {
+    "skill": "sword_s30",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\deadly_precision.png",
+    "file": "sword/sword_s30.png"
+  },
+  {
+    "skill": "sword_s31",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\counter_attack.png",
+    "file": "sword/sword_s31.png"
+  },
+  {
+    "skill": "sword_s32",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\lightning_reflexes.png",
+    "file": "sword/sword_s32.png"
+  },
+  {
+    "skill": "sword_s33",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\arrow_deflection.png",
+    "file": "sword/sword_s33.png"
+  },
+  {
+    "skill": "sword_s34",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\cold_blooded.png",
+    "file": "sword/sword_s34.png"
+  },
+  {
+    "skill": "sword_s35",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\whirl.png",
+    "file": "sword/sword_s35.png"
+  },
+  {
+    "skill": "sword_s36",
+    "tree": "Sword",
+    "core": false,
+    "iconPath": "icons\\Skills\\Sword\\skills_rework\\fleet_footed.png",
+    "file": "sword/sword_s36.png"
+  },
+  {
+    "skill": "magic_s42",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\sustained_glyphs.png",
+    "file": "signs/magic_s42.png"
+  },
+  {
+    "skill": "magic_s28",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\firestream.png",
+    "file": "signs/magic_s28.png"
+  },
+  {
+    "skill": "magic_s31",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\puppet.png",
+    "file": "signs/magic_s31.png"
+  },
+  {
+    "skill": "magic_s33",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\shock_wave.png",
+    "file": "signs/magic_s33.png"
+  },
+  {
+    "skill": "magic_s35",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\catalyst.png",
+    "file": "signs/magic_s35.png"
+  },
+  {
+    "skill": "magic_s36",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\fortified_signs.png",
+    "file": "signs/magic_s36.png"
+  },
+  {
+    "skill": "magic_s37",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\convergence_theory.png",
+    "file": "signs/magic_s37.png"
+  },
+  {
+    "skill": "magic_s38",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\focus.png",
+    "file": "signs/magic_s38.png"
+  },
+  {
+    "skill": "magic_s39",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\avoidance.png",
+    "file": "signs/magic_s39.png"
+  },
+  {
+    "skill": "magic_s40",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\overload.png",
+    "file": "signs/magic_s40.png"
+  },
+  {
+    "skill": "magic_s41",
+    "tree": "Signs",
+    "core": false,
+    "iconPath": "icons\\Skills\\Signs\\skills_rework\\resonance.png",
+    "file": "signs/magic_s41.png"
+  },
+  {
+    "skill": "alchemy_s22",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\skills_rework\\debilitating_poison.png",
+    "file": "alchemy/alchemy_s22.png"
+  },
+  {
+    "skill": "alchemy_s23",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\skills_rework\\toxic_shock_2.png",
+    "file": "alchemy/alchemy_s23.png"
+  },
+  {
+    "skill": "alchemy_s24",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\skills_rework\\heightened_tolerance.png",
+    "file": "alchemy/alchemy_s24.png"
+  },
+  {
+    "skill": "alchemy_s25",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\skills_rework\\volatile_concoction.png",
+    "file": "alchemy/alchemy_s25.png"
+  },
+  {
+    "skill": "alchemy_s26",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\skills_rework\\wyvern_sting.png",
+    "file": "alchemy/alchemy_s26.png"
+  },
+  {
+    "skill": "alchemy_s27",
+    "tree": "Alchemy",
+    "core": false,
+    "iconPath": "icons\\Skills\\Alchemy\\skills_rework\\hunter_instinct.png",
+    "file": "alchemy/alchemy_s27.png"
+  },
+  {
+    "skill": "perk_23",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\cat_school_techniques.png",
+    "file": "perks/perk_23.png"
+  },
+  {
+    "skill": "perk_24",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\griffin_school_techniques.png",
+    "file": "perks/perk_24.png"
+  },
+  {
+    "skill": "perk_25",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\bear_school_techniques.png",
+    "file": "perks/perk_25.png"
+  },
+  {
+    "skill": "perk_26",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\wolven_school_techniques.png",
+    "file": "perks/perk_26.png"
+  },
+  {
+    "skill": "perk_27",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\manticore_school_techniques.png",
+    "file": "perks/perk_27.png"
+  },
+  {
+    "skill": "perk_28",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\viper_school_techniques.png",
+    "file": "perks/perk_28.png"
+  },
+  {
+    "skill": "perk_43",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\synergy.png",
+    "file": "perks/perk_43.png"
+  },
+  {
+    "skill": "perk_30",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\survival_instinct.png",
+    "file": "perks/perk_30.png"
+  },
+  {
+    "skill": "perk_31",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\attack_is_the_best_defense.png",
+    "file": "perks/perk_31.png"
+  },
+  {
+    "skill": "perk_32",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\metabolism_boost.png",
+    "file": "perks/perk_32.png"
+  },
+  {
+    "skill": "perk_33",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\metabolic_control.png",
+    "file": "perks/perk_33.png"
+  },
+  {
+    "skill": "perk_34",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\rage_mgmt.png",
+    "file": "perks/perk_34.png"
+  },
+  {
+    "skill": "perk_35",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\strong_back.png",
+    "file": "perks/perk_35.png"
+  },
+  {
+    "skill": "perk_44",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\element_of_surprise_2.png",
+    "file": "perks/perk_44.png"
+  },
+  {
+    "skill": "perk_37",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\conjunction.png",
+    "file": "perks/perk_37.png"
+  },
+  {
+    "skill": "perk_38",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\perks\\skills_rework\\sun_and_stars.png",
+    "file": "perks/perk_38.png"
+  },
+  {
+    "skill": "perk_39",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\skills_rework\\advanced_pyrotechnics.png",
+    "file": "perks/perk_39.png"
+  },
+  {
+    "skill": "perk_40",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\skills_rework\\battle_frenzy.png",
+    "file": "perks/perk_40.png"
+  },
+  {
+    "skill": "perk_41",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\skills_rework\\gourmet.png",
+    "file": "perks/perk_41.png"
+  },
+  {
+    "skill": "perk_42",
+    "tree": "Perks",
+    "core": false,
+    "iconPath": "icons\\Perks\\skills_rework\\adrenaline_burst.png",
+    "file": "perks/perk_42.png"
+  }
+]

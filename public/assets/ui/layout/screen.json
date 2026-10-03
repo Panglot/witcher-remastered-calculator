@@ -1,0 +1,195 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "MenuCharacterDupe",
+ "children": {
+  "mcBackgroundImage": {
+   "character": 741,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    614.9,
+    130.95
+   ]
+  },
+  "mcSlotChangeHighlight": {
+   "character": 336,
+   "class": "dataChangedFeedback_2",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    148.0,
+    38.0
+   ]
+  },
+  "mcDupeTabModule": {
+   "character": 738,
+   "class": "CharacterTabbedListModuleDupe",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    83.65,
+    114.95
+   ]
+  },
+  "mcPointIcon": {
+   "character": 742,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    561.7,
+    935.0
+   ]
+  },
+  "txfAvailablePoints": {
+   "character": 743,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    167.0,
+    917.0
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     332.05,
+     60.15
+    ],
+    "size": 32.0,
+    "color": "#95866eff",
+    "align": "right"
+   }
+  },
+  "txfPointsValue": {
+   "character": 744,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    397.0,
+    916.0
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     138.4,
+     113.1
+    ],
+    "size": 32.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "mcPointsBorder": {
+   "character": 747,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    138.0,
+    905.0
+   ]
+  },
+  "tfRunewordDescription": {
+   "character": 748,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    1362.9,
+    184.55
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     412.0,
+     122.2
+    ],
+    "size": 24.0,
+    "color": "#ffffffff",
+    "align": "left"
+   }
+  },
+  "mcRunewordIcon": {
+   "character": 750,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    1330.95,
+    196.95
+   ]
+  },
+  "applyMode": {
+   "character": 720,
+   "class": "SelectionMode",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  },
+  "moduleSkillSlot": {
+   "character": 712,
+   "class": "MC_MODULE_SkillsSlots",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    617.95,
+    158.0
+   ]
+  },
+  "tooltipAnchor": {
+   "character": 524,
+   "class": "AnchorComponent",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    140.0,
+    684.0
+   ]
+  },
+  "mcMasterMutation": {
+   "character": 602,
+   "class": "EquippedMutationItemRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    1311.3,
+    579.2
+   ]
+  }
+ }
+}

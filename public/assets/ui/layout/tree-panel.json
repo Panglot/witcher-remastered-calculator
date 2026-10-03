@@ -1,0 +1,173 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "CharacterTabbedListModuleDupe",
+ "children": {
+  "mcNewTabBackground": {
+   "character": 734,
+   "class": null,
+   "matrix": [
+    0.5,
+    0.0,
+    0.0,
+    0.5,
+    20.0,
+    81.0
+   ]
+  },
+  "mcMutagenSlotList": {
+   "character": 520,
+   "class": "MutagenSlotsListGrid",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    34.85,
+    103.65
+   ]
+  },
+  "mcGridMask": {
+   "character": 522,
+   "class": null,
+   "matrix": [
+    1.05444,
+    0.0,
+    0.0,
+    0.9437,
+    55.9,
+    90.8
+   ]
+  },
+  "mcScrollbar": {
+   "character": 530,
+   "class": "DefaultScrollBar",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    6.45839,
+    567.75,
+    164.75
+   ]
+  },
+  "mcListContainer": {
+   "character": 525,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    231.45,
+    164.85
+   ]
+  },
+  "mcTabListItem1": {
+   "character": 723,
+   "class": "TabListItem_new",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    51.0,
+    34.0
+   ]
+  },
+  "mcTabListItem2": {
+   "character": 723,
+   "class": "TabListItem_new",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    131.0,
+    34.0
+   ]
+  },
+  "mcTabListItem3": {
+   "character": 723,
+   "class": "TabListItem_new",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    211.0,
+    34.0
+   ]
+  },
+  "mcTabListItem4": {
+   "character": 723,
+   "class": "TabListItem_new",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    291.0,
+    34.0
+   ]
+  },
+  "mcSkillModule": {
+   "character": 721,
+   "class": "CharacterSkillsGridModule",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    69.25,
+    111.6
+   ]
+  },
+  "mcTabListItem5": {
+   "character": 723,
+   "class": "TabListItem_new",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    371.0,
+    34.0
+   ]
+  },
+  "mcTabList": {
+   "character": 592,
+   "class": "TabListRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    42.45,
+    12.85
+   ]
+  },
+  "txtTitle": {
+   "character": 737,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    411.05,
+    38.35
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     218.0,
+     84.9
+    ],
+    "size": 34.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  }
+ }
+}

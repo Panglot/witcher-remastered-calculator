@@ -1,0 +1,174 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "SlotSkillGridRef",
+ "children": {
+  "colorBorder": {
+   "character": 429,
+   "class": "SkillsSlots_ActiveBackground_new_59",
+   "matrix": [
+    1.00021,
+    0.0,
+    0.0,
+    0.99976,
+    0.0,
+    0.0
+   ]
+  },
+  "mcSizeAnchor": {
+   "character": 430,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    0.5,
+    -0.25,
+    0.25
+   ]
+  },
+  "iconLock": {
+   "character": 432,
+   "class": null,
+   "matrix": [
+    0.5,
+    0.0,
+    0.0,
+    0.5,
+    -0.6,
+    2.35
+   ]
+  },
+  "equipedIcon": {
+   "character": 446,
+   "class": "SkillsSlots_equipedIcon_new_70",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  },
+  "mcHoldAnimBlock": {
+   "character": 448,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    0.875,
+    0.0,
+    4.0
+   ]
+  },
+  "coreFrame": {
+   "character": 458,
+   "class": "mc_core_frame_new_111",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    32.3,
+    32.75
+   ]
+  },
+  "unlockAnim": {
+   "character": 461,
+   "class": "mc_unlockskill_anim_112",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -6.3,
+    -4.1
+   ]
+  },
+  "mcStateSelectedActive": {
+   "character": 465,
+   "class": null,
+   "matrix": [
+    0.99985,
+    0.0,
+    0.0,
+    0.99956,
+    32.0,
+    31.95
+   ]
+  },
+  "mcStateSelectedPassive": {
+   "character": 466,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -15.0,
+    -15.0
+   ]
+  },
+  "mcStateDropTarget": {
+   "character": 469,
+   "class": null,
+   "matrix": [
+    1.00031,
+    0.0,
+    0.0,
+    1.00031,
+    32.0,
+    32.0
+   ]
+  },
+  "mcCollapsedTooltipIcon": {
+   "character": 472,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    22.05,
+    53.35
+   ]
+  },
+  "mcColorBackground": {
+   "character": 491,
+   "class": "ColorBackground",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    31.55,
+    32.4
+   ]
+  },
+  "mcSkillPoints": {
+   "character": 492,
+   "class": "SlotPointIndicator",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    32.0,
+    62.0
+   ]
+  },
+  "mcHitArea": {
+   "character": 493,
+   "class": null,
+   "matrix": [
+    1.28415,
+    0.0,
+    0.0,
+    1.28406,
+    32.05,
+    31.95
+   ]
+  }
+ }
+}

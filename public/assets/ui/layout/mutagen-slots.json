@@ -1,0 +1,438 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "mc_slotContainer_1_52",
+ "children": {
+  "connector_g1_s1": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    1.08282,
+    -1.0,
+    9e-05,
+    311.65,
+    45.35
+   ]
+  },
+  "connector_g1_s3": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    -1.08386,
+    -1.0,
+    8e-05,
+    311.65,
+    240.25
+   ]
+  },
+  "connector_g1_s2": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    0.86014,
+    -1.0,
+    0.0,
+    311.0,
+    142.85
+   ]
+  },
+  "groupConnector1": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    0.86014,
+    -1.0,
+    0.0,
+    287.55,
+    143.1
+   ]
+  },
+  "connector_g2_s3": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    -1.08281,
+    1.0,
+    9e-05,
+    567.45,
+    240.3
+   ]
+  },
+  "connector_g2_s1": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    1.08281,
+    1.0,
+    9e-05,
+    567.45,
+    45.35
+   ]
+  },
+  "connector_g2_s2": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    -0.86014,
+    1.0,
+    0.0,
+    567.4,
+    142.85
+   ]
+  },
+  "groupConnector2": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    -0.86014,
+    1.0,
+    0.0,
+    591.4,
+    142.9
+   ]
+  },
+  "connector_g3_s1": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    1.09003,
+    -1.0,
+    9e-05,
+    311.65,
+    419.0
+   ]
+  },
+  "connector_g3_s3": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    -1.09003,
+    -1.0,
+    9e-05,
+    311.65,
+    615.2
+   ]
+  },
+  "connector_g3_s2": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    0.86014,
+    -1.0,
+    0.0,
+    311.0,
+    516.65
+   ]
+  },
+  "groupConnector3": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    0.86014,
+    -1.0,
+    0.0,
+    287.55,
+    516.65
+   ]
+  },
+  "connector_g4_s3": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    -1.09003,
+    1.0,
+    9e-05,
+    567.45,
+    616.2
+   ]
+  },
+  "connector_g4_s1": {
+   "character": 666,
+   "class": "SkillSlotConnectorRef",
+   "matrix": [
+    9e-05,
+    1.09003,
+    1.0,
+    9e-05,
+    567.45,
+    420.0
+   ]
+  },
+  "groupConnector4": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    -0.86014,
+    1.0,
+    0.0,
+    591.4,
+    517.6
+   ]
+  },
+  "connector_g4_s2": {
+   "character": 659,
+   "class": "ConnectorLineRef",
+   "matrix": [
+    0.0,
+    -0.86014,
+    1.0,
+    0.0,
+    567.4,
+    517.6
+   ]
+  },
+  "gr1_socket1": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    319.45,
+    12.05
+   ]
+  },
+  "gr1_socket2": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    319.45,
+    112.15
+   ]
+  },
+  "gr1_socket3": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    319.45,
+    212.3
+   ]
+  },
+  "gr2_socket1": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    496.1,
+    12.05
+   ]
+  },
+  "gr2_socket2": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    496.1,
+    112.15
+   ]
+  },
+  "gr2_socket3": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    496.1,
+    212.3
+   ]
+  },
+  "gr3_socket1": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    319.45,
+    387.4
+   ]
+  },
+  "gr3_socket2": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    319.45,
+    485.65
+   ]
+  },
+  "gr3_socket3": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    319.45,
+    584.55
+   ]
+  },
+  "gr1_mutagen": {
+   "character": 613,
+   "class": "SlotSkillMutagenRef",
+   "matrix": [
+    0.61052,
+    -0.6105,
+    0.6105,
+    0.61052,
+    170.95,
+    145.55
+   ]
+  },
+  "gr3_mutagen": {
+   "character": 613,
+   "class": "SlotSkillMutagenRef",
+   "matrix": [
+    0.61052,
+    -0.6105,
+    0.6105,
+    0.61052,
+    170.95,
+    518.6
+   ]
+  },
+  "gr2_mutagen": {
+   "character": 613,
+   "class": "SlotSkillMutagenRef",
+   "matrix": [
+    0.61047,
+    -0.61047,
+    0.61047,
+    0.61047,
+    630.5,
+    145.55
+   ]
+  },
+  "gr4_mutagen": {
+   "character": 613,
+   "class": "SlotSkillMutagenRef",
+   "matrix": [
+    0.61052,
+    -0.6105,
+    0.6105,
+    0.61052,
+    630.5,
+    518.6
+   ]
+  },
+  "gr4_socket1": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    496.1,
+    387.4
+   ]
+  },
+  "gr4_socket2": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    496.1,
+    485.65
+   ]
+  },
+  "gr4_socket3": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    496.1,
+    584.55
+   ]
+  },
+  "bonusSocket4": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    812.95,
+    489.45
+   ]
+  },
+  "bonusSocket1": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    12.0,
+    109.95
+   ]
+  },
+  "bonusSocket3": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    15.0,
+    493.15
+   ]
+  },
+  "bonusSocket2": {
+   "character": 644,
+   "class": "SlotSkillSocketRef",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    802.95,
+    115.5
+   ]
+  }
+ }
+}

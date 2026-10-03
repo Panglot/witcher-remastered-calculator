@@ -1,0 +1,67 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "TabListItem_new",
+ "children": {
+  "mcIcon": {
+   "character": 567,
+   "class": "mcIcon_16",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  },
+  "mcOpened": {
+   "character": 578,
+   "class": "mcIcon_Selected_17",
+   "matrix": [
+    0.83307,
+    0.0,
+    0.0,
+    0.83307,
+    1.0,
+    1.0
+   ],
+   "cxform": {
+    "mult": [
+     1.0,
+     1.0,
+     1.0,
+     0.0
+    ],
+    "add": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "mcText": {
+   "character": 722,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -28.0,
+    22.35
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     63.0,
+     30.55
+    ],
+    "size": 21.0,
+    "color": "#aa9578ff",
+    "align": "right"
+   }
+  }
+ }
+}
