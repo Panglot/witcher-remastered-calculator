@@ -168,6 +168,49 @@ Several items are "decide after seeing it". Cheap ways to see them:
 - Screenshot comparisons against `docs/reference/` with `tools/compare_screen.py` for anything that copies a game screen.
 - Build the full-screen layout (item 7) first on a branch. Most of the other placement questions get easier once that's in place.
 
+## 10. Character level and slot unlocks (optional)
+
+**Now:** every socket and diamond is open. The lock art (`slots/lock.svg`) and the apply-mode rule that locked holders can't be picked are documented in [game-assets.md](game-assets.md) but not used.
+
+**Goal:** slots open at character levels, as in-game. It works both ways:
+- **Level first:** pick a level. Slots above it show locked and can't take anything.
+- **Build first:** every slot stays usable. The build shows a **required level**: the lowest level that has every used slot open.
+
+**Recommendation:**
+- One data table, slot index to unlock level, e.g. `rules.slotLevels`. Both modes read it. Only the "is this slot locked" check differs:
+  - level mode: `slotLevel > level`,
+  - build mode: never locked, and required level = highest `slotLevel` among the used slots.
+- Put that check in the planner core (`slotKinds.js`), which already decides where an item can go. Apply mode, drag and drop targets then respect locks with no changes of their own.
+- Store the level (or "no level") in the build, as a new optional field in the build data (`l`). Old codes without it load in build-first mode.
+- Show it next to POINTS AVAILABLE or in the C modal, depending on space.
+- Take the unlock levels from the game files, not wikis. The Remastered patch may have changed them.
+
+**To decide:**
+- Should the level also set the point budget? Points come from levels and from places of power, so the level only gives a starting point.
+- Where the mode switch and the level field go: C modal or main screen.
+
+## 11. Blood and Wine mutations (later)
+
+**Goal:** the Mutations system from the Blood and Wine expansion: research mutations, equip one, and get the extra skill slots that researched mutations unlock.
+
+**What's already there:**
+- The Mutations tree background (`tree/bg-mutations.png`, the 5th frame of the tree panel) is in the asset set.
+- The rest of the Mutations panel art was left out on purpose: silhouette, vignette, mutation orbs, research progress, `MutationTooltip*`. See "Out of scope" in [game-assets.md](game-assets.md).
+
+**Needed:**
+- **Data:** each mutation's effect, research cost (skill points and mutagens) and which mutations it needs first. Also how many researched mutations open each extra slot. Take all of it from the game files, like item 1.
+- **Assets:** a recipe pass for the Mutations panel art and the mutation icons in `tools/build_ui_assets.py`.
+- **Rules:**
+  - Research spends skill points, so it shares the budget with the trees.
+  - The extra slots are more sockets, so the planner needs a variable slot count (now a fixed `slotGroups × slotsPerGroup`).
+  - Only skills matching the equipped mutation's color can go in the extra slots (to confirm in-game).
+- **UI:** in-game it's a separate panel, so it fits as its own screen or a 5th tab using the existing tab and layer system (item 2).
+- **Build data:** researched and equipped mutations as new optional fields, so old codes still load.
+
+**Recommendation:** don't start this before items 1 and 10. It reuses the extraction tool from item 1, and it needs the variable slot count, so build that slot model (slots that can be locked) with item 10 in a way mutations can extend. It can also wait for the asset recipe and the layer manager.
+
+**To decide:** does the build track which mutations are researched (and their cost in points), or only the one equipped?
+
 ## Suggested order
 
 1. Layer manager and the Popup/Sheet blocks (item 2). Everything else depends on them. Port apply mode onto it.
@@ -176,4 +219,6 @@ Several items are "decide after seeing it". Cheap ways to see them:
 4. Settings: background, auto-cycle, hold speed (item 6).
 5. Archetype picker (item 4).
 6. Skill data extraction tool and data (item 1). Can run alongside 1 to 5, it's independent.
-7. C modal (item 3). Last, because its best parts (active effects, summed stats) need item 1.
+7. C modal (item 3). Needs item 1 for its best parts (active effects, summed stats).
+8. Level and slot unlocks (item 10). Optional. Design the slot model so mutations can extend it.
+9. Blood and Wine mutations (item 11). Last: needs items 1, 2 and 10 and a new asset pass.
