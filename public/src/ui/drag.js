@@ -4,7 +4,8 @@
 // reads app.drag). Letting go on one of them puts it there (core/slotKinds.js, move): from the
 // panel it is equipped, from another holder the two swap. Anywhere else it goes back.
 // Picking it up ends any press-and-hold (ui/hold.js), so a hold and a drag never both act.
-// Off in apply mode.
+// While it lasts it is a non-modal layer (ui/layers.js) on top: Escape puts the item back and the
+// planner's other keys do nothing. Off in apply mode.
 import { $ } from "./dom.js";
 import { artUrl } from "./gameArt.js";
 import { cancelHolds } from "./hold.js";
@@ -17,6 +18,7 @@ export function mountDrag(app) {
   const screen = $("screen"), ghost = $("dragGhost");
   // The press that may become a drag, then the drag itself (also app.drag while it lasts).
   let press = null;
+  const layer = { name: "drag", modal: false, keys: () => true, escape: () => end() };
 
   screen.addEventListener("pointerdown", e => {
     const part = e.target.closest("[data-drag]");
@@ -38,17 +40,11 @@ export function mountDrag(app) {
   document.addEventListener("pointerup", e => { if (press && e.pointerId === press.pointer) drop(e); });
   document.addEventListener("pointercancel", e => { if (press && e.pointerId === press.pointer) end(); });
   window.addEventListener("blur", () => end());
-  // While dragging, Escape puts the item back and the planner's other keys do nothing.
-  app.hotkeys.add(e => {
-    if (!app.drag) return false;
-    if (e.key === "Escape") end();
-    return true;
-  }, true);
-
   function pickUp() {
     cancelHolds();
     const { kind, id, from, size } = press;
     app.drag = { kind, id, from };
+    app.layers.open(layer);
     ghost.style.setProperty("--size", `${size}px`);
     ghost.innerHTML = `<img src="${artUrl(app.views.tree.icon(kind, id))}" alt="">`;
     ghost.hidden = false;
@@ -84,6 +80,7 @@ export function mountDrag(app) {
     press = null;
     if (!app.drag) return;
     app.drag = null;
+    app.layers.close(layer);
     ghost.hidden = true; ghost.innerHTML = "";
     document.documentElement.classList.remove("dragging");
     app.views.slots.showDrop();

@@ -16,8 +16,11 @@ export const placed = (child, inner, attrs = "") => `<g transform="${matrix(chil
 const ICON_ALPHA = { locked: 0.3, open: 1, learned: 1 };
 // Skill icons sit inside the 64px border.
 const ICON_INSET = 4;
-// node/selected.png is drawn at a quarter of its size, about 76px around a socket (by eye).
-const SELECTED_SCALE = 0.25;
+// mcStateSelectedActive differs by holder. Tree nodes place sprite 465: node/selected.png filling a
+// 76px square at (-38, -38), a quarter of its size. Sockets and diamonds place sprite 513: the vector
+// slots/selected.svg (shape 511, 73.4 x 69.15), which their layout matrices stretch to a square.
+const NODE_SELECTED_SCALE = 0.25;
+const SLOT_SELECTED = "slots/selected.svg";
 const DIAMOND_FRAME = "mutagens/diamond-frame.svg";
 // Open (available, unlearned) skills: the colour fill under node/equipped-overlay.png's vignette
 // at OPEN_VIGNETTE alpha and a black shade at OPEN_SHADE alpha. Both fitted to an in-game
@@ -105,7 +108,9 @@ export function createPieces(art) {
   }
 
   // Class "gsel": styles.css pulses it, and hides it inside an unselected .gnode / .gsock / .gdiamond.
-  const selectedFrame = (at, scale = SELECTED_SCALE) => placed(at, imgAt("node/selected.png", 0, 0, scale), ` class="gsel"`);
+  // `inner` is the frame art: the tree node's bitmap by default, or the slots' vector (slotSelection).
+  const selectedFrame = (at, inner = imgAt("node/selected.png", 0, 0, NODE_SELECTED_SCALE)) => placed(at, inner, ` class="gsel"`);
+  const slotSelection = () => piece(SLOT_SELECTED);
   // mcStateDropTarget (sprite 509): shape 507, a 64px square outline, centred, at DROP_TARGET's
   // colour and alpha. Drawn as a vector with a 1px non-scaling stroke: as an image the line blurs and
   // loses an edge on the diamond (0.61 scale, turned 45°), and this keeps it as thin as the sockets'.
@@ -162,7 +167,7 @@ export function createPieces(art) {
       out += img(`node/equipped-${color}.png`, 0, 0, 0.5) + icon(file) + BUY_BLOCK
         + img(`node/border-${color}.png`, 0, 0, 0.5) + pips(L.mcSkillPoints, rank, color);
     }
-    if (selected) out += selectedFrame(L.mcStateSelectedActive);
+    if (selected) out += selectedFrame(L.mcStateSelectedActive, slotSelection());
     return out;
   }
 
@@ -180,13 +185,14 @@ export function createPieces(art) {
       + (locked ? "" : dropFrame(L.mcStateDropTarget))
       + (color && !locked ? glowable(imgAt(mutagenIcon(color, size), SOCKET / 2, SOCKET / 2, 0.9)) : "")
       + (locked ? placed(L.iconLock, img("slots/lock.svg", 0, 0)) : "")
-      + (selected ? selectedFrame(diamondSelection(L.mcStateSelectedActive)) : "");
+      + (selected ? selectedFrame(diamondSelection(L.mcStateSelectedActive), slotSelection()) : "");
   }
-  // The layout's selection placement sits about 2px off the frame's centre and stretches one
-  // diagonal by 3%, which shows against the frame: keep its mean scale, centred on the frame.
+  // The layout's selection placement sits about 2px off the frame's centre and leaves one diagonal
+  // 3% longer, which shows against the frame: keep its mean size as a square, centred on the frame.
   function diamondSelection({ matrix: [a, , , d] }) {
-    const [w, h] = art.size(DIAMOND_FRAME), [ox, oy] = art.origin(DIAMOND_FRAME), s = (a + d) / 2;
-    return { matrix: [s, 0, 0, s, w / 2 - ox, h / 2 - oy] };
+    const [w, h] = art.size(DIAMOND_FRAME), [ox, oy] = art.origin(DIAMOND_FRAME);
+    const [sw, sh] = art.size(SLOT_SELECTED), side = (a * sw + d * sh) / 2;
+    return { matrix: [side / sw, 0, 0, side / sh, w / 2 - ox, h / 2 - oy] };
   }
 
   /**
@@ -199,7 +205,7 @@ export function createPieces(art) {
     const c = INVENTORY.cell;
     if (!file) return "";
     return `<rect width="${c}" height="${c}" fill="${ITEM_FILL}"/>` + glowable(box(file, 0, 0, c, c), "item")
-      + (selected ? selectedFrame({ matrix: [1, 0, 0, 1, c / 2, c / 2] }, c / art.size("node/selected.png")[0]) : "");
+      + (selected ? selectedFrame({ matrix: [1, 0, 0, 1, c / 2, c / 2] }, imgAt("node/selected.png", 0, 0, c / art.size("node/selected.png")[0])) : "");
   }
 
   /** A mutagen divider line, centred on (0, 0) and running along y. */

@@ -12,6 +12,7 @@ const LAYOUTS = ["screen", "tree-panel", "tree-node", "tab", "tooltip", "legend-
 const VECTORS = [
   [/^(node|slots)\/lock\.svg$/, { size: [56.15, 54.5] }],
   [/^slots\/frame\.svg$/, { size: [81.1, 77.85] }],
+  [/^slots\/selected\.svg$/, { size: [73.4, 69.15], origin: [36.7, 34.55] }],
   [/^mutagens\/diamond-frame\.svg$/, { size: [89.65, 86.45], origin: [13.6, 11.4] }],
   [/^mutagens\/connectors\/corner-/, { size: [93.2, 32.95], origin: [2.5, 10.5] }],
   [/^mutagens\/connectors\/line-/, { size: [11.4, 30.4], origin: [5.65, 6.1] }],

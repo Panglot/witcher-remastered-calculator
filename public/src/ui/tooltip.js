@@ -3,7 +3,7 @@
 // game's (flipped left when it would leave the screen).
 // Every render rebuilds it, so it follows rank changes and redraws of the part under it. Hidden
 // while an item is dragged (ui/drag.js).
-import { $, esc } from "./dom.js";
+import { $ } from "./dom.js";
 
 // Rounds away float noise in passive bonus totals (0.1 + 0.2).
 const tidy = n => Math.round(n * 10) / 10;
@@ -16,13 +16,17 @@ export function mountTooltip(app) {
   let target = null;
 
   // Tooltip kinds by data attribute, first match wins: data-tip is a skill id, data-mutagen a
-  // mutagen id (with data-group when it sits in a group), data-hint plain text.
-  const KINDS = { tip: part => skillTip(part.dataset.tip), mutagen: mutagenTip, hint: part => hintTip(part.dataset.hint) };
+  // mutagen id (with data-group when it sits in a group), data-hint plain text under the optional
+  // data-hint-title.
+  const KINDS = { tip: part => skillTip(part.dataset.tip), mutagen: mutagenTip, hint: hintTip };
   const SELECTOR = Object.keys(KINDS).map(k => `[data-${k}]`).join(", ");
   const kindOf = part => Object.keys(KINDS).find(k => k in part.dataset);
+  // The holder index tells apart parts with the same tooltip (two empty sockets).
+  const PLACES = ["group", "slot"];
   function keyOf(part) {
-    const k = kindOf(part), group = part.dataset.group;
-    return `[data-${k}="${CSS.escape(part.dataset[k])}"]` + (group ? `[data-group="${group}"]` : "");
+    const k = kindOf(part);
+    return `[data-${k}="${CSS.escape(part.dataset[k])}"]`
+      + PLACES.filter(a => part.dataset[a] != null).map(a => `[data-${a}="${part.dataset[a]}"]`).join("");
   }
   function follow(part) {
     const next = part && { panel: part.closest("[data-panel]"), key: keyOf(part) };
@@ -63,8 +67,10 @@ export function mountTooltip(app) {
     });
   }
 
-  // A hint is a plain line in the tooltip body.
-  const hintTip = text => `<div class="gtip gtip-hint"><p>${esc(text)}</p></div>`;
+  // A hint is a plain line under a header with its title, like the game's empty slot tooltip.
+  function hintTip(part) {
+    return app.game.panels.hintTooltip({ title: part.dataset.hintTitle, text: part.dataset.hint });
+  }
 
   function place(part) {
     const s = screen.getBoundingClientRect(), r = part.getBoundingClientRect();

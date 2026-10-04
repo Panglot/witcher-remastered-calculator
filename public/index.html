@@ -16,17 +16,10 @@
 <!-- Shared SVG filters, filled by src/main.js. Rendered (not display: none) so every browser applies them. -->
 <svg class="svg-defs" id="gameDefs" aria-hidden="true" width="0" height="0"></svg>
 <div class="wrap">
-  <header>
-    <div class="topbar">
-      <h1>Witcher 3 Remastered Build planner</h1>
-      <nav class="pagenav" id="pageNav" aria-label="Pages">
-        <a href="#planner" data-nav="planner">Planner</a>
-        <a href="#demo" data-nav="demo">Asset demo</a>
-      </nav>
-    </div>
-  </header>
+  <!-- No visible title: the browser tab is the page title (docs/roadmap.md, item 7). -->
+  <h1 class="visually-hidden">Witcher 3 Remastered Build planner</h1>
 
-  <main class="page" id="pagePlanner" data-page="planner">
+  <main class="page" id="pagePlanner">
   <!-- The Character screen: each panel at its game position, drawn by ui/tree.js, points.js,
        slots.js and legend.js once the game art has loaded; ui/tooltip.js floats over it.
        Apply mode (ui/applyMode.js) darkens the page and the [data-masked] parts, lifts the item
@@ -89,14 +82,6 @@
     </section>
   </div>
   </main>
-
-  <!-- Filled by src/ui/assetDemo.js the first time it's opened. -->
-  <main class="page gdemo" id="pageDemo" data-page="demo" aria-label="Asset demo" hidden></main>
-
-  <footer class="legal">
-    <p>Unofficial fan work, not approved or endorsed by CD PROJEKT RED. The Witcher and all related names, icons and assets are property of CD PROJEKT RED.</p>
-    <p>Free and non-commercial, made for the community.</p>
-  </footer>
 </div>
 <script type="module" src="src/main.js"></script>
 </body>

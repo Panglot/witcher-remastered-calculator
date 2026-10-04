@@ -4,7 +4,7 @@
 // core/slotKinds.js. Like the game: pressing a full one selects it (it is framed, not the panel
 // item); Space (on the focused or framed one), a double-click or right-click (or Delete) takes its
 // item out; holding the left button or E on a skill adds a point, as in the tree (ui/hold.js).
-// Clicking an empty one of the kind not shown opens that kind's tab. Items go in through apply mode
+// Clicking an empty diamond opens the mutagen tab (SlotKind.emptyOpensTab). Items go in through apply mode
 // (ui/applyMode.js): there a click picks a holder of the kind being equipped and a double-click
 // fills it, or they are dragged in (ui/drag.js), which finds the holder under the pointer with
 // holderAt. A hovered skill or mutagen lights the holders it could go into (ui/dropTargets.js).
@@ -16,6 +16,9 @@ import { VIEWS } from "./gamePanels.js";
 // Holder attribute -> slot kind name. Sockets carry data-slot, diamonds data-group.
 const HOLDERS = { slot: "skill", group: "mutagen" };
 const HOLDER_SELECTOR = Object.keys(HOLDERS).map(a => `[data-${a}]`).join(", ");
+// Tooltip of an empty holder by kind name, the game's own text (ui/tooltip.js, data-hint).
+const EMPTY_TIP = { title: "Empty slot", text: { skill: "Place an Ability here to activate it.", mutagen: "Place a mutagen here to activate it." } };
+const emptyTipAttrs = name => ` data-hint="${esc(EMPTY_TIP.text[name])}" data-hint-title="${esc(EMPTY_TIP.title)}"`;
 
 export function mountSlots(app) {
   const { catalog, planner, state, kinds } = app;
@@ -67,7 +70,7 @@ export function mountSlots(app) {
     const h = holderOf(e); if (!h) return;
     if (app.apply) { if (aimable(h)) { app.views.apply.aim(h.i); frame(h.g); } return; }
     if (itemOf(h)) selectInPlace(h);
-    else if (!h.kind.shown(state)) { h.kind.open(state); app.msg = ""; app.render(); }
+    else if (h.kind.emptyOpensTab && !h.kind.shown(state)) { h.kind.open(state); app.msg = ""; app.render(); }
   });
   el.addEventListener("dblclick", e => {
     const h = holderOf(e); if (!h) return;
@@ -123,7 +126,7 @@ export function mountSlots(app) {
   // Text for an empty holder: what it is and what a click there does.
   function emptyLabel(what, name) {
     const action = app.apply ? (name === app.apply.kind ? "Click to pick it, double-click to equip here." : "")
-      : kinds[name].shown(state) ? "Equip from the panel with Space, a double-click or by dragging it here." : "Click to open its tab.";
+      : kinds[name].shown(state) ? "Equip from the panel with Space, a double-click or by dragging it here." : "";
     return [`Empty ${what}.`, action].filter(Boolean).join(" ");
   }
 
@@ -134,7 +137,7 @@ export function mountSlots(app) {
     const id = state.slots[index];
     if (!id) {
       const label = emptyLabel("slot", "skill");
-      return { ...holderView("skill", index, lit), attrs: ` data-slot="${index}" tabindex="0" role="button" aria-label="${esc(label)}"` };
+      return { ...holderView("skill", index, lit), attrs: ` data-slot="${index}"${emptyTipAttrs("skill")} tabindex="0" role="button" aria-label="${esc(label)}"` };
     }
     const n = nodes[id], rank = planner.rank(state, id);
     return {
@@ -143,12 +146,13 @@ export function mountSlots(app) {
     };
   }
 
-  // A diamond with a mutagen shows its tooltip (ui/tooltip.js, data-mutagen); an empty one a hint.
+  // A diamond with a mutagen shows its tooltip (ui/tooltip.js, data-mutagen); an empty one the
+  // game's empty slot tooltip.
   function groupView(g, lit) {
     const bonus = planner.groupBonus(state, g), m = mutagens[bonus.mutagen];
     const label = m ? `${m.name}, +${bonus.value}${m.stat.unit} ${m.stat.label}, equipped`
       : emptyLabel("mutagen slot", "mutagen");
-    const tip = m ? ` data-mutagen="${m.id}"${dragAttrs("mutagen", m.id, g)}` : ` data-hint="${esc(label)}"`;
+    const tip = m ? ` data-mutagen="${m.id}"${dragAttrs("mutagen", m.id, g)}` : emptyTipAttrs("mutagen");
     return {
       ...holderView("mutagen", g, lit), mutagen: bonus.color, size: m && m.size,
       bonus: m ? `+${bonus.value}${m.stat.unit}` : null,

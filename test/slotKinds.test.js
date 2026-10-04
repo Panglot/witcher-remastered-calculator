@@ -134,3 +134,8 @@ test("only skills take points from a holder", () => {
   assert.equal(s.pts.r, 2);
   assert.equal(kinds.mutagen.canRaise(s, "red-x"), false);
 });
+
+test("only an empty mutagen holder opens its tab on a click", () => {
+  assert.equal(kinds.skill.emptyOpensTab, false);
+  assert.equal(kinds.mutagen.emptyOpensTab, true);
+});

@@ -1,0 +1,234 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "MenuListModule",
+ "children": {
+  "mcList": {
+   "character": 360,
+   "class": "W3ScrollingListNoBG",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    -50.0
+   ]
+  },
+  "mcGameLogo": {
+   "character": 711,
+   "class": "mcGameLogoRE_28",
+   "matrix": [
+    0.22855,
+    0.0,
+    0.0,
+    0.22855,
+    -1.0,
+    -227.0
+   ]
+  },
+  "mcListItem1": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  },
+  "mcListItem2": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    42.0
+   ]
+  },
+  "mcListItem3": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    84.0
+   ]
+  },
+  "mcListItem4": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    126.0
+   ]
+  },
+  "mcListItem5": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    168.0
+   ]
+  },
+  "mcListItem6": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    210.0
+   ]
+  },
+  "mcListItem7": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    252.0
+   ]
+  },
+  "mcListItem8": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    294.0
+   ]
+  },
+  "mcListItem9": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    336.0
+   ]
+  },
+  "mcListItem10": {
+   "character": 693,
+   "class": "MenuListItemCommon",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    378.0
+   ]
+  },
+  "mcMenuTitleUnderline": {
+   "character": 713,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    3.0,
+    -48.75
+   ],
+   "cxform": {
+    "mult": [
+     1.0,
+     1.0,
+     1.0,
+     0.390625
+    ],
+    "add": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "txtMenuListTitle": {
+   "character": 714,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -172.0,
+    -75.95
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     341.0,
+     61.9
+    ],
+    "size": 26.0,
+    "color": "#72635bff",
+    "align": "center"
+   }
+  },
+  "txtMenuListDescripion": {
+   "character": 715,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -166.0,
+    325.8
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     332.0,
+     283.95
+    ],
+    "size": 24.0,
+    "color": "#979797ff",
+    "align": "center"
+   }
+  },
+  "MenuContinue": {
+   "character": 723,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -169.55,
+    65.75
+   ]
+  }
+ }
+}

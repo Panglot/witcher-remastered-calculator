@@ -70,6 +70,7 @@ java -jar ffdec.jar -format sprite:png -zoom 2 -export sprite out research/swf/p
 | Character screen (layout, code, textures) | `r4gui.bundle`: `gameplay\gui_new\swf\character\panel_character_dupe.redswf` | CR2W: Scaleform movie + `CSwfTexture` objects |
 | Skill tooltip, other shared components | `r4gui.bundle`: `gameplay\gui_new\swf\common\componentslib.redswf` | same |
 | Menu frame: background, key legend, top bar | `r4gui.bundle`: `gameplay\gui_new\swf\common\panel_common.redswf` | same |
+| In-game Esc menu | `r4gui.bundle`: `gameplay\gui_new\swf\mainmenu\panel_ingamemenu.redswf` | same |
 | Skill definitions | `xml.bundle`: `gameplay\abilities\geralt_skills.xml` | XML |
 | Skill icons, mutagen icons, menu panoramas | `content/content0/texture.cache` (31 GB) | Paged zlib blobs |
 | Game logic | `content/content0/scripts/**/*.ws` | Plain text |
@@ -123,6 +124,7 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `legend/` | `mouse-<left/right/middle/scroll>.png`, `key.svg` |
 | `points/` | `diamond.png` |
 | `popup/` | `frame.svg`, `buttons-frame.svg` (message popup, `popup_message.redswf`) |
+| `menu/` | `sheet.png`, `frame.png`, `title-underline.png` (Esc menu, `panel_ingamemenu.redswf`) |
 | `layout/` | Where the game places things: one JSON per sprite with each named child's matrix, color transform and text style |
 
 Colors: `red` combat, `blue` signs, `green` alchemy, `yellow` general, `grey` locked or not learned.
@@ -177,7 +179,7 @@ Children, back to front:
 4. `coreFrame`: `node/core-border-<color>` (core skills only).
 5. `mcColorBackground`: `slots/fill-<color>`.
 6. `mcSkillPoints`: rank pips centered at (32, 62). `SlotPointIndicator.setCount` adds one `SkillPointIndicatorSingle` (`layout/pip.json`, sprite 31) per rank, spaced by its width: the 40px `node/pip-<color>` turned 45° at 0.249 scale (about 10px a side, 14.1px corner to corner), so neighbouring pips touch. Frame `on` adds `node/pip-fill` on top.
-7. `mcStateSelectedActive`: `node/selected.png` around the focused node. Its sprite (513) is a 35-frame loop; in game the border pulses, opacity 100% to 0% and back (seen in `reference/signs.png`; the exact curve has not been read from the frames).
+7. `mcStateSelectedActive`: the frame around the focused piece. A tree node places sprite 465: `node/selected.png` (sub 462) filling a 76 px square at (-38, -38). Sockets and diamonds place sprite 513: shape 511, a white vector double frame with notched corners (`slots/selected.svg`, 73.4 x 69.15), which the socket layout scales (1.199, 1.273) to 88 x 88, about 12 px around the 64 px skill (matches the in-game screenshot). Both sprites are 35-frame loops; in game the border pulses, opacity 100% to 0% and back (seen in `reference/signs.png`; the exact curve has not been read from the frames).
 8. `mcCollapsedTooltipIcon`: `node/tooltip-hint.png`.
 
 The skill icon is loaded by code into the slot. The unlock flash is a white fade.
@@ -225,6 +227,19 @@ The "Are you sure you want to quit?" popup. The Reset abilities mod (`modResetAb
 - `mcInputBackground` (`popup/buttons-frame.svg`, shape 176: `#0e0d0c` with a `#241d17` frame, 341 x 49) at (-168.8, 242.15), across the panel's bottom edge.
 - Button label colors (`ModuleInputFeedback.getColorByNavCode`): accept (A) `#1C971C`, back (B) `#9E2828`. Button background: `InputFeedbackButton_kb_background`, `#b4a17c` through a color transform (mult 0.1, add 23/22/22), about `#292623`.
 - Measured from an in-game "Load saved game" screenshot (scale about 0.91), which the planner follows over the values above: the button fill is `#161515` (the transform's add alone) inside a 1 px `#0c0b0a` ring and a faint `#141313` outline, 36 px tall, 16 px apart, with the key text grey (`#cecece`). The button strip shrinks around its buttons (about 12 px from its outer edge) and is 55 px tall, centred on the panel's bottom edge. Under the title is a 63 px header band: a faint warm glow brightest at the centre (`#463a28` at 0.035 to 0.1 over the panel) ending in a 3 px line (same colour, 0.05 to 0.19). Text starts 20 px under the band and ends 21 px above the strip.
+
+### Esc menu (`panel_ingamemenu.redswf`, `MenuListModule`, `layout/menu.json`)
+
+The in-game menu (`IngameMenu`) is a list module at (333, 370) on the screen, left of centre. The planner centres it.
+
+- Sheet: `menu/sheet.png` (texture 694, 400 x 1080, a whole texture rather than an atlas slice), a black strip with torn left and right edges that fades to brown at the bottom. Shape 695 stretches it to 369 x 1920 centred at y 162.85, at alpha 0.95, so it runs past the top and bottom of the screen. The planner widens the column from 340 to 390 for its longer text, and the sheet with it (419 x 1920).
+- Title `txtMenuListTitle` at y -75.95: 26 px, `#72635b`, centred, 341 wide. Under it `mcMenuTitleUnderline` (`menu/title-underline.png`, sub 449, 8 x 3 of `#4a3429`) stretched to 203 x 3, alpha 0.39.
+- Items `MenuListItemCommon` at y 0, 42, 84, ...: text 24 px `#979797`, centred, 284 wide at x -141, in capitals (`_CapitalizeAll`). Code colours: unavailable `#555555`, a Back item white while not selected (`W3MenuListItemRenderer.updateText`).
+- Selection `mcFrame` (sprite 692, states `selected_*`): a plain white box (shape 690, 339.7 x 61.35 at (-169.9, -15.3)), height set to the text height + 33, its alpha pulsing 1 > 0.4 > 1 over 26 frames at 30 fps. No filters or blend mode, so in the movie data it really is a white box. In game (`docs/reference/escape_menu.png`, 1080p) the frame is 340 x 59 centred on the item text, two 1 px light gray (about `#c5c5c5`) lines 3 px apart with notched corners: `SelectedFrameRef` (`menu/frame.png`, sub 389, 286 x 286, 2 px `#5d4d42` lines in 14 px corners) at half scale, tinted. Items are 43 px apart, so the frame overlaps the rows next to it and ends about 7 px above the next item's letters. The planner draws `menu/frame.png` 9-sliced (14 px slice at 7 px) at 59 px with `filter: grayscale(1) brightness(2.6)` and the movie's pulse.
+- Description `txtMenuListDescripion` at y 325.8: 24 px `#979797`, centred.
+- Logo `mcGameLogo` (`mcGameLogoRE_28`, one frame per language, 1024 x 501 slices) at (-1, -227), scale 0.22855. Frame EN is `menu/logo.png` (sub 697, drawn by shape 698 at 2.05x from (-1034, -491)), so on screen it is 480 x 235 with its top left at (-237, -339) from the first item and its bottom 28 px above the title. It is wider than the sheet; its transparent margins hide that.
+- Key hints: `mcInputFeedbackModule` at (1735, 1023), bottom right.
+- `mcBlackBackground` (`MC_IMG_Background_Assets`) is a full black backdrop with fog, shown behind submenus that hide the game. The planner uses the popup's 0.6 mask instead, fainter than the sheet.
 
 ### Tooltip (`componentslib`, `SkillTooltipRef`, `layout/tooltip.json`)
 

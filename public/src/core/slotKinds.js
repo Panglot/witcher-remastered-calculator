@@ -27,6 +27,7 @@ import { MUTAGEN_TAB } from "./catalog.js";
  * @property {(s: object, id: string, at?: number|null) => void} select  selects and opens the item's tab
  * @property {(s: object) => boolean} shown  its tab is open, so its selection is the one framed
  * @property {(s: object) => void} open  opens the tab that lists the kind
+ * @property {boolean} emptyOpensTab  a click on an empty holder, with the kind's tab closed, opens it
  * @property {(s: object, i: number) => boolean} framedAt  holder i shows the selection frame
  * @property {(s: object, id: string) => boolean} framedInPanel  the panel item shows the selection frame
  * @property {(s: object, i: number) => (string|null)} itemAt  item in holder i
@@ -52,14 +53,14 @@ export function createSlotKinds(catalog, planner) {
     skill: {
       list: "slots", idKey: "sel", atKey: "selSlot",
       tabOf: id => nodes[id].tree, onTab: tab => tab !== MUTAGEN_TAB,
-      homeTab: s => s.sel ? nodes[s.sel].tree : order[0],
+      homeTab: s => s.sel ? nodes[s.sel].tree : order[0], emptyOpensTab: false,
       canEquip: planner.canEquipSkill, equip: planner.equipSkill, clear: planner.clearSlot,
       canRaise: planner.canAddPoint, raise: planner.addPoint
     },
     mutagen: {
       list: "mut", idKey: "selMut", atKey: "selGroup",
       tabOf: () => MUTAGEN_TAB, onTab: tab => tab === MUTAGEN_TAB,
-      homeTab: () => MUTAGEN_TAB,
+      homeTab: () => MUTAGEN_TAB, emptyOpensTab: true,
       canEquip: planner.canEquipMutagen, equip: planner.equipMutagen, clear: planner.clearMutagen,
       canRaise: cannot, raise: () => ({ ok: false, msg: "" })
     }
@@ -77,7 +78,7 @@ function slotKind(d) {
   }
   const shown = s => d.onTab(s.tab);
   return {
-    selected, heldAt, shown, itemAt,
+    selected, heldAt, shown, itemAt, emptyOpensTab: d.emptyOpensTab,
     select(s, id, at = null) { s[d.idKey] = id; s[d.atKey] = at; s.tab = d.tabOf(id); },
     open(s) { s.tab = d.homeTab(s); },
     framedAt: (s, i) => shown(s) && heldAt(s) === i,

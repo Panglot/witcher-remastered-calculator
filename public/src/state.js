@@ -31,6 +31,13 @@ export function loadState(catalog) {
   return state;
 }
 
+/** Deletes the saved build and resets `state` in place to a new one (panels hold on to the object). */
+export function clearSavedState(catalog, state) {
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  Object.keys(state).forEach(k => { delete state[k]; });
+  Object.assign(state, defaultState(catalog));
+}
+
 export function saveState(state) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
 }

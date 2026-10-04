@@ -1,7 +1,6 @@
 // The Character screen's panels, built from the pieces in screen units (layout/screen.json): tree
 // panel (a skill tree or the mutagen inventory), points row, mutagen panel, key legend, tooltip and
-// message popup. Each takes a plain view model,
-// so the planner and the asset demo draw the same screen from different data. Interactive parts
+// message popup. Each takes a plain view model. Interactive parts
 // take the caller's `attrs` (data-*, tabindex, aria-*); the caller wires the events.
 import { esc } from "./dom.js";
 import { artUrl, doubleLine, gridPos, lineEnds, BONUS_BAR, BONUS_GLYPH_AT, GAME_TABS, INVENTORY, LINE_COLORS, MUTAGEN_ART, SOCKET } from "./gameArt.js";
@@ -260,6 +259,15 @@ export function createPanels(art, pieces) {
   }
 
   /**
+   * Hint tooltip (HTML, SkillTooltipRef as the game shows it over an empty slot): the header with
+   * only the title, then one plain line.
+   * @param {{ title?: string, text: string }} o
+   */
+  function hintTooltip({ title = "", text }) {
+    return tipFrame(span("gtip-name", title.toUpperCase()), `<p class="gtip-text">${esc(text)}</p>`, "", " gtip-hint");
+  }
+
+  /**
    * Message popup (HTML, popup_message's SystemMessageModuleRef, the look of the game's "Are you
    * sure you want to quit?"): the title in its header band, optional text, and the buttons on a strip
    * over the bottom edge. Without text the panel shrinks to its title and buttons (.gpopup-short).
@@ -276,5 +284,5 @@ export function createPanels(art, pieces) {
     </div>`;
   }
 
-  return { svg, treePanel, treePanelLift, skillGrid, inventory, pointsRow, pointsLabel, pointsValue, mutagenPanel, bonusLabel, legend, tooltip, itemTooltip, popup };
+  return { svg, treePanel, treePanelLift, skillGrid, inventory, pointsRow, pointsLabel, pointsValue, mutagenPanel, bonusLabel, legend, tooltip, itemTooltip, hintTooltip, popup };
 }

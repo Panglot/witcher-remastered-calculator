@@ -44,7 +44,6 @@ public/                  The whole site. GitHub Pages publishes exactly this fol
       slotKinds.js       Skills in sockets and mutagens in diamonds behind one set of slot and selection rules.
       build.js           Build codes and export files.
     ui/                  One module per panel: mountX(app) wires events and returns { render }.
-      pages.js           Switches the top-level pages (#planner, #demo) by URL hash.
       gameArt.js         Game art paths, colours, layout data loading and tree line geometry.
       gamePieces.js      SVG builders for Character-screen pieces (node, socket, diamond, tab, text).
       gamePanels.js      Panels built from the pieces (tree panel, slots, points, legend, tooltip, popup).
@@ -53,9 +52,12 @@ public/                  The whole site. GitHub Pages publishes exactly this fol
                          The planner's Character screen, drawn with gamePanels.js.
       applyMode.js       Equipping like the game: mask, lifted item and the "Select slot" popup.
       popup.js, hold.js  The game's yes / no popup, and press-and-hold actions.
-      assetDemo.js       Asset demo page: the game art composed like the in-game screen.
+      layers.js          Layer manager: the stack of popups, apply mode, drag and menu (Esc, keys, focus, inert).
+      menu.js            The Esc menu with its Settings and About submenus.
+      summary.js, archetypes.js, share.js
+                         Points summary, archetype chips and share card under the screen (to move, docs/roadmap.md).
 server/                  Local dev server only (static files + live reload). Not deployed.
-test/                    node:test suites for core/ and the real game data.
+test/                    node:test suites for core/, state.js, layers.js and the real game data.
 tools/                   Python scripts that pull the UI art out of a local game install.
 docs/                    Notes on how the game draws the Character screen, plus reference screenshots.
 research/                Local only, gitignored: decompiled game code and raw game files. Never commit it.
@@ -75,7 +77,6 @@ What gets extracted is listed in `tools/asset-recipe.json`. [docs/game-assets.md
 
 - **Data → catalog → planner.** `data/` is plain objects. `core/catalog.js` validates it and builds lookups; `core/planner.js` applies the rules to a build `{ pts, slots, mut }`. Planner actions mutate the build and return `{ ok, msg }`, where `msg` explains a refusal.
 - **UI panels** get one shared `app` object: `{ catalog, planner, state, msg, views, render(), save(), select(id) }`. A panel changes `app.state`, then calls `app.render()`, which redraws every panel and saves to localStorage.
-- **Pages** are `<main data-page="<id>">` elements in `index.html`, shown when the URL hash is `#<id>`, with a link in the header nav. The asset demo (`#demo`) loads the game art only when it's opened.
 - **Build codes** are `W3R1.` + base64 of the build as UTF-8 JSON `{ p, s, m, b, n }` (points, slots, mutagens, budget, name). Import finds the code anywhere in pasted text or a file, so a code in a chat message or any text file loads too.
 
 ## Common changes

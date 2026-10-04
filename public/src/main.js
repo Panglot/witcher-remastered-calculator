@@ -20,17 +20,18 @@ import { mountTooltip } from "./ui/tooltip.js";
 import { mountSlots } from "./ui/slots.js";
 import { mountApplyMode } from "./ui/applyMode.js";
 import { createDropTargets } from "./ui/dropTargets.js";
+import { createPageLayers } from "./ui/layers.js";
 import { mountDrag } from "./ui/drag.js";
 import { mountArchetypes } from "./ui/archetypes.js";
 import { mountShare } from "./ui/share.js";
-import { mountPages } from "./ui/pages.js";
+import { mountMenu } from "./ui/menu.js";
 import { mountBackdrop } from "./ui/backdrop.js";
-import { mountAssetDemo } from "./ui/assetDemo.js";
 
 const catalog = createCatalog(data);
 catalog.problems.forEach(p => console.error(p));
 
 const planner = createPlanner(catalog);
+const layers = createPageLayers();
 const app = {
   catalog,
   planner,
@@ -43,8 +44,11 @@ const app = {
   apply: null,
   // The item being dragged to a holder (ui/drag.js): { kind, id, from }, else null. Not saved.
   drag: null,
-  // Page-wide planner keys; panels add their handlers.
-  hotkeys: createHotkeys($("pagePlanner")),
+  // Everything open over the planner (popups, apply mode, a drag, later the menu and side panels),
+  // top first: Esc, keys, focus and inert go through it (ui/layers.js).
+  layers,
+  // Page-wide planner keys; panels add their handlers. Open layers get keys first.
+  hotkeys: createHotkeys(layers),
   // Game art and its builders ({ art, pieces, panels }), set once loaded.
   game: null,
   views: {},
@@ -61,10 +65,8 @@ const app = {
   }
 };
 
-// Render order follows this list. Pages goes first so the others see which page is shown;
-// the tooltip goes after the panels it points at.
+// Render order follows this list: the tooltip goes after the panels it points at.
 app.views = {
-  pages: mountPages(app),
   backdrop: mountBackdrop(app),
   summary: mountSummary(app),
   tree: mountTree(app),
@@ -76,14 +78,15 @@ app.views = {
   tooltip: mountTooltip(app),
   archetypes: mountArchetypes(app),
   share: mountShare(app),
-  assetDemo: mountAssetDemo(app)
+  // The Esc menu; Esc with nothing open opens it.
+  menu: mountMenu(app)
 };
 
 // The holders the hovered skill or mutagen could go into, drawn by the slots panel.
 app.dropTargets = createDropTargets(app);
 
 // The planner's keys never fall through to the browser (Space would scroll the page).
-blockKeyDefaults($("pagePlanner"), PLANNER_KEYS);
+blockKeyDefaults(PLANNER_KEYS);
 
 app.render();
 

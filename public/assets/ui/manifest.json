@@ -858,6 +858,12 @@
    "movie": "panel_character_dupe.redswf",
    "shape": 614
   },
+  "slots/selected.svg": {
+   "from": "svg",
+   "movie": "panel_character_dupe.redswf",
+   "shape": 511,
+   "note": "mcStateSelectedActive (sprite 513) on sockets and diamonds: a white vector frame, about 88px square around a socket through the layout matrix"
+  },
   "slots/lock.svg": {
    "from": "svg",
    "movie": "panel_character_dupe.redswf",
@@ -1225,6 +1231,55 @@
    "shape": 176,
    "note": "SystemMessageModuleRef.mcInputBackground: the strip behind the buttons, over the panel's bottom edge"
   },
+  "menu/sheet.png": {
+   "from": "atlas",
+   "movie": "panel_ingamemenu.redswf",
+   "image": 694,
+   "size": [
+    400,
+    1080
+   ],
+   "note": "MenuListModule's torn black sheet (shape 695): stretched to 369x1920, centred on the list at y +162.85, alpha 0.95"
+  },
+  "menu/frame.png": {
+   "from": "atlas",
+   "movie": "panel_ingamemenu.redswf",
+   "sub": 389,
+   "size": [
+    286,
+    286
+   ],
+   "note": "SelectedFrameRef: double frame with notched corners, 9-sliced at 14px. The planner's menu hover; the game's own MenuListItemCommon.mcFrame is a plain box"
+  },
+  "menu/title-underline.png": {
+   "from": "atlas",
+   "movie": "panel_ingamemenu.redswf",
+   "sub": 449,
+   "size": [
+    8,
+    3
+   ],
+   "note": "MenuListModule.mcMenuTitleUnderline: stretched to 203x3, alpha 0.39"
+  },
+  "menu/logo.png": {
+   "from": "atlas",
+   "movie": "panel_ingamemenu.redswf",
+   "sub": 697,
+   "shape": 698,
+   "size": [
+    1024,
+    501
+   ],
+   "fill": [
+    2.05078,
+    0.0,
+    0.0,
+    2.05072,
+    -1034.0,
+    -491.0
+   ],
+   "note": "mcGameLogo (mcGameLogoRE_28) frame EN: the Witcher 3 Remastered logo, placed at (-1, -227) on the list at scale 0.22855. CDPR trademark: shown only with the fan content notice"
+  },
   "points/diamond.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
@@ -1325,6 +1380,13 @@
    "sprite": 181,
    "children": 8,
    "note": "SystemMessageModuleRef, centred at x 958.6, y 264.1 on the screen"
+  },
+  "layout/menu.json": {
+   "from": "placements",
+   "movie": "panel_ingamemenu.redswf",
+   "sprite": 724,
+   "children": 16,
+   "note": "MenuListModule at (333, 370) on the 1920x1080 screen; items 42px apart"
   }
  }
 }

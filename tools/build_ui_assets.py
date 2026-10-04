@@ -4,6 +4,7 @@ The recipe (tools/asset-recipe.json) maps every output file to where it comes fr
   {"from": "atlas", "movie": "<alias>", "sub": 418}           slice of a movie's texture atlas (GFX sub-image)
       optional "under": {"shape": 402, "at": [0, -6]}         a solid shape drawn behind it (see AtlasSource)
       optional "shape": 554                                    the shape that draws it; its fill matrix goes to the manifest
+  {"from": "atlas", "movie": "<alias>", "image": 694}         a whole movie texture (a bitmap a shape fills with directly)
   {"from": "cache", "path": "gameplay/gui_new/icons/...png"}  texture from content0/texture.cache
   {"from": "svg", "movie": "<alias>", "shape": 603}            vector shape, exported with JPEXS FFDec
   {"from": "svg", "movie": "<alias>", "sprite": 665, "frame": "SC_Red"}   one sprite frame (number or label), via FFDec
@@ -106,7 +107,11 @@ class AtlasSource:
     the manifest as "fill": where the slice lands, in px, in the shape's own units."""
 
     def build(self, ctx, src, dest):
-        image = ctx.movies.subimage(ctx.movie_path(src['movie']), src['sub'])
+        path = ctx.movie_path(src['movie'])
+        if 'image' in src:
+            image = ctx.movies.textures(path)[ctx.movie(src['movie']).images[src['image']][0]]
+        else:
+            image = ctx.movies.subimage(path, src['sub'])
         if 'under' in src:
             image = self.over_shape(ctx.movie(src['movie']), image, src['under'])
         info = save_image(image, dest)

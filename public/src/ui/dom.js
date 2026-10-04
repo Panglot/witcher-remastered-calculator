@@ -13,24 +13,34 @@ export function syncInput(el, value) {
 const NATIVE_CONTROLS = "a[href], button, summary";
 const onNativeControl = e => !!(e.target.closest && e.target.closest(NATIVE_CONTROLS));
 
-// A page-wide key press for the planner (R, E, Space, Escape): no modifier, not typing in a field,
-// no popup open (ui/popup.js), and the page holding `el` is shown.
-export function isHotkey(e, el) {
-  if (e.ctrlKey || e.metaKey || e.altKey) return false;
-  if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable], dialog")) return false;
-  if (document.querySelector("dialog[open]")) return false;
-  return !el.closest("[data-page]").hidden;
-}
+const hasModifier = e => e.ctrlKey || e.metaKey || e.altKey;
+const isTyping = e => !!(e.target.closest && e.target.closest("input, textarea, select, [contenteditable]"));
+
+// A page-wide key press for the planner (R, E, Space): no modifier, not typing in a field.
+const isHotkey = e => !hasModifier(e) && !isTyping(e);
 
 /**
- * Page-wide keys for `page`: one listener offers each press to the handlers in turn until one
- * takes it (returns true), so a key never acts twice. `first` handlers are asked before the rest.
+ * Page-wide keys. One listener routes each press:
+ * 1. Escape goes to the layers (ui/layers.js), even from a field: the top layer backs out.
+ * 2. Other keys go to the open layers, top first.
+ * 3. With no modal layer open, the planner's handlers get it in turn until one takes it
+ *    (returns true), so a key never acts twice. `first` handlers are asked before the rest.
+ * Space on a button or link keeps its own meaning (it presses it) and goes to neither.
+ * @param {ReturnType<import("./layers.js").createLayers>} layers
  * @returns {{ add(handler: (e: KeyboardEvent) => boolean, first?: boolean): void }}
  */
-export function createHotkeys(page) {
+export function createHotkeys(layers) {
   const handlers = [];
   document.addEventListener("keydown", e => {
-    if (!isHotkey(e, page) || (e.key === " " && onNativeControl(e))) return;
+    if (hasModifier(e)) return;
+    if (e.key === "Escape") {
+      // Held down, it would back out of every layer in a row.
+      if (e.repeat ? layers.top() : layers.escape()) e.preventDefault();
+      return;
+    }
+    if (isTyping(e) || (e.key === " " && onNativeControl(e))) return;
+    if (layers.key(e)) { e.preventDefault(); return; }
+    if (layers.blocking() || !isHotkey(e)) return;
     if (handlers.some(h => h(e))) e.preventDefault();
   });
   return { add(h, first = false) { if (first) handlers.unshift(h); else handlers.push(h); } };
@@ -51,11 +61,11 @@ export function keyTarget(panel, selector, fallback) {
 export const PLANNER_KEYS = ["e", "r", " ", "Enter", "+", "=", "-", "Backspace", "Delete"];
 
 // Blocks the browser's default for `keys` (e.g. Space scrolling the page) wherever they count as
-// hotkeys for `el`'s page, even when nothing is focused to handle them.
-export function blockKeyDefaults(el, keys) {
+// hotkeys, even when nothing is focused to handle them.
+export function blockKeyDefaults(keys) {
   const set = new Set(keys.map(k => k.toLowerCase()));
   document.addEventListener("keydown", e => {
-    if (!set.has(e.key.toLowerCase()) || !isHotkey(e, el)) return;
+    if (!set.has(e.key.toLowerCase()) || !isHotkey(e)) return;
     if (onNativeControl(e)) return;
     e.preventDefault();
   });
