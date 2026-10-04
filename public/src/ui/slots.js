@@ -1,49 +1,172 @@
-// Slot groups with their mutagen pickers, plus the "invested but not slotted" line.
-import { $ } from "./dom.js";
+// The slot groups of the Character screen, drawn with the game art once it has loaded (app.game),
+// plus the "invested but not slotted" line below the screen.
+// Sockets (skills) and diamonds (mutagens) are holders and behave alike, by the rules in
+// core/slotKinds.js. Like the game: pressing a full one selects it (it is framed, not the panel
+// item); Space (on the focused or framed one), a double-click or right-click (or Delete) takes its
+// item out; holding the left button or E on a skill adds a point, as in the tree (ui/hold.js).
+// Clicking an empty one of the kind not shown opens that kind's tab. Items go in through apply mode
+// (ui/applyMode.js): there a click picks a holder of the kind being equipped and a double-click
+// fills it, or they are dragged in (ui/drag.js), which finds the holder under the pointer with
+// holderAt. A hovered skill or mutagen lights the holders it could go into (ui/dropTargets.js).
+import { $, esc, keyTarget } from "./dom.js";
+import { createHold } from "./hold.js";
+import { skillIcon, MUTAGEN_ART, TREE_ART } from "./gameArt.js";
+import { VIEWS } from "./gamePanels.js";
+
+// Holder attribute -> slot kind name. Sockets carry data-slot, diamonds data-group.
+const HOLDERS = { slot: "skill", group: "mutagen" };
+const HOLDER_SELECTOR = Object.keys(HOLDERS).map(a => `[data-${a}]`).join(", ");
 
 export function mountSlots(app) {
-  const { catalog, planner, state } = app;
-  const { nodes, trees, maxRank, mutagens, slots } = catalog;
-  const groupsEl = $("groups");
+  const { catalog, planner, state, kinds } = app;
+  const { nodes, maxRank, mutagens, slots } = catalog;
+  const el = $("slotsPanel");
+  const hold = createHold();
 
-  groupsEl.addEventListener("click", e => {
-    const go = e.target.closest("[data-go]"), clear = e.target.closest("[data-clear]"), place = e.target.closest("[data-place]");
-    if (clear) { planner.clearSlot(state, +clear.dataset.clear); app.render(); }
-    else if (go) app.select(go.dataset.go);
-    else if (place) { app.msg = planner.placeInSlot(state, +place.dataset.place, state.sel).msg; app.render(); }
+  /** The holder under `node`: its element, kind name, kind and index. */
+  function holderAt(node) {
+    const g = node && node.closest && node.closest(HOLDER_SELECTOR);
+    if (!g || !el.contains(g)) return null;
+    const attr = Object.keys(HOLDERS).find(a => g.hasAttribute(`data-${a}`)), name = HOLDERS[attr];
+    return { g, attr, name, kind: kinds[name], i: +g.getAttribute(`data-${attr}`) };
+  }
+  const holderOf = e => holderAt(e.target);
+  const attrOf = name => Object.keys(HOLDERS).find(a => HOLDERS[a] === name);
+  const holderEl = (name, i) => el.querySelector(`[data-${attrOf(name)}="${i}"]`);
+  const itemOf = h => h.kind.itemAt(state, h.i);
+  // In apply mode only holders of the kind being equipped take part.
+  const aimable = h => app.apply && h.name === app.apply.kind;
+
+  /** Focuses a holder (apply mode starts on one). */
+  function focus(name, i) { const g = holderEl(name, i); if (g) g.focus({ preventScroll: true }); }
+  // Moves the selection frame without a redraw, so the pressed element stays (holds and
+  // double-clicks need it).
+  function frame(g) {
+    el.querySelectorAll(".gsock.selected, .gdiamond.selected").forEach(n => n.classList.remove("selected"));
+    g.classList.add("selected");
+  }
+  function selectInPlace(h) {
+    if (h.kind.framedAt(state, h.i)) return;
+    h.kind.select(state, itemOf(h), h.i); app.msg = "";
+    frame(h.g);
+    app.render("slots");
+  }
+  // Runs an action on a holder, redraws and keeps focus on it.
+  function act(h, action) {
+    app.msg = action().msg; app.render(); focus(h.name, h.i);
+  }
+  const unequip = h => act(h, () => h.kind.clear(state, h.i));
+  const raise = h => act(h, () => h.kind.raise(state, itemOf(h)));
+
+  el.addEventListener("pointerdown", e => {
+    const h = holderOf(e); if (!h || e.button !== 0 || app.apply || !itemOf(h)) return;
+    selectInPlace(h);
+    if (h.kind.canRaise(state, itemOf(h))) hold.press(e, h.g, () => raise(h));
   });
-  groupsEl.addEventListener("change", e => {
-    const s = e.target.closest("[data-mut]"); if (!s) return;
-    state.mut[+s.dataset.mut] = s.value; app.render();
+  el.addEventListener("click", e => {
+    const h = holderOf(e); if (!h) return;
+    if (app.apply) { if (aimable(h)) { app.views.apply.aim(h.i); frame(h.g); } return; }
+    if (itemOf(h)) selectInPlace(h);
+    else if (!h.kind.shown(state)) { h.kind.open(state); app.msg = ""; app.render(); }
+  });
+  el.addEventListener("dblclick", e => {
+    const h = holderOf(e); if (!h) return;
+    if (app.apply) { if (aimable(h)) app.views.apply.accept(h.i); return; }
+    if (itemOf(h)) unequip(h);
+  });
+  el.addEventListener("contextmenu", e => {
+    const h = holderOf(e); if (!h) return;
+    e.preventDefault();
+    // A touch long-press fires contextmenu; it must not take the skill out mid-hold.
+    if (!app.apply && !hold.active() && itemOf(h)) unequip(h);
+  });
+  el.addEventListener("keydown", e => {
+    const h = holderOf(e); if (!h) return;
+    if (e.key === "Enter") { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+    else if ((e.key === "Delete" || e.key === "Backspace") && !app.apply && itemOf(h)) { e.preventDefault(); unequip(h); }
   });
 
-  function renderSlot(index, id, placeable) {
-    if (!id) {
-      return `<button type="button" class="slot empty${placeable ? " target" : ""}" data-place="${index}">${placeable ? "Place " + nodes[state.sel].name : "Empty slot"}</button>`;
-    }
-    const n = nodes[id];
-    return `<div class="slot full" style="--tc:${trees[n.tree].color}"><button type="button" class="nm" data-go="${id}" style="background:none;border:0;padding:0;text-align:left">${n.name} <span class="num" style="color:var(--muted)">${planner.rank(state, id)}/${maxRank}</span></button><button type="button" class="x" data-clear="${index}" aria-label="Clear slot">×</button></div>`;
+  // E and Space act on the focused holder, else on the one framing the selection.
+  function target() {
+    const g = keyTarget(el, HOLDER_SELECTOR, () => {
+      const name = Object.keys(kinds).find(n => kinds[n].shown(state)), i = kinds[name].heldAt(state);
+      return i == null ? null : holderEl(name, i);
+    });
+    return holderAt(g);
+  }
+  app.hotkeys.add(e => {
+    const key = e.key.toLowerCase();
+    if (e.repeat || (key !== "e" && key !== " ")) return false;
+    const h = target(); if (!h || !itemOf(h)) return false;
+    if (key === " ") { unequip(h); return true; }
+    selectInPlace(h); h.g.focus({ preventScroll: true });
+    if (h.kind.canRaise(state, itemOf(h))) hold.key(e, h.g, () => raise(h));
+    return true;
+  });
+
+  // Whether holder i of a kind is a drop target in `lit` (app.dropTargets.targets()).
+  const isLit = (lit, name, i) => !!lit && lit.kind === name && lit.at.includes(i);
+  /** Lights the drop targets in place, so their fade runs (styles.css, .drop). */
+  function showDrop() {
+    const lit = app.dropTargets.targets();
+    el.querySelectorAll(HOLDER_SELECTOR).forEach(g => { const h = holderAt(g); g.classList.toggle("drop", isLit(lit, h.name, h.i)); });
   }
 
-  function renderGroup(g, placeable) {
-    const bonus = planner.groupBonus(state, g);
-    const cells = planner.groupSlots(state, g).map((id, i) => renderSlot(g * slots.perGroup + i, id, placeable)).join("");
-    const options = Object.keys(mutagens).map(k => `<option value="${k}" ${k === bonus.mutagen ? "selected" : ""}>${mutagens[k]}</option>`).join("");
-    return `<div class="group">
-        <div class="group-head"><span>Group ${g + 1}</span>
-          <select data-mut="${g}" aria-label="Mutagen for group ${g + 1}">${options}</select></div>
-        ${cells}
-        <div class="mult">${bonus.mutagen ? `Mutagen bonus <b class="num">×${bonus.multiplier}</b>` : "No mutagen"}</div></div>`;
+  // What every holder shows the same way: the selection frame (in apply mode, on the holder to
+  // fill), whether it is a drop target, and in apply mode whether it takes part.
+  function holderView(name, i, lit) {
+    const kind = kinds[name];
+    if (!app.apply) return { selected: kind.framedAt(state, i), cls: isLit(lit, name, i) ? "drop" : "" };
+    const on = name === app.apply.kind;
+    return { selected: on && app.apply.at === i, cls: on ? "target" : "off" };
+  }
+  // Text for an empty holder: what it is and what a click there does.
+  function emptyLabel(what, name) {
+    const action = app.apply ? (name === app.apply.kind ? "Click to pick it, double-click to equip here." : "")
+      : kinds[name].shown(state) ? "Equip from the panel with Space, a double-click or by dragging it here." : "Click to open its tab.";
+    return [`Empty ${what}.`, action].filter(Boolean).join(" ");
+  }
+
+  // A full holder is a drop target source too (ui/dropTargets.js).
+  const dragAttrs = (name, id, i) => ` data-drag="${name}" data-drag-item="${esc(id)}" data-drag-from="${i}"`;
+
+  function socketView(index, lit) {
+    const id = state.slots[index];
+    if (!id) {
+      const label = emptyLabel("slot", "skill");
+      return { ...holderView("skill", index, lit), attrs: ` data-slot="${index}" tabindex="0" role="button" aria-label="${esc(label)}"` };
+    }
+    const n = nodes[id], rank = planner.rank(state, id);
+    return {
+      ...holderView("skill", index, lit), icon: skillIcon(n.tree, n.game), color: TREE_ART[n.tree].color, rank,
+      attrs: ` data-slot="${index}" data-tip="${id}"${dragAttrs("skill", id, index)} tabindex="0" role="button" aria-label="${esc(n.name)}, rank ${rank} of ${maxRank}, equipped"`
+    };
+  }
+
+  // A diamond with a mutagen shows its tooltip (ui/tooltip.js, data-mutagen); an empty one a hint.
+  function groupView(g, lit) {
+    const bonus = planner.groupBonus(state, g), m = mutagens[bonus.mutagen];
+    const label = m ? `${m.name}, +${bonus.value}${m.stat.unit} ${m.stat.label}, equipped`
+      : emptyLabel("mutagen slot", "mutagen");
+    const tip = m ? ` data-mutagen="${m.id}"${dragAttrs("mutagen", m.id, g)}` : ` data-hint="${esc(label)}"`;
+    return {
+      ...holderView("mutagen", g, lit), mutagen: bonus.color, size: m && m.size,
+      bonus: m ? `+${bonus.value}${m.stat.unit}` : null,
+      attrs: ` data-group="${g}"${tip} tabindex="0" role="button" aria-label="Group ${g + 1} mutagen: ${esc(label)}"`,
+      sockets: Array.from({ length: slots.perGroup }, (_, i) => socketView(g * slots.perGroup + i, lit))
+    };
   }
 
   function render() {
-    const placeable = planner.canPlace(state, state.sel);
-    let html = "";
-    for (let g = 0; g < slots.groups; g++) html += renderGroup(g, placeable);
-    groupsEl.innerHTML = html;
-    const un = planner.unslotted(state);
-    $("unslotted").innerHTML = un.length ? `Invested but not slotted: ${un.map(id => nodes[id].name).join(", ")}.` : "";
+    if (!app.game) return;
+    const lit = app.dropTargets.targets();
+    const groups = Array.from({ length: slots.groups }, (_, g) => groupView(g, lit));
+    el.innerHTML = app.game.panels.svg(VIEWS.slots, app.game.panels.mutagenPanel({ groups }),
+      ` role="group" aria-label="Skill slots and mutagens"`);
   }
 
-  return { render };
+  // Mutagen colours must have game art; a new one in data/mutagens.js needs MUTAGEN_ART first.
+  Object.values(mutagens).filter(m => !MUTAGEN_ART[m.color]).forEach(m => console.error(`No game art for mutagen colour "${m.color}" (${m.id}).`));
+
+  return { render, focus, showDrop, holderAt };
 }

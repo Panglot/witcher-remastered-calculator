@@ -31,20 +31,28 @@ public/                  The whole site. GitHub Pages publishes exactly this fol
   assets/fonts/          D-DIN Condensed.
   data/                  Game data. No logic.
     index.js             Registers the trees, rules and archetypes.
-    rules.js             Max rank, slot groups, tree order, mutagen colours.
+    rules.js             Max rank, slot groups, tree order.
+    mutagens.js          Mutagens (colour, size, bonus value, inventory cell) and their stats.
     archetypes.js        Archetype highlight chips.
-    trees/*.js           One file per tree: skills (grid position, text) and links.
+    trees/*.js           One file per tree: skills (game id, game grid position, text) and links.
   src/
     main.js              Entry point. Creates the app context and mounts the panels.
     state.js             Page state and its localStorage copy.
     core/                Pure logic, no DOM. Covered by tests.
       catalog.js         Turns data/ into lookups (nodes, edges) and lists data mistakes.
       planner.js         Rules: unlocking, ranks, slots, mutagen bonus, passives.
+      slotKinds.js       Skills in sockets and mutagens in diamonds behind one set of slot and selection rules.
       build.js           Build codes and export files.
     ui/                  One module per panel: mountX(app) wires events and returns { render }.
       pages.js           Switches the top-level pages (#planner, #demo) by URL hash.
       gameArt.js         Game art paths, colours, layout data loading and tree line geometry.
       gamePieces.js      SVG builders for Character-screen pieces (node, socket, diamond, tab, text).
+      gamePanels.js      Panels built from the pieces (tree panel, slots, points, legend, tooltip, popup).
+      backdrop.js        The game backdrop behind every page.
+      tree.js, mutagenList.js, points.js, slots.js, legend.js, tooltip.js
+                         The planner's Character screen, drawn with gamePanels.js.
+      applyMode.js       Equipping like the game: mask, lifted item and the "Select slot" popup.
+      popup.js, hold.js  The game's yes / no popup, and press-and-hold actions.
       assetDemo.js       Asset demo page: the game art composed like the in-game screen.
 server/                  Local dev server only (static files + live reload). Not deployed.
 test/                    node:test suites for core/ and the real game data.
@@ -73,7 +81,7 @@ What gets extracted is listed in `tools/asset-recipe.json`. [docs/game-assets.md
 ## Common changes
 
 - **Fix skill text or links:** edit `public/data/trees/<tree>.js`. `npm test` catches unknown ids, duplicate ids, overlapping grid cells and unreachable skills.
-- **Add a tree:** add `public/data/trees/<id>.js`, import it in `public/data/index.js`, and add the id to `rules.treeOrder`. Add a `--<id>` colour in `styles.css`.
+- **Add a tree:** add `public/data/trees/<id>.js`, import it in `public/data/index.js`, and add the id to `rules.treeOrder`. Add a `--<id>` colour in `styles.css`, and its game colour and icon folder to `TREE_ART` in `src/ui/gameArt.js`.
 - **Add an archetype:** append to `public/data/archetypes.js`.
 - **Change a game rule** (unlocking, slots, bonuses): `public/src/core/planner.js`, with a test in `test/planner.test.js`.
 - **Add a panel:** create `public/src/ui/<name>.js` exporting `mount<Name>(app)` that returns `{ render }`, add its markup to `index.html`, and register it in `app.views` in `main.js`.

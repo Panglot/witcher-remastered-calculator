@@ -1,6 +1,5 @@
-/* Layout: summary bar on top, then a two-column workbench — skill tree board on the left,
-   selected skill + mutagen slot board on the right. Stacks to one column on phones.
-   Single deliberate dark look, like the in-game character panel. */
+/* Layout: the Character screen (tree panel and slots at their game positions, key legend under
+   them), then cards with the selected skill, slot rules and sharing. Stacks on phones. */
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
@@ -23,23 +22,37 @@
   --font-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
   /* In-game Character screen text (docs/game-assets.md). Used by the asset demo for now. */
   --font-game: "D-DIN Condensed", var(--font-display);
+  --game-bg: #040404;
+  /* Game content edge: the tree panel starts at x 103.65 on the 1920px screen (screen.json
+     mcDupeTabModule 83.65 + tree-panel.json background 20), the same as the top bar's LEVEL label. */
+  --game-edge: max(16px, 100vw * 103.65 / 1920);
   --game-text: #ffffff;
   --game-points: #95866e;
   --game-count: #aa9578;
   --game-type: #999999;
   --game-level: #a09588;
   --game-next: #c6bc9d;
+  --game-current: #ebdba4;
   --game-req: #bf0000;
   --game-key: #c0ae8c;
   --game-label: #c68e5b;
   --game-hold: #cd7d03;
   --game-tooltip: rgba(14, 14, 15, .87);
+  /* Popup button labels: the game's A and B keys (ModuleInputFeedback.getColorByNavCode). */
+  --game-accept: #1c971c;
+  --game-cancel: #9e2828;
+  /* Exponential.easeOut (GTween), for apply mode. */
+  --ease-expo-out: cubic-bezier(.19, 1, .22, 1);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+body { background: var(--game-bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
 [hidden] { display: none !important; }
-.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: grid; gap: 16px; }
+/* Game backdrop (ui/backdrop.js): fixed behind the page, the 1920x1080 screen scaled to cover the window. */
+.backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+.backdrop svg { display: block; width: 100%; height: 100%; }
+.wrap { padding-inline: var(--game-edge); padding-block: 20px 40px; display: grid; gap: 16px; }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: .02em; margin: 0; text-wrap: balance; }
 h1 { font-size: 30px; text-transform: uppercase; letter-spacing: .06em; }
 h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
@@ -80,79 +93,101 @@ button { cursor: pointer; }
 .chip[aria-pressed="true"] .cnt { color: var(--muted); }
 .chip:hover { border-color: var(--muted); }
 
-/* Workbench */
-.bench { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-.board { background: var(--panel); border: 1px solid var(--line); min-width: 0; }
-.tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); }
-.tab { background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 10px 6px 8px; font-family: var(--font-display); font-size: 16px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); display: flex; justify-content: center; gap: 8px; align-items: baseline; }
-.tab .n { font-size: 14px; color: var(--faint); }
-.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--tc); background: var(--panel-2); }
-.tab[aria-selected="true"] .n { color: var(--tc); }
-.treewrap { overflow-x: auto; padding: 12px; }
-.treewrap svg { display: block; margin: 0 auto; width: 100%; min-width: 460px; max-width: 620px; height: auto; }
-.hint { color: var(--faint); font-size: 13px; padding: 0 14px 12px; }
+/* Planner screen (ui/tree.js, points.js, slots.js, legend.js, tooltip.js): the Character screen's
+   panels side by side at their game positions. Column widths are the panels' widths in game px
+   (VIEWS in ui/gamePanels.js): tree 616.35, gap 125, slots 971.35, adding up to the 1712.7 between
+   the game's content edges. So one game px is --gpx wide in every panel. Phones stack the panels. */
+.screen {
+  --gpx: calc(100cqw / 1712.7);
+  container-type: inline-size; position: relative; display: grid; align-items: start;
+  grid-template-columns: minmax(0, 616.35fr) minmax(0, 125fr) minmax(0, 971.35fr);
+  grid-template-areas: "tree . slots" "points . slots" "legend legend legend";
+}
+.screen-tree { grid-area: tree; }
+.screen-points { grid-area: points; }
+.screen-slots { grid-area: slots; }
+/* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px. */
+.screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(20 * var(--gpx)); }
+.screen-tip { position: absolute; z-index: 2; pointer-events: none; --u: max(.6px, var(--gpx)); }
+.screen-error { grid-column: 1 / -1; margin: 0; }
+.below { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.below-main { display: grid; gap: 16px; min-width: 0; }
 
-/* SVG nodes */
-.edge { stroke: var(--line); stroke-width: 2; fill: none; }
-.edge.open { stroke: var(--faint); }
-.edge.lit { stroke: var(--tc); stroke-width: 2.5; }
-.node { cursor: pointer; outline: none; }
-.node rect.box { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; }
-.node text { fill: var(--faint); font-family: var(--font-body); font-size: 12px; font-weight: 500; }
-.node.avail rect.box { stroke: var(--muted); fill: var(--panel-2); }
-.node.avail text { fill: var(--fg); }
-.node.inv rect.box { fill: var(--tcd); stroke: var(--tc); stroke-width: 2; }
-.node.inv text { fill: var(--fg); }
-.node .pip { fill: var(--line); }
-.node.avail .pip { fill: var(--faint); }
-.node .pip.on { fill: var(--mark); }
-.node rect.sel { fill: none; stroke: var(--mark); stroke-width: 2.5; visibility: hidden; }
-.node.selected rect.sel { visibility: visible; }
-.node rect.hl { fill: none; stroke: var(--mark); stroke-width: 1.5; stroke-dasharray: 5 4; visibility: hidden; }
-.node.hlon rect.hl { visibility: visible; }
-.node .slotmark { fill: var(--mark); visibility: hidden; }
-.node.slotted .slotmark { visibility: visible; }
-.node:hover rect.box, .node:focus-visible rect.box { stroke: var(--mark); }
-.node.shake { animation: shake .3s; }
-@keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
-@media (prefers-reduced-motion: reduce) { .node.shake { animation: none; } }
+/* Game SVG parts (ui/gamePanels.js), shared with the asset demo. */
+.gsvg { display: block; width: 100%; height: auto; overflow: visible; }
+.gsvg text, .gscreen text, .gbonus text { font-family: var(--font-game); }
+.gtab, [tabindex].gnode, [tabindex].gsock, [tabindex].gdiamond, [tabindex].gitem { cursor: pointer; outline: none; }
+/* Skills and holders are pressed and held (ui/hold.js): no text selection or touch callout. */
+[tabindex].gnode, [tabindex].gsock, [tabindex].gitem { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+/* Drag sources (ui/drag.js): a touch on one drags instead of scrolling the page. */
+[data-drag] { touch-action: none; }
+.gtab .hov, .gtab:hover .ico { display: none; }
+.gtab:hover .hov { display: inline; }
+.gline { stroke-width: 1; }
+/* Selection frame: drawn on every node, socket, diamond and inventory item, shown on the selected one,
+   pulsing like the game's (35-frame loop, assumed 30 fps). Hovering never selects (SlotsListBase only fires roll-over). */
+.gnode:not(.selected) .gsel, .gsock:not(.selected) .gsel, .gdiamond:not(.selected) .gsel, .gitem:not(.selected) .gsel { display: none; }
+/* Hover (SlotBase.updateImageLoaderStates): the pale glow under the icon (.gglow, ui/gamePieces.js) of a piece
+   with no frame showing. Empty holders have no icon, so they show nothing, and nothing glows while dragging. */
+.gglow { display: none; }
+:root:not(.dragging) :is([tabindex].gnode, [tabindex].gsock, [tabindex].gdiamond, [tabindex].gitem):not(.selected):hover .gglow { display: inline; }
+.gsel { animation: gpulse 0.8s ease-in-out infinite; }
+@keyframes gpulse { 50% { opacity: 0.5; } }
+/* Drop target frame (ui/dropTargets.js): on every unlocked socket and diamond, shown on the holders the
+   hovered item could go into unless the selection frame is there (SlotBase.getTargetIndicator). It fades
+   in and out like the game's indicators: 1.5 s, Strong.easeOut (quintic). */
+.gdrop { opacity: 0; transition: opacity 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
+.gsock.drop:not(.selected) .gdrop, .gdiamond.drop:not(.selected) .gdrop { opacity: 1; }
+/* Keyboard focus ring, left off the selected piece: its frame already marks it, and focus set from
+   code after a key press (apply mode's picked holder, the item it returns to) counts as focus-visible. */
+.gtab:focus-visible .ghit, .gnode:not(.selected):focus-visible .ghit, .gsock:not(.selected):focus-visible .ghit, .gdiamond:not(.selected):focus-visible .ghit, .gitem:not(.selected):focus-visible .ghit { stroke: var(--mark); stroke-width: 2; }
+/* Hold to acquire (ui/hold.js), from SlotSkillGrid.startPurchaseAnimation, on tree nodes and sockets: the
+   open fill brightens to full (its shade fades, linear, 50ms short of the hold) while the white block grows
+   from the bottom (linear) and fades: alpha .5 to .375 by 75%, then to 0 (the game eases each leg with smoothstep). */
+.gbuy { display: none; transform-box: fill-box; transform-origin: bottom; }
+.holding .gbuy { display: inline; animation: gbuy-rise var(--hold) linear forwards, gbuy-fade var(--hold) ease-in-out forwards; }
+.gnode.holding .gshade { animation: gbuy-shade calc(var(--hold) - 50ms) linear forwards; }
+@keyframes gbuy-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes gbuy-fade { 0% { opacity: .5; } 75% { opacity: .375; } 100% { opacity: 0; } }
+@keyframes gbuy-shade { to { opacity: 0; } }
+/* `translate` adds to the SVG transform attribute instead of replacing it. */
+.gnode.shake { animation: shake .3s; }
+.gmark { fill: none; stroke: var(--mark); stroke-width: 2; stroke-dasharray: 6 5; pointer-events: none; }
+@keyframes shake { 25% { translate: -3px 0; } 75% { translate: 3px 0; } }
+@media (prefers-reduced-motion: reduce) { .gnode.shake, .gsel { animation: none; } }
+/* Apply mode (ui/applyMode.js, CharacterModeBackground). The mask is black at .85 x .79 = .67 alpha over the
+   whole page, fading in over 1s. The screen sits above it, and its masked parts are dimmed by the same
+   amount with brightness(), which looks the same as the black layer over them. The popup's buttons stand in
+   for the legend's keys, so the legend hides. Holders of the other kind don't take part (the game makes them unselectable). */
+.apply-mask { position: fixed; inset: 0; z-index: 1; background: #000; opacity: .671; animation: apply-fade 1s var(--ease-expo-out); }
+.page.applying .screen { z-index: 2; }
+.page.applying .screen [data-masked] { filter: brightness(.329); animation: apply-dim 1s var(--ease-expo-out); }
+.page.applying .screen-legend { visibility: hidden; }
+.gsock.off, .gdiamond.off { pointer-events: none; }
+@keyframes apply-fade { from { opacity: 0; } }
+@keyframes apply-dim { from { filter: brightness(1); } }
+/* The item being equipped, lifted over the mask where the tree panel draws it: it grows to 1.1 and fades in
+   over 1s with a pale glow (GlowFilter #FFFFB8, alpha .5, blur 8). */
+.screen-lift { grid-area: tree; position: relative; z-index: 1; pointer-events: none; filter: drop-shadow(0 0 calc(8 * var(--gpx)) rgba(255, 255, 184, .5)); }
+.glift { transform-box: fill-box; transform-origin: center; transform: scale(1.1); animation: apply-lift 1s var(--ease-expo-out); }
+@keyframes apply-lift { from { transform: scale(1); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .apply-mask, .page.applying .screen [data-masked], .glift { animation: none; } }
+/* Drag to equip (ui/drag.js): the item's icon centred on the pointer at its size on screen, with apply
+   mode's lift (1.1 and the pale glow). The page shows the grabbing cursor and nothing hovers but holders. */
+.drag-ghost { position: fixed; left: 0; top: 0; z-index: 3; pointer-events: none; width: var(--size); height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2); scale: 1.1; filter: drop-shadow(0 0 8px rgba(255, 255, 184, .5)); }
+.drag-ghost img { display: block; width: 100%; height: 100%; }
+.dragging, .dragging * { cursor: grabbing !important; }
+/* POINTS AVAILABLE value (ui/points.js): a number field set like the game's 32px text. */
+.gpoints { display: block; width: 100%; height: 100%; margin: 0; padding: 0 2px 0 0; border: 0; background: transparent; color: var(--game-text); font-family: var(--font-game); font-size: 32px; line-height: 1; text-align: right; -moz-appearance: textfield; appearance: textfield; }
+.gpoints::-webkit-inner-spin-button, .gpoints::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.gpoints:hover, .gpoints:focus { background: rgba(255, 255, 255, .06); outline: none; }
+.gpoints.over { color: var(--bad); }
 
-/* Side */
-.side { display: grid; gap: 16px; min-width: 0; }
+/* Cards */
 .card { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
-.detail-head { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
-.detail-head h3 { font-size: 24px; line-height: 1.1; }
 .treetag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .1em; font-size: 13px; color: var(--tc); }
-.rank { font-family: var(--font-display); font-size: 28px; line-height: 1; white-space: nowrap; }
-.rank small { font-size: 16px; color: var(--muted); }
-.stepper { display: flex; gap: 8px; flex-wrap: wrap; }
-.stepper .btn { min-width: 44px; font-size: 16px; }
-.effect { margin: 0; font-size: 16px; }
 .meta { font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
-.badge { display: inline-block; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 12px; padding: 1px 6px; border: 1px solid currentColor; }
-.badge.ok { color: var(--alchemy); }
-.badge.src { color: var(--muted); }
-.note { font-size: 13px; color: var(--warn); }
-.msg { font-size: 14px; color: var(--bad); min-height: 0; }
-.links { display: flex; flex-wrap: wrap; gap: 4px 6px; font-size: 14px; }
-.links button { background: none; border: 0; padding: 0; color: var(--fg); text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 3px; }
-.links button.inv { color: var(--tc); }
-
-/* Slots */
-.groups { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.group { border: 1px solid var(--line); background: var(--bg); padding: 8px; display: grid; gap: 6px; min-width: 0; }
-.group-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-.group-head span { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .1em; font-size: 12px; color: var(--muted); }
-.group select { background: var(--panel-2); border: 1px solid var(--line); padding: 2px 4px; font-size: 13px; max-width: 110px; }
-.slot { display: flex; align-items: center; gap: 6px; min-height: 32px; border: 1px dashed var(--line); background: transparent; padding: 3px 6px; text-align: left; font-size: 13px; width: 100%; }
-.slot.full { border-style: solid; border-left: 4px solid var(--tc); background: var(--panel-2); }
-.slot .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.slot .x { color: var(--muted); padding: 0 4px; font-size: 15px; background: none; border: 0; }
-.slot.empty { color: var(--faint); }
-.slot.target { border-color: var(--mark); color: var(--fg); }
-.mult { font-family: var(--font-display); font-size: 14px; letter-spacing: .04em; color: var(--muted); }
-.mult b { color: var(--fg); font-size: 17px; }
-.unslotted { font-size: 13px; color: var(--muted); }
 
 .share textarea { width: 100%; min-height: 64px; background: var(--bg); border: 1px solid var(--line); padding: 8px; font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 12px; resize: vertical; }
 .field { display: grid; gap: 4px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--muted); }
@@ -167,14 +202,13 @@ button { cursor: pointer; }
 .legal { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 4px; }
 .legal p { margin: 0; }
 
-@media (max-width: 900px) {
-  .bench { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 800px) {
+  .screen { --gpx: calc(100cqw / 616.35); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "legend"; }
   .summary { grid-template-columns: 1fr; }
+  .below { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 440px) {
-  .groups { grid-template-columns: 1fr; }
   h1 { font-size: 24px; }
-  .tab { font-size: 14px; letter-spacing: .06em; }
 }
 
 /* Asset demo (ui/assetDemo.js). SVG pieces are in game px; the viewBox scales them. */
@@ -183,14 +217,8 @@ button { cursor: pointer; }
 .gcontrols { display: flex; justify-content: space-between; align-items: end; gap: 10px 16px; flex-wrap: wrap; }
 .gregion { grid-auto-flow: column; align-items: center; gap: 8px; }
 .gregion select { background: var(--bg); border: 1px solid var(--line); padding: 4px 6px; font-family: var(--font-body); font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--fg); }
-.gscreenwrap { overflow-x: auto; border: 1px solid var(--line); background: #040404; }
+.gscreenwrap { overflow-x: auto; border: 1px solid var(--line); background: var(--game-bg); }
 .gscreen { display: block; width: 100%; min-width: 880px; height: auto; }
-.gscreen text, .gbonus text { font-family: var(--font-game); }
-.gtab { cursor: pointer; }
-.gtab .hov, .gtab:hover .ico { display: none; }
-.gtab:hover .hov { display: inline; }
-.gline { stroke-width: 1; opacity: .45; }
-.gline.lit { opacity: 1; }
 .gpair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .gtiles { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
 .gtile { margin: 0; display: grid; justify-items: center; gap: 2px; padding: 6px 4px 6px; background: #0b0b0b; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
@@ -206,26 +234,85 @@ button { cursor: pointer; }
 .gtype-sample { font-family: var(--font-game); line-height: 1.15; overflow-wrap: anywhere; }
 .gtype code { font-size: 12px; }
 
-/* Game key legend: centred buttons 15px apart, key cap recoloured from #675943 to #191919 through a mask. */
-.glegend-wrap { background: #040404; border: 1px solid var(--line); padding: 14px 8px; overflow-x: auto; }
-.glegend { display: flex; justify-content: center; align-items: center; gap: 15px; height: 100%; font-family: var(--font-game); }
-.gbtn { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
-.gkey { display: inline-grid; place-items: center; width: 38px; height: 42px; position: relative; color: var(--game-key); font-size: 28px; line-height: 1; isolation: isolate; }
+/* Game key legend: centred buttons 15px apart, key cap recoloured from #675943 to #191919 through a mask.
+   Sizes are game px times --u (1px unless a container scales it). Key cap sizes are measured from an in-game
+   screenshot against the label: cap 32px tall, its letter about as tall as the label's (20px font). */
+.glegend-wrap { background: var(--game-bg); border: 1px solid var(--line); padding: 14px 8px; overflow-x: auto; }
+.glegend { --u1: var(--u, 1px); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: calc(8 * var(--u1)) calc(15 * var(--u1)); height: 100%; font-family: var(--font-game); }
+.gbtn { display: inline-flex; align-items: center; gap: calc(8 * var(--u1)); white-space: nowrap; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; }
+button.gbtn:hover .glabel { color: var(--game-hold); }
+.gkey { display: inline-grid; place-items: center; min-width: calc(30 * var(--u1)); height: calc(32 * var(--u1)); padding-inline: calc(7 * var(--u1)); position: relative; color: var(--game-key); font-size: calc(20 * var(--u1)); line-height: 1; isolation: isolate; }
 .gkey::before { content: ""; position: absolute; inset: 0; z-index: -1; background: #191919; -webkit-mask: url("assets/ui/legend/key.svg") center / 100% 100% no-repeat; mask: url("assets/ui/legend/key.svg") center / 100% 100% no-repeat; }
-.glabel { color: var(--game-label); font-size: 22px; }
+.glabel { color: var(--game-label); font-size: calc(22 * var(--u1)); }
 .ghold { color: var(--game-hold); }
+/* Click count ("2x") diagonally above-left of the lit left button (x 15-18, y 12-17 of the 40px icon), where
+   the eye already is: its bottom right corner sits at about (16, 13). Outlined so it reads over the icon. */
+.gmouse { position: relative; display: inline-flex; }
+.gclicks { position: absolute; right: 62%; bottom: 69.5%; color: var(--game-hold); font-size: max(11px, calc(14 * var(--u1))); line-height: 1; text-shadow: 0 0 2px #333, 0 0 2px #333; }
+.gor { color: var(--game-label); font-size: calc(22 * var(--u1)); }
 
-/* Game skill tooltip: gray header with its frame, translucent panel. Text positions from layout/tooltip.json. */
-.gtip { width: min(500px, 100%); background: var(--game-tooltip); box-shadow: 0 6px 18px #000; font-family: var(--font-game); color: var(--game-text); padding-bottom: 12px; }
-.gtip-head { position: relative; height: 79px; }
+/* Game message popup (gamePanels.popup) from popup_message's SystemMessageModuleRef (layout/popup.json): a
+   564px panel (popup/frame.svg, which the game stretches to 1.1 x 0.66) with the title (24px, #888478) centred
+   in a header band, the text (24px, #eddec1) centred under it, and the button strip (popup/buttons-frame.svg,
+   which the game shrinks around its buttons) centred on its bottom edge. Header band, spacing, button look and
+   key colour measured from the game's "Load saved game" popup. Without text (.gpopup-short) the panel hugs its
+   title and buttons. Sizes are game px times --u. */
+.gpopup { --u1: var(--u, 1px); --px: calc(22 * var(--u1)); --inset: calc(4.5 * var(--u1)); width: min(calc(564 * var(--u1)), calc(100vw - 32px)); display: flex; flex-direction: column; align-items: center; padding: 0 var(--px); border: calc(9 * var(--u1)) solid transparent; border-image: url("assets/ui/popup/frame.svg") 9 fill / calc(9 * var(--u1)); font-family: var(--font-game); text-align: center; }
+.gpopup-short { --px: calc(48 * var(--u1)); width: max-content; max-width: calc(100vw - 32px); }
+/* The band starts just inside the frame's lines: a faint warm glow brightest at the centre, with a brighter line under it. */
+.gpopup-title {
+  align-self: stretch; display: grid; place-items: center; height: calc(63 * var(--u1));
+  margin: calc(-1 * var(--inset)) calc(-1 * (var(--px) + var(--inset))) 0; padding: 0 calc(var(--px) + var(--inset)) calc(3 * var(--u1));
+  background:
+    linear-gradient(90deg, rgba(70, 58, 40, .05), rgba(70, 58, 40, .19), rgba(70, 58, 40, .05)) bottom / 100% calc(3 * var(--u1)) no-repeat,
+    linear-gradient(90deg, rgba(70, 58, 40, .035), rgba(70, 58, 40, .1), rgba(70, 58, 40, .035)) top / 100% calc(100% - 3 * var(--u1)) no-repeat;
+  color: #888478; font-size: calc(24 * var(--u1)); line-height: 1.25; text-transform: uppercase;
+}
+.gpopup-text { margin: calc(20 * var(--u1)) 0 0; color: #eddec1; font-size: calc(24 * var(--u1)); line-height: 1.25; }
+/* 55px tall: 9 frame + 1 + 36 button + 9 frame, so -(9 + 55 / 2) puts its middle on the panel's outer edge. */
+.gpopup-buttons { display: flex; justify-content: center; gap: calc(16 * var(--u1)); margin: calc(21 * var(--u1)) 0 calc(-36.5 * var(--u1)); padding: var(--u1) calc(3.5 * var(--u1)) 0; border: calc(9 * var(--u1)) solid transparent; border-image: url("assets/ui/popup/buttons-frame.svg") 9 fill / calc(9 * var(--u1)); }
+.gpopup-short .gpopup-buttons { margin-top: calc(14 * var(--u1)); }
+/* A dark fill inside a thin dark ring and a faint outline. */
+.gpopup-btn { height: calc(36 * var(--u1)); padding: 0 calc(12 * var(--u1)); border: max(1px, var(--u1)) solid #141313; border-radius: calc(3 * var(--u1)); background: #161515; box-shadow: inset 0 0 0 max(1px, var(--u1)) #0c0b0a; color: #cecece; font-family: var(--font-game); font-size: calc(22 * var(--u1)); line-height: 1; white-space: nowrap; }
+.gpopup-btn:hover { background: #211f1d; }
+.gpopup-btn.accept { color: var(--game-accept); }
+.gpopup-btn.cancel { color: var(--game-cancel); }
+.gpopup-key { color: #cecece; }
+/* The popup over the page's middle: as a modal question (ui/popup.js, over popup_message's own mask, black
+   at .6) or as apply mode's "Select slot" (ui/applyMode.js, over the apply mask). The bottom padding makes
+   room for the button strip hanging under the panel. */
+.gdialog, .apply-popup { --u: max(.6px, calc(100vw / 1920)); padding: 0 0 calc(28 * var(--u)); }
+.gdialog { max-width: none; max-height: none; border: 0; background: none; color: inherit; overflow: visible; }
+.gdialog:focus { outline: none; }
+.gdialog::backdrop { background: rgba(0, 0, 0, .6); }
+.apply-popup { position: fixed; z-index: 3; left: 50%; top: 50%; translate: -50% -50%; }
+
+/* Game skill tooltip: gray header with its frame, translucent panel. Text positions and colours from
+   layout/tooltip.json, label colours sampled from docs/reference. Sizes are game px times --u. */
+.gtip { --u1: var(--u, 1px); width: calc(500 * var(--u1)); background: var(--game-tooltip); box-shadow: 0 6px 18px #000; font-family: var(--font-game); color: var(--game-text); font-size: calc(24 * var(--u1)); line-height: 1.1; padding-bottom: calc(12 * var(--u1)); }
+.gtip-head { position: relative; height: calc(79 * var(--u1)); }
 .gtip-head img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .gtip-head span { position: absolute; white-space: nowrap; line-height: 1.2; }
-.gtip-name { left: 10px; top: 11px; font-size: 24px; }
-.gtip-type { right: 10px; top: 12px; font-size: 24px; color: var(--game-type); }
-.gtip-level { left: 10px; top: 46px; font-size: 25px; color: var(--game-level); }
-.gtip-level b { color: var(--game-text); font-weight: 400; }
-.gtip-req { right: 10px; top: 47px; font-size: 23px; color: var(--game-req); }
-.gtip p { margin: 8px 11px 0; font-size: 24px; line-height: 1.2; }
-.gtip .gtip-next { font-size: 23px; color: var(--game-next); margin-top: 12px; }
+.gtip-name { left: calc(10 * var(--u1)); top: calc(11 * var(--u1)); }
+.gtip-type { right: calc(10 * var(--u1)); top: calc(12 * var(--u1)); color: var(--game-type); }
+.gtip-level { left: calc(10 * var(--u1)); top: calc(46 * var(--u1)); font-size: calc(25 * var(--u1)); color: var(--game-level); }
+.gtip-req { right: calc(10 * var(--u1)); top: calc(47 * var(--u1)); font-size: calc(23 * var(--u1)); color: var(--game-req); }
+.gtip-cur, .gtip-next { display: grid; margin: calc(8 * var(--u1)) calc(11 * var(--u1)) 0; }
+.gtip-next { font-size: calc(23 * var(--u1)); color: var(--game-next); margin-top: calc(12 * var(--u1)); }
+.gtip-cur .gtip-label { color: var(--game-current); }
+.gtip-next .gtip-label { color: var(--game-level); }
+.gtip p { margin: calc(8 * var(--u1)) calc(11 * var(--u1)) 0; }
+.gtip-note { color: var(--game-req); font-size: calc(23 * var(--u1)); }
+/* Item tooltip (TooltipInventory). Type colour from its code (0xC8C8C7), the rest sampled from an
+   in-game Greater blue mutagen tooltip. The type sits where a skill's level does. */
+.gtip-item .gtip-name { color: #b9924d; }
+.gtip-itemtype { left: calc(10 * var(--u1)); top: calc(46 * var(--u1)); color: #c8c8c7; }
+/* One stat per line, value and label a word space apart like the description lines under it. */
+.gtip-stats { display: grid; margin: calc(10 * var(--u1)) calc(11 * var(--u1)) 0; }
+.gtip-value { color: #fbeccc; white-space: nowrap; }
+.gtip-stat, .gtip-desc { color: #d6d0b9; }
+/* Description lines run on under the stats with no gap, like a skill's text and its passive line. */
+.gtip-desc { display: grid; margin: 0 calc(11 * var(--u1)); }
+.gtip-rarity { color: #767372; font-size: calc(23 * var(--u1)); }
+.gtip-hint { width: auto; max-width: calc(500 * var(--u1)); white-space: nowrap; }
 @media (max-width: 900px) { .gpair { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 440px) { .gtip-req { display: none; } }

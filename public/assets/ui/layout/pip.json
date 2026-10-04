@@ -1,0 +1,30 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "SkillPointIndicatorSingle",
+ "children": {
+  "mcBackground": {
+   "character": 27,
+   "class": null,
+   "matrix": [
+    0.17613,
+    0.17613,
+    -0.17613,
+    0.17613,
+    0.0,
+    0.0
+   ]
+  },
+  "fill": {
+   "character": 30,
+   "class": null,
+   "matrix": [
+    0.17613,
+    0.17613,
+    -0.17613,
+    0.17613,
+    0.0,
+    0.0
+   ]
+  }
+ }
+}

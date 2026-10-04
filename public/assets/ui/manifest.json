@@ -172,180 +172,360 @@
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 552,
+   "shape": 554,
    "size": [
     41,
     35
+   ],
+   "fill": [
+    0.83293,
+    0.0,
+    0.0,
+    0.83286,
+    -18.0,
+    -5.0
    ]
   },
   "tabs/combat-hover.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 580,
+   "shape": 581,
    "size": [
     62,
     62
+   ],
+   "fill": [
+    0.83307,
+    0.0,
+    0.0,
+    0.83307,
+    -26.8,
+    -15.8
    ]
   },
   "tabs/combat-selected.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 568,
+   "shape": 569,
    "size": [
     68,
     62
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -37.0,
+    -32.0
    ]
   },
   "tabs/combat-bar.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 553,
+   "shape": 554,
    "size": [
     132,
     22
+   ],
+   "fill": [
+    0.5,
+    0.0,
+    0.0,
+    0.5,
+    -30.0,
+    36.0
    ]
   },
   "tabs/signs.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 555,
+   "shape": 557,
    "size": [
     51,
     42
+   ],
+   "fill": [
+    0.83331,
+    0.0,
+    0.0,
+    0.83331,
+    -22.0,
+    -8.0
    ]
   },
   "tabs/signs-hover.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 582,
+   "shape": 583,
    "size": [
     62,
     62
+   ],
+   "fill": [
+    0.83307,
+    0.0,
+    0.0,
+    0.83307,
+    -25.8,
+    -10.8
    ]
   },
   "tabs/signs-selected.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 570,
+   "shape": 571,
    "size": [
     78,
     69
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -40.0,
+    -34.0
    ]
   },
   "tabs/signs-bar.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 556,
+   "shape": 557,
    "size": [
     132,
     22
+   ],
+   "fill": [
+    0.5,
+    0.0,
+    0.0,
+    0.5,
+    -30.0,
+    36.0
    ]
   },
   "tabs/alchemy.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 558,
+   "shape": 560,
    "size": [
     51,
     35
+   ],
+   "fill": [
+    0.83331,
+    0.0,
+    0.0,
+    0.83286,
+    -22.0,
+    -5.0
    ]
   },
   "tabs/alchemy-hover.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 584,
+   "shape": 585,
    "size": [
     62,
     62
+   ],
+   "fill": [
+    0.83307,
+    0.0,
+    0.0,
+    0.83307,
+    -25.8,
+    -15.8
    ]
   },
   "tabs/alchemy-selected.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 572,
+   "shape": 573,
    "size": [
     78,
     62
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -39.0,
+    -32.0
    ]
   },
   "tabs/alchemy-bar.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 559,
+   "shape": 560,
    "size": [
     132,
     22
+   ],
+   "fill": [
+    0.5,
+    0.0,
+    0.0,
+    0.5,
+    -30.0,
+    36.0
    ]
   },
   "tabs/general.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 561,
+   "shape": 563,
    "size": [
     52,
     45
+   ],
+   "fill": [
+    0.83365,
+    0.0,
+    0.0,
+    0.83331,
+    -22.0,
+    -9.25
    ]
   },
   "tabs/general-hover.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 586,
+   "shape": 587,
    "size": [
     62,
     62
+   ],
+   "fill": [
+    0.83307,
+    0.0,
+    0.0,
+    0.83307,
+    -25.8,
+    -16.8
    ]
   },
   "tabs/general-selected.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 574,
+   "shape": 575,
    "size": [
     79,
     72
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -39.0,
+    -36.0
    ]
   },
   "tabs/general-bar.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 562,
+   "shape": 563,
    "size": [
     132,
     22
+   ],
+   "fill": [
+    0.5,
+    0.0,
+    0.0,
+    0.5,
+    -30.0,
+    36.0
    ]
   },
   "tabs/mutations.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 564,
+   "shape": 566,
    "size": [
     49,
     48
+   ],
+   "fill": [
+    0.83366,
+    0.0,
+    0.0,
+    0.83331,
+    -20.85,
+    -10.0
    ]
   },
   "tabs/mutations-hover.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 588,
+   "shape": 589,
    "size": [
     49,
     48
+   ],
+   "fill": [
+    0.83366,
+    0.0,
+    0.0,
+    0.83331,
+    -20.85,
+    -10.0
    ]
   },
   "tabs/mutations-selected.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 576,
+   "shape": 577,
    "size": [
     70,
     69
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -33.0,
+    -37.0
    ]
   },
   "tabs/mutations-bar.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",
    "sub": 565,
+   "shape": 566,
    "size": [
     132,
     22
+   ],
+   "fill": [
+    0.5,
+    0.0,
+    0.0,
+    0.5,
+    -30.0,
+    36.0
    ]
   },
   "node/border-red.png": {
@@ -974,44 +1154,76 @@
   "legend/mouse-left.png": {
    "from": "atlas",
    "movie": "panel_common.redswf",
-   "sub": 400,
+   "sub": 401,
+   "under": {
+    "shape": 402
+   },
    "size": [
     40,
     40
-   ]
+   ],
+   "note": "InputFeedbackButton_mouseIcon frame \"left\": the pressed button is a hole showing the white square (shape 402) behind it"
   },
   "legend/mouse-right.png": {
    "from": "atlas",
    "movie": "panel_common.redswf",
-   "sub": 401,
+   "sub": 400,
+   "under": {
+    "shape": 402
+   },
    "size": [
     40,
     40
-   ]
+   ],
+   "note": "InputFeedbackButton_mouseIcon frame \"right\""
   },
   "legend/mouse-middle.png": {
    "from": "atlas",
    "movie": "panel_common.redswf",
    "sub": 399,
+   "under": {
+    "shape": 402
+   },
    "size": [
     40,
     40
-   ]
+   ],
+   "note": "InputFeedbackButton_mouseIcon frame \"middle\""
   },
   "legend/mouse-scroll.png": {
    "from": "atlas",
    "movie": "panel_common.redswf",
    "sub": 398,
+   "under": {
+    "shape": 402,
+    "at": [
+     0,
+     -6
+    ]
+   },
    "size": [
     40,
     46
-   ]
+   ],
+   "note": "InputFeedbackButton_mouseIcon frame \"scroll_up\", placed 6px up"
   },
   "legend/key.svg": {
    "from": "svg",
    "movie": "panel_common.redswf",
    "shape": 534,
    "note": "InputFeedbackButton_keyboardButton.mcBackground: authored #675943, shown as #191919 (color transform); key letter #c0ae8c, label #c68e5b"
+  },
+  "popup/frame.svg": {
+   "from": "svg",
+   "movie": "popup_message.redswf",
+   "shape": 174,
+   "note": "SystemMessageModuleRef.mcBackground: panel fill and double frame, drawn by the game at scale (1.1, 0.66)"
+  },
+  "popup/buttons-frame.svg": {
+   "from": "svg",
+   "movie": "popup_message.redswf",
+   "shape": 176,
+   "note": "SystemMessageModuleRef.mcInputBackground: the strip behind the buttons, over the panel's bottom edge"
   },
   "points/diamond.png": {
    "from": "atlas",
@@ -1040,7 +1252,9 @@
    "from": "placements",
    "movie": "panel_character_dupe.redswf",
    "sprite": 723,
-   "children": 3
+   "frame": "selected_up",
+   "children": 4,
+   "note": "the open tab: the only frame that shows mcOpened, moved to y 11 (frame 1 keeps it hidden at y 1)"
   },
   "layout/tree-node.json": {
    "from": "placements",
@@ -1058,13 +1272,34 @@
    "from": "placements",
    "movie": "panel_character_dupe.redswf",
    "sprite": 710,
-   "children": 36
+   "names": {
+    "801": "dividerTop",
+    "803": "dividerBottom",
+    "805": "dividerLeft",
+    "807": "dividerRight"
+   },
+   "children": 40,
+   "note": "divider*: slots/divider.svg (sprite 601), unnamed in the game"
   },
   "layout/mutagen-socket.json": {
    "from": "placements",
    "movie": "panel_character_dupe.redswf",
    "sprite": 644,
-   "children": 14
+   "names": {
+    "5": "frame"
+   },
+   "children": 15,
+   "note": "frame: slots/frame.svg (sprite 615), unnamed in the game"
+  },
+  "layout/pip.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 31,
+   "names": {
+    "3": "fill"
+   },
+   "children": 2,
+   "note": "SkillPointIndicatorSingle: one rank pip, mcBackground = pip-<color>, fill = pip-fill (frame \"on\")"
   },
   "layout/mutagen-diamond.json": {
    "from": "placements",
@@ -1083,6 +1318,13 @@
    "movie": "panel_common.redswf",
    "sprite": 552,
    "children": 11
+  },
+  "layout/popup.json": {
+   "from": "placements",
+   "movie": "popup_message.redswf",
+   "sprite": 181,
+   "children": 8,
+   "note": "SystemMessageModuleRef, centred at x 958.6, y 264.1 on the screen"
   }
  }
 }

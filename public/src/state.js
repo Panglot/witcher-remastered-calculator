@@ -6,9 +6,10 @@ export function defaultState(catalog) {
   const { slots, order } = catalog;
   return {
     // Build (see core/build.js)
-    pts: {}, slots: Array(slots.total).fill(null), mut: ["green"].concat(Array(slots.groups - 1).fill("")), budget: 4, name: "",
-    // View
-    tab: order[0], sel: null, arch: []
+    pts: {}, slots: Array(slots.total).fill(null), mut: Array(slots.groups).fill(""), budget: 4, name: "",
+    // View. sel / selMut: selected skill / mutagen; selSlot / selGroup: the socket / diamond it was
+    // picked from, null when picked in its panel (core/slotKinds.js).
+    tab: order[0], sel: null, selSlot: null, selMut: null, selGroup: null, arch: []
   };
 }
 
@@ -19,8 +20,14 @@ export function loadState(catalog) {
     // Copy only known keys, so fields from older versions don't linger.
     if (saved && saved.pts) Object.keys(state).forEach(k => { if (k in saved) state[k] = saved[k]; });
   } catch (e) {}
-  if (!catalog.trees[state.tab]) state.tab = catalog.order[0];
+  if (!catalog.tabs.includes(state.tab)) state.tab = catalog.order[0];
   if (state.sel && !catalog.nodes[state.sel]) state.sel = null;
+  if (state.selMut && !catalog.mutagenId(state.selMut)) state.selMut = null;
+  // Saved before mutagen sizes, `mut` held colours.
+  state.mut = Array.isArray(state.mut) && state.mut.length === catalog.slots.groups
+    ? state.mut.map(catalog.mutagenId) : Array(catalog.slots.groups).fill("");
+  // A holder index that no longer holds the selection is ignored on use (core/slotKinds.js, heldAt).
+  ["selSlot", "selGroup"].forEach(k => { if (!Number.isInteger(state[k])) state[k] = null; });
   return state;
 }
 

@@ -26,6 +26,18 @@
     0.0
    ]
   },
+  "frame": {
+   "character": 615,
+   "class": null,
+   "matrix": [
+    0.93712,
+    0.0,
+    0.0,
+    0.97624,
+    -6.0,
+    -6.0
+   ]
+  },
   "mcColorBorder": {
    "character": 641,
    "class": "SlotSkillSocket_edgeglow_62",

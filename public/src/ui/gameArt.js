@@ -5,14 +5,13 @@
 
 const BASE = "assets/ui";
 const LAYOUTS = ["screen", "tree-panel", "tree-node", "tab", "tooltip", "legend-button",
-  "mutagen-panel", "mutagen-slots", "mutagen-socket", "mutagen-diamond"];
+  "mutagen-panel", "mutagen-slots", "mutagen-socket", "mutagen-diamond", "pip"];
 
 // Vector files have no size in the manifest. `origin` is where the piece's own (0, 0) sits inside
 // the file: place the file at -origin and the piece lands where its layout matrix puts it.
 const VECTORS = [
   [/^(node|slots)\/lock\.svg$/, { size: [56.15, 54.5] }],
   [/^slots\/frame\.svg$/, { size: [81.1, 77.85] }],
-  [/^slots\/divider\.svg$/, { size: [1, 200], origin: [0.5, 100] }],
   [/^mutagens\/diamond-frame\.svg$/, { size: [89.65, 86.45], origin: [13.6, 11.4] }],
   [/^mutagens\/connectors\/corner-/, { size: [93.2, 32.95], origin: [2.5, 10.5] }],
   [/^mutagens\/connectors\/line-/, { size: [11.4, 30.4], origin: [5.65, 6.1] }],
@@ -28,12 +27,28 @@ export const TREE_ART = {
   alchemy: { color: "green", skills: "alchemy" },
   general: { color: "yellow", skills: "perks" }
 };
+// The Character screen is laid out on a 1920x1080 screen; layout/screen.json uses these units.
+export const SCREEN = { w: 1920, h: 1080 };
+// Backdrop fill under everything (panel_common, MC_IMG_Background_Assets).
+export const BACKDROP_FILL = "#040404";
+// mcStateDropTarget's outline (sprite 509 > 508 at alpha 0.6 > shape 507, a 1px stroke).
+export const DROP_TARGET = { color: "#ffcc00", alpha: 0.6 };
+// Hover glow on a slot's icon (SlotBase OVER_GLOW_*: GlowFilter 15990722, blur 15, strength 0.75, high
+// quality). Three box-blur passes of 15px come close to a Gaussian of sigma 7.5. Inventory mutagens fill
+// their whole cell with a bright round icon, so the game's blur spreads far past it: they use a smaller one (by eye).
+export const OVER_GLOW = { color: "#f3ffc2", strength: 0.75, sigma: { skill: 7.5, item: 3 } };
+// Panorama when no world is picked: no_mans_land (Velen) has no case in commonMenu.ws, so it is
+// likely the container's default.
+export const DEFAULT_REGION = "velen";
 // Tabs in game order. "mutations" has tab and background art but no planner tree.
 export const GAME_TABS = ["combat", "signs", "alchemy", "general", "mutations"];
 
-// Tree line colours (CharacterSkillsGridModule): white when the required skill is available,
-// dark otherwise, and the main skill's colour once both ends are learned.
+// Tree line colours (CharacterSkillsGridModule): white once the required skill is learned, dark
+// otherwise, and the main skill's colour once both ends are learned. Drawn opaque.
 export const LINE_COLORS = { open: "#ffffff", closed: "#333333", red: "#c60000", green: "#4a9000", blue: "#0049c6", yellow: "#b27100" };
+// Unavailable skills draw node/border-grey.png at this alpha, so its light tone lands near the
+// dark line colour on the panel (by eye from the in-game reference).
+export const LOCKED_BORDER_ALPHA = 0.3;
 
 // Per mutagen colour: diamond fill (SlotSkillMutagen_background, alpha 0.4), bonus stat glyph and label.
 export const MUTAGEN_ART = {
@@ -42,6 +57,14 @@ export const MUTAGEN_ART = {
   blue: { fill: "rgba(0, 61, 153, 0.4)", glyph: "sign", stat: "Sign intensity" },
   green: { fill: "rgba(0, 122, 0, 0.4)", glyph: "plus", stat: "Vitality" }
 };
+// Bonus label (mc_bonus_bkg_new): the bar, as [x, y, w, h], and the top-left of each stat glyph.
+// Every colour frame places its glyph shape at its own offset over the shield.
+export const BONUS_BAR = [-4, 4, 280, 64];
+export const BONUS_GLYPH_AT = { sword: [6, 5], sign: [4.75, 1.45], plus: [4.95, 4.85], person: [4.95, 4.85] };
+
+// Mutagen divider line (slots/divider.svg: sprite 601 > shape 600), as [x, y, w, h] around its origin.
+// Drawn as a rect, not the SVG file: a rotated 1px-wide <image> is resampled and comes out fainter.
+export const DIVIDER = { color: "#403129", rect: [-0.5, -100, 1, 200] };
 
 // Skill grid (CharacterSkillsGridModule): 64px sockets, gaps of 46 x 8, positions in thirds.
 export const SOCKET = 64;
@@ -52,25 +75,33 @@ export function gridPos(col, row) {
   return { x: (SOCKET + GAP_X) * col / GRID_DIV, y: (SOCKET + GAP_Y) * row / GRID_DIV };
 }
 
+/** Icon file of a skill from its planner tree and game skill id. */
+export const skillIcon = (tree, game) => `skills/${TREE_ART[tree].skills}/${game}.png`;
+
+// Mutagens tab inventory (mcMutagenSlotList in CharacterTabbedListModuleDupe): 9 x 10 cells of
+// 64px with no gap.
+export const INVENTORY = { columns: 9, rows: 10, cell: 64 };
+/** Inventory icon of a mutagen colour and size. */
+export const mutagenIcon = (color, size) => `mutagens/item-${color}-${size}.png`;
+
 /**
- * Endpoints of the connection from `main` to a skill it requires (`dep`), both socket top-lefts.
- * Ends move from the centres to the facing edges on each axis that differs, so diagonals join
- * corner to corner. The General tree overrides some lines: "corMidHor" moves only main's y,
- * "midCorHor" only dep's.
- * @param {{x: number, y: number}} main
- * @param {{x: number, y: number}} dep
- * @param {"0" | "corMidHor" | "midCorHor"} [mode]
+ * Endpoints of the connection between two skills, both socket top-lefts. Ends move from the
+ * centres to the facing edges on each axis that differs, so diagonals join corner to corner.
+ * An end marked `mid` stays at its skill's vertical middle: the General tree's corMidHor and
+ * midCorHor line overrides, which keep the half-row skill's end there.
+ * @param {{x: number, y: number}} a
+ * @param {{x: number, y: number}} b
  */
-export function lineEnds(main, dep, mode = "0") {
+export function lineEnds(a, b, midA = false, midB = false) {
   const h = SOCKET / 2;
-  const a = { x: main.x + h, y: main.y + h }, b = { x: dep.x + h, y: dep.y + h };
-  const sx = Math.sign(main.x - dep.x), sy = Math.sign(main.y - dep.y);
-  if (sx) { a.x -= h * sx; b.x += h * sx; }
+  const p = { x: a.x + h, y: a.y + h }, q = { x: b.x + h, y: b.y + h };
+  const sx = Math.sign(a.x - b.x), sy = Math.sign(a.y - b.y);
+  if (sx) { p.x -= h * sx; q.x += h * sx; }
   if (sy) {
-    if (mode !== "midCorHor") a.y -= h * sy;
-    if (mode !== "corMidHor") b.y += h * sy;
+    if (!midA) p.y -= h * sy;
+    if (!midB) q.y += h * sy;
   }
-  return [a, b];
+  return [p, q];
 }
 
 /** The two parallel strokes, `gap` apart, that the game draws for one connection. */
@@ -84,6 +115,8 @@ export function doubleLine(a, b, gap = 3) {
  * @typedef {Object} Art
  * @property {(file: string) => number[]} size      [w, h] in px at scale 1.
  * @property {(file: string) => number[]} origin    Piece origin inside a vector file, else [0, 0].
+ * @property {(file: string) => number[]} fill      Matrix that places an atlas slice in the shape that
+ *   draws it (manifest "fill", from the shape's bitmap fill), else identity.
  * @property {(name: string) => Record<string, any>} layout  Named children of a layout file.
  * @property {(folder: string, core?: boolean) => string[]} skillIcons  Icon files of a skill folder.
  * @property {(prefix: string) => string[]} files  Manifest files starting with `prefix`.
@@ -124,6 +157,11 @@ function createArt(files, skills, layouts) {
       return [0, 0];
     },
     origin: file => (vector(file) && vector(file).origin) || [0, 0],
+    fill(file) {
+      if (files[file] && files[file].fill) return files[file].fill;
+      console.warn(`No fill matrix known for ${file}`);
+      return [1, 0, 0, 1, 0, 0];
+    },
     layout(name) {
       if (!byName[name]) throw new Error(`Unknown layout "${name}"`);
       return byName[name];

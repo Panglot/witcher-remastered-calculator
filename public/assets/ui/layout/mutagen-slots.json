@@ -433,6 +433,54 @@
     802.95,
     115.5
    ]
+  },
+  "dividerTop": {
+   "character": 601,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.375,
+    439.45,
+    130.0
+   ]
+  },
+  "dividerBottom": {
+   "character": 601,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.375,
+    439.45,
+    535.0
+   ]
+  },
+  "dividerLeft": {
+   "character": 601,
+   "class": null,
+   "matrix": [
+    0.0,
+    1.0,
+    -1.375,
+    0.0,
+    265.5,
+    332.05
+   ]
+  },
+  "dividerRight": {
+   "character": 601,
+   "class": null,
+   "matrix": [
+    0.0,
+    1.0,
+    -1.375,
+    0.0,
+    615.5,
+    332.05
+   ]
   }
  }
 }

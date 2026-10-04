@@ -1,5 +1,5 @@
 // Build format: what gets packed into share codes and export files.
-// Build data: { p: { skillId: rank }, s: slot ids (null = empty), m: mutagen per group, b: point budget, n?: name }
+// Build data: { p: { skillId: rank }, s: slot ids (null = empty), m: mutagen id per group ("" = none), b: point budget, n?: name }
 // A code is CODE_PREFIX + base64(UTF-8 JSON). Codes made before names were added are plain ASCII
 // JSON, so they decode the same way.
 
@@ -22,12 +22,12 @@ export function toBuildData(state) {
 // Returns false (and leaves state alone) when d isn't build data.
 export function applyBuildData(catalog, state, d) {
   if (!isBuildData(d)) return false;
-  const { nodes, maxRank, slots, mutagens } = catalog;
+  const { nodes, maxRank, slots, mutagenId } = catalog;
   const p = {};
   Object.keys(d.p).forEach(k => { const v = Math.max(0, Math.min(maxRank, d.p[k] | 0)); if (nodes[k] && v) p[k] = v; });
   state.pts = p;
   state.slots = Array.isArray(d.s) && d.s.length === slots.total ? d.s.map(x => (x && nodes[x] && p[x]) ? x : null) : Array(slots.total).fill(null);
-  state.mut = Array.isArray(d.m) && d.m.length === slots.groups ? d.m.map(x => mutagens[x] !== undefined ? x : "") : Array(slots.groups).fill("");
+  state.mut = Array.isArray(d.m) && d.m.length === slots.groups ? d.m.map(mutagenId) : Array(slots.groups).fill("");
   if (typeof d.b === "number" && d.b >= 0) state.budget = Math.floor(d.b);
   state.name = typeof d.n === "string" ? d.n.slice(0, MAX_NAME_LENGTH) : "";
   return true;

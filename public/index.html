@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wild Hunt Skill Planner</title>
+<title>Witcher 3 Remastered Build planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
@@ -11,82 +11,83 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<!-- Game backdrop behind every page, drawn by src/ui/backdrop.js. -->
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
+<!-- Shared SVG filters, filled by src/main.js. Rendered (not display: none) so every browser applies them. -->
+<svg class="svg-defs" id="gameDefs" aria-hidden="true" width="0" height="0"></svg>
 <div class="wrap">
   <header>
     <div class="topbar">
-      <h1>Wild Hunt Skill Planner</h1>
+      <h1>Witcher 3 Remastered Build planner</h1>
       <nav class="pagenav" id="pageNav" aria-label="Pages">
         <a href="#planner" data-nav="planner">Planner</a>
         <a href="#demo" data-nav="demo">Asset demo</a>
       </nav>
     </div>
-    <p class="lede">Witcher 3 Remastered (5.0) skill trees with the in-game layout, three ranks per skill, and the four slot groups with mutagens. A skill opens when any skill it is connected to has a point.</p>
   </header>
 
   <main class="page" id="pagePlanner" data-page="planner">
-  <section class="summary" aria-label="Points summary">
-    <div class="budget">
-      <label for="budget">Points you have <input id="budget" type="number" min="0" max="200" value="4" class="num"></label>
-      <span>Spent <span class="big num" id="spent">0</span></span>
-      <span>Left <span class="big num" id="left">0</span></span>
-    </div>
-    <div class="passives" id="passives"></div>
-    <div class="actions">
-      <button class="btn" id="resetTree" type="button">Clear tree</button>
-      <button class="btn" id="resetAll" type="button">Clear all</button>
-    </div>
+  <!-- The Character screen: each panel at its game position, drawn by ui/tree.js, points.js,
+       slots.js and legend.js once the game art has loaded; ui/tooltip.js floats over it.
+       Apply mode (ui/applyMode.js) darkens the page and the [data-masked] parts, lifts the item
+       being equipped over them and shows its popup over the page's middle, above the mask. -->
+  <div class="apply-mask" id="applyMask" hidden></div>
+  <div class="apply-popup" id="applyPopup" role="dialog" aria-label="Select slot" hidden></div>
+  <section class="screen" id="screen" aria-label="Skill planner">
+    <div class="screen-tree" id="treePanel" data-panel data-masked></div>
+    <div class="screen-lift" id="applyLift" aria-hidden="true" hidden></div>
+    <div class="screen-points" id="points" data-panel data-masked></div>
+    <div class="screen-slots" id="slotsPanel" data-panel></div>
+    <div class="screen-legend" id="legend" data-masked></div>
+    <div class="screen-tip" id="tooltip" hidden></div>
   </section>
+  <!-- The skill or mutagen being dragged to a slot (ui/drag.js), following the pointer. -->
+  <div class="drag-ghost" id="dragGhost" aria-hidden="true" hidden></div>
 
-  <section class="arch" aria-label="Archetypes">
-    <h2>Highlight an archetype</h2>
-    <div class="chips" id="archChips"></div>
-  </section>
+  <!-- Under the planner: the points bar and archetypes take two thirds, sharing the last third. -->
+  <div class="below">
+    <div class="below-main">
+      <!-- Points summary under the planner: budget, spent/left, per-tree passives, clear buttons (ui/summary.js). -->
+      <section class="summary" aria-label="Points summary">
+        <div class="budget">
+          <label for="budget">Points you have <input id="budget" type="number" min="0" max="200" value="4" class="num"></label>
+          <span>Spent <span class="big num" id="spent">0</span></span>
+          <span><span id="leftLabel">Left</span> <span class="big num" id="left">0</span></span>
+        </div>
+        <div class="passives" id="passives"></div>
+        <div class="actions">
+          <button class="btn" id="resetTree" type="button">Clear tree</button>
+          <button class="btn" id="resetAll" type="button">Clear all</button>
+        </div>
+      </section>
 
-  <div class="bench">
-    <section class="board" aria-label="Skill tree">
-      <div class="tabs" role="tablist" id="tabs"></div>
-      <div class="treewrap" id="treewrap"></div>
-      <div class="hint">Click a skill to select it. Double-click adds a point, right-click removes one. With a skill focused, + and − keys also work.</div>
+      <!-- Archetype chips: toggling one frames its skills in the tree (ui/archetypes.js). -->
+      <section class="arch" aria-label="Archetypes">
+        <h2>Highlight an archetype</h2>
+        <div class="chips" id="archChips"></div>
+      </section>
+    </div>
+
+    <section class="card share" aria-label="Share build">
+      <h2>Share build</h2>
+      <label class="field" for="buildName">Build name
+        <input id="buildName" type="text" maxlength="60" placeholder="e.g. Crossbow and bombs" autocomplete="off">
+      </label>
+      <div class="actions">
+        <button class="btn primary" id="copyCode" type="button">Copy code</button>
+        <button class="btn" id="exportFile" type="button">Export file</button>
+      </div>
+      <h2 class="subhead">Load a build</h2>
+      <textarea id="pasteCode" spellcheck="false" placeholder="Paste a build code (W3R1.…)" aria-label="Build code to load"></textarea>
+      <div class="actions">
+        <button class="btn" id="loadCode" type="button">Load code</button>
+        <button class="btn" id="importFile" type="button">Import file</button>
+        <input id="importInput" type="file" accept=".txt,text/plain" hidden>
+      </div>
+      <span class="meta" id="shareMsg" role="status"></span>
+      <p class="meta" style="margin:0">Your current build is kept in this browser between visits. Export a file or copy the code to keep it safe or move it elsewhere.</p>
     </section>
-
-    <div class="side">
-      <section class="card" id="detail" aria-live="polite"></section>
-
-      <section class="card" aria-label="Skill slots">
-        <h2>Slots and mutagens</h2>
-        <div class="groups" id="groups"></div>
-        <div class="unslotted" id="unslotted"></div>
-        <p class="meta" style="margin:0">Only slotted skills are active. Each group's mutagen gets one extra copy of its bonus per matching-colour skill (original-game rule, not yet checked in the Remaster). General skills match no mutagen.</p>
-      </section>
-
-      <section class="card share" aria-label="Share build">
-        <h2>Share build</h2>
-        <label class="field" for="buildName">Build name
-          <input id="buildName" type="text" maxlength="60" placeholder="e.g. Crossbow and bombs" autocomplete="off">
-        </label>
-        <div class="actions">
-          <button class="btn primary" id="copyCode" type="button">Copy code</button>
-          <button class="btn" id="exportFile" type="button">Export file</button>
-        </div>
-        <h2 class="subhead">Load a build</h2>
-        <textarea id="pasteCode" spellcheck="false" placeholder="Paste a build code (W3R1.…)" aria-label="Build code to load"></textarea>
-        <div class="actions">
-          <button class="btn" id="loadCode" type="button">Load code</button>
-          <button class="btn" id="importFile" type="button">Import file</button>
-          <input id="importInput" type="file" accept=".txt,text/plain" hidden>
-        </div>
-        <span class="meta" id="shareMsg" role="status"></span>
-        <p class="meta" style="margin:0">Your current build is kept in this browser between visits. Export a file or copy the code to keep it safe or move it elsewhere.</p>
-      </section>
-    </div>
   </div>
-
-  <section class="fine" aria-label="Data sources">
-    <h2>What the data rests on</h2>
-    <p><b>Tree layout and connections</b> are read from your in-game screenshots. <b>One-parent unlock</b> is confirmed in-game (a point in Efficiency opened all three skills below it). Lines are treated as two-way; whether a lower skill can open an upper one is untested.</p>
-    <p><b>Skill text</b> is the rank 1 tooltip. Skills marked "Checked in-game" were compared against your screenshots; the rest come from Hack the Minotaur's list, which matched on every skill checked so far. Rank 2 and 3 values are not published anywhere yet.</p>
-    <p><b>Not modelled:</b> the four extra slots from Blood and Wine mutations, slot unlock levels, and mutagen base values.</p>
-  </section>
   </main>
 
   <!-- Filled by src/ui/assetDemo.js the first time it's opened. -->

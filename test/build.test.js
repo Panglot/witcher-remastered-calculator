@@ -8,7 +8,7 @@ const cat = createCatalog(data);
 const blank = () => ({ pts: {}, slots: Array(cat.slots.total).fill(null), mut: Array(cat.slots.groups).fill(""), budget: 4, name: "" });
 const sample = () => {
   const s = blank();
-  s.pts = { c_mm: 2, c_st: 1 }; s.slots[0] = "c_mm"; s.mut[1] = "red"; s.budget = 12; s.name = "Crossbow and bombs";
+  s.pts = { c_mm: 2, c_st: 1 }; s.slots[0] = "c_mm"; s.mut[1] = "red-greater"; s.budget = 12; s.name = "Crossbow and bombs";
   return s;
 };
 const loaded = text => { const s = blank(); assert.ok(applyBuildData(cat, s, decodeBuildCode(text))); return s; };
@@ -29,6 +29,8 @@ test("codes made before names were added still load", () => {
   const s = loaded(code);
   assert.deepEqual(s.pts, { c_mm: 1 });
   assert.equal(s.name, "");
+  // Mutagens were stored as a bare colour then.
+  assert.deepEqual(s.mut, ["green-normal", "", "", ""]);
 });
 
 test("codes are found inside surrounding text and across line breaks", () => {
@@ -53,10 +55,10 @@ test("bad codes are rejected", () => {
 
 test("applying data drops unknown skills, clamps ranks, and clears invalid slots", () => {
   const s = blank();
-  applyBuildData(cat, s, { p: { c_mm: 9, nope: 2, c_st: 0 }, s: ["nope", ...Array(11).fill(null)], m: ["purple", "red", "", ""] });
+  applyBuildData(cat, s, { p: { c_mm: 9, nope: 2, c_st: 0 }, s: ["nope", ...Array(11).fill(null)], m: ["purple", "red-lesser", "constructor", ""] });
   assert.deepEqual(s.pts, { c_mm: 3 });
   assert.equal(s.slots[0], null);
-  assert.deepEqual(s.mut, ["", "red", "", ""]);
+  assert.deepEqual(s.mut, ["", "red-lesser", "", ""]);
 });
 
 test("export file names are safe", () => {

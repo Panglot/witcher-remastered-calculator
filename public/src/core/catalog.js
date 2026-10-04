@@ -6,25 +6,46 @@
  * @typedef {Object} Skill
  * @property {string} id
  * @property {string} name
- * @property {number} col
- * @property {number} row
+ * @property {string} game      The game's skill id, e.g. "sword_s22" (names its icon).
+ * @property {number} col       The game's gridColumn, in thirds of a skill step.
+ * @property {number} row       The game's gridRow, in thirds of a skill step.
+ * @property {boolean} midLines Lines end at the skill's vertical middle, not its edge.
  * @property {string} text
  * @property {boolean} root      Open without a connected point.
  * @property {boolean} verified  Text checked in-game.
  * @property {string} note
  * @property {string} tree       Id of the tree it belongs to.
- * @property {string[]} nb       Ids of connected skills.
+ * @property {string[]} from     Ids of the skills whose point opens this one.
+ * @property {string[]} to       Ids of the skills a point in this one opens.
  */
 
 /**
- * @param {{ rules: object, trees: Record<string, object>, archetypes: object[] }} data
+ * @typedef {Object} Mutagen  See data/mutagens.js.
+ * @property {string} id
+ * @property {string} name
+ * @property {string} color     Matches the trees' `mutagen` colour.
+ * @property {string} size
+ * @property {number} value     Bonus of the mutagen alone.
+ * @property {number} col       Cell in the Mutagens tab grid.
+ * @property {number} row
+ * @property {string} type      Tooltip item type ("Alchemy ingredient").
+ * @property {string} rarity    Tooltip rarity line ("Common item").
+ * @property {{ label: string, unit: string }} stat
+ */
+
+// The Mutagens tab follows the tree tabs.
+export const MUTAGEN_TAB = "mutagens";
+
+/**
+ * @param {{ rules: object, trees: Record<string, object>, archetypes: object[], mutagens?: object }} data
  */
 export function createCatalog(data) {
   const { rules, trees, archetypes } = data;
+  const mutagenData = Object.assign({ stats: {}, items: [], aliases: {}, item: {} }, data.mutagens);
   const problems = [];
   /** @type {Record<string, Skill>} */
   const nodes = {};
-  /** @type {[string, string][]} */
+  /** One-way links [from, to]: a point in `from` opens `to`. @type {[string, string][]} */
   const edges = [];
 
   const order = rules.treeOrder.filter(t => {
@@ -35,7 +56,7 @@ export function createCatalog(data) {
 
   order.forEach(t => trees[t].skills.forEach(s => {
     if (nodes[s.id]) problems.push(`Duplicate skill id "${s.id}" in ${t} (already used in ${nodes[s.id].tree}).`);
-    nodes[s.id] = Object.assign({ root: false, verified: false, note: "" }, s, { tree: t, nb: [] });
+    nodes[s.id] = Object.assign({ root: false, verified: false, midLines: false, note: "" }, s, { tree: t, from: [], to: [] });
   }));
 
   order.forEach(t => trees[t].links.forEach(link => {
@@ -43,19 +64,33 @@ export function createCatalog(data) {
     if (!nodes[a] || !nodes[b]) { problems.push(`Link "${link}" in ${t} points to an unknown skill.`); return; }
     if (nodes[a].tree !== t || nodes[b].tree !== t) { problems.push(`Link "${link}" in ${t} crosses into another tree.`); return; }
     edges.push([a, b]);
-    nodes[a].nb.push(b); nodes[b].nb.push(a);
+    nodes[a].to.push(b); nodes[b].from.push(a);
   }));
 
   archetypes.forEach(a => a.ids.forEach(id => {
     if (!nodes[id]) problems.push(`Archetype "${a.id}" lists unknown skill "${id}".`);
   }));
 
+  /** @type {Record<string, Mutagen>} */
+  const mutagens = {};
+  mutagenData.items.forEach(m => {
+    if (Object.hasOwn(mutagens, m.id)) problems.push(`Duplicate mutagen id "${m.id}".`);
+    if (!Object.hasOwn(mutagenData.stats, m.color)) problems.push(`Mutagen "${m.id}" has colour "${m.color}", which has no entry in mutagens.stats.`);
+    mutagens[m.id] = Object.assign({ type: "", rarity: "" }, mutagenData.item, m, { stat: mutagenData.stats[m.color] });
+  });
+  const aliases = mutagenData.aliases;
+  /** A stored mutagen as a current id: aliases resolved, "" for none or unknown. */
+  const mutagenId = x => Object.hasOwn(mutagens, x) ? x
+    : Object.hasOwn(aliases, x) && Object.hasOwn(mutagens, aliases[x]) ? aliases[x] : "";
+
   const slots = { groups: rules.slotGroups, perGroup: rules.slotsPerGroup, total: rules.slotGroups * rules.slotsPerGroup };
 
   return {
     rules, trees, archetypes, order, nodes, edges, slots, problems,
     maxRank: rules.maxRank,
-    mutagens: rules.mutagens,
+    mutagens, mutagenId,
+    // Planner tabs: the trees, then the mutagen inventory.
+    tabs: order.concat(MUTAGEN_TAB),
     /** @param {string} tree */
     skillsIn: tree => Object.values(nodes).filter(n => n.tree === tree)
   };

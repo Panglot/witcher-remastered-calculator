@@ -2,11 +2,15 @@
 
 The recipe (tools/asset-recipe.json) maps every output file to where it comes from:
   {"from": "atlas", "movie": "<alias>", "sub": 418}           slice of a movie's texture atlas (GFX sub-image)
+      optional "under": {"shape": 402, "at": [0, -6]}         a solid shape drawn behind it (see AtlasSource)
+      optional "shape": 554                                    the shape that draws it; its fill matrix goes to the manifest
   {"from": "cache", "path": "gameplay/gui_new/icons/...png"}  texture from content0/texture.cache
   {"from": "svg", "movie": "<alias>", "shape": 603}            vector shape, exported with JPEXS FFDec
   {"from": "svg", "movie": "<alias>", "sprite": 665, "frame": "SC_Red"}   one sprite frame (number or label), via FFDec
   {"from": "skills", "exclude_trees": ["None"]}                skill icons + skills.json (output is a folder)
   {"from": "placements", "movie": "<alias>", "sprite": 710}    JSON of a sprite's named children: matrix, text style
+      optional "names": {"5": "frame"}                         names for unnamed children, by depth
+      optional "frame": "selected_up"                          the frame to read (number or label, default 1)
 Every source may carry a "note" that is copied into the manifest. Images are written as PNG, or as JPEG
 when the output name ends in .jpg (for large opaque art).
 
@@ -26,9 +30,11 @@ import subprocess
 import sys
 import tempfile
 
+from PIL import Image, ImageColor, ImageDraw
+
 from extract_skill_icons import main as extract_skills
 from game_files import TextureCache, content_path
-from gfx_movie import GameMovies
+from gfx_movie import GameMovies, TWIPS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_RECIPE = os.path.join(HERE, 'asset-recipe.json')
@@ -92,8 +98,42 @@ class BuildContext:
 
 
 class AtlasSource:
+    """Atlas slice. An optional "under" puts a solid shape of the same movie behind it, for art that
+    shows a shape through transparent holes: {"shape": 402, "at": [x, y]}. The shape is drawn as its
+    bounding box in its first solid fill; "at" (default [0, 0]) is the slice's placement offset relative
+    to the shape's, both placed in the same parent sprite.
+    An optional "shape" (the shape that draws the slice as a bitmap fill) writes that fill's matrix to
+    the manifest as "fill": where the slice lands, in px, in the shape's own units."""
+
     def build(self, ctx, src, dest):
-        return save_image(ctx.movies.subimage(ctx.movie_path(src['movie']), src['sub']), dest)
+        image = ctx.movies.subimage(ctx.movie_path(src['movie']), src['sub'])
+        if 'under' in src:
+            image = self.over_shape(ctx.movie(src['movie']), image, src['under'])
+        info = save_image(image, dest)
+        if 'shape' in src:
+            info['fill'] = self.fill_matrix(ctx.movie(src['movie']), src['shape'], src['sub'])
+        return info
+
+    @staticmethod
+    def fill_matrix(movie, shape_id, sub):
+        """SVG matrix of the shape's bitmap fill of `sub`. Bitmap fill scales are in twips per bitmap
+        pixel, so they are divided by TWIPS; the translation is already in px."""
+        fill = next((f for f in movie.shapes[shape_id].fills if f.kind == 'bitmap' and f.bitmap == sub), None)
+        if fill is None:
+            sys.exit(f'shape {shape_id} has no bitmap fill of sub-image {sub}')
+        a, b, c, d, tx, ty = fill.matrix
+        return [round(v / TWIPS, 5) for v in (a, b, c, d)] + [round(tx, 3), round(ty, 3)]
+
+    @staticmethod
+    def over_shape(movie, image, under):
+        shape = movie.shapes[under['shape']]
+        color = next(f.color for f in shape.fills if f.kind == 'solid')
+        ax, ay = under.get('at', (0, 0))
+        x0, y0, x1, y1 = (round(v) for v in (shape.bounds[0] - ax, shape.bounds[1] - ay,
+                                             shape.bounds[2] - ax, shape.bounds[3] - ay))
+        base = Image.new('RGBA', image.size, (0, 0, 0, 0))
+        ImageDraw.Draw(base).rectangle((x0, y0, x1 - 1, y1 - 1), fill=ImageColor.getcolor(color, 'RGBA'))
+        return Image.alpha_composite(base, image.convert('RGBA'))
 
 
 class CacheSource:
@@ -142,13 +182,16 @@ class SkillsSource:
 
 
 class PlacementsSource:
-    """Named children of a sprite (or the root timeline, sprite 0): where the game places each piece."""
+    """Named children of a sprite (or the root timeline, sprite 0): where the game places each piece.
+    Unnamed children are left out unless the recipe's "names" gives their depth a name."""
 
     def build(self, ctx, src, dest):
         movie = ctx.movie(src['movie'])
+        names = {int(depth): name for depth, name in src.get('names', {}).items()}
         children = {}
         for p in movie.display_list(src['sprite'], src.get('frame', 1)).values():
-            if not p.name:
+            name = p.name or names.get(p.depth)
+            if not name:
                 continue
             child = {'character': p.character, 'class': movie.class_name(p.character),
                      'matrix': [round(v, 5) for v in (p.matrix or (1, 0, 0, 1, 0, 0))]}
@@ -160,7 +203,7 @@ class PlacementsSource:
             if text:
                 child['text'] = {'box': [round(v, 2) for v in text.bounds], 'size': text.height,
                                  'color': text.color, 'align': ALIGN.get(text.align)}
-            children[p.name] = child
+            children[name] = child
         with open(dest, 'w') as f:
             json.dump({'_about': 'Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. '
                                  'cxform: color = color * mult + add (alpha mult 0-1). '

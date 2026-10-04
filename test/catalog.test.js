@@ -14,9 +14,15 @@ test("every tree has a root skill and every skill is reachable from one", () => 
     const reached = new Set(skills.filter(s => s.root).map(s => s.id));
     assert.ok(reached.size > 0, `${t} has no root skill`);
     const queue = [...reached];
-    while (queue.length) cat.nodes[queue.shift()].nb.forEach(n => { if (!reached.has(n)) { reached.add(n); queue.push(n); } });
+    while (queue.length) cat.nodes[queue.shift()].to.forEach(n => { if (!reached.has(n)) { reached.add(n); queue.push(n); } });
     assert.deepEqual(skills.filter(s => !reached.has(s.id)).map(s => s.id), [], `unreachable skills in ${t}`);
   }
+});
+
+test("links run from the upper skill down, or out of a root", () => {
+  const cat = createCatalog(data);
+  const wrong = cat.edges.filter(([a, b]) => !(cat.nodes[a].root || cat.nodes[a].row < cat.nodes[b].row)).map(e => e.join("-"));
+  assert.deepEqual(wrong, []);
 });
 
 test("no two skills in a tree share a grid cell", () => {
@@ -25,6 +31,11 @@ test("no two skills in a tree share a grid cell", () => {
     const cells = cat.skillsIn(t).map(s => `${s.col},${s.row}`);
     assert.equal(new Set(cells).size, cells.length, `overlapping skills in ${t}`);
   }
+});
+
+test("every mutagen has its own grid cell", () => {
+  const cells = Object.values(createCatalog(data).mutagens).map(m => `${m.col},${m.row}`);
+  assert.equal(new Set(cells).size, cells.length);
 });
 
 test("catalog reports data mistakes instead of throwing", () => {

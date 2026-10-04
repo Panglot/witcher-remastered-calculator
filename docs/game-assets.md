@@ -39,7 +39,7 @@ To add or change an asset, edit [tools/asset-recipe.json](../tools/asset-recipe.
 
 | Script | What it does |
 | --- | --- |
-| `build_ui_assets.py` | Recipe-driven builder. Source types: `atlas` (movie sub-image), `cache` (`texture.cache` path), `svg` (FFDec shape or sprite frame, by number or label), `skills` (all skill icons), `placements` (layout JSON of a sprite's named children). New source types are one class each in `HANDLERS`. |
+| `build_ui_assets.py` | Recipe-driven builder. Source types: `atlas` (movie sub-image, optionally over a solid shape with `"under"`), `cache` (`texture.cache` path), `svg` (FFDec shape or sprite frame, by number or label), `skills` (all skill icons), `placements` (layout JSON of a sprite's named children). New source types are one class each in `HANDLERS`. |
 | `game_files.py` | Library: `.bundle` and CR2W readers, `CSwfTexture` atlas textures (DXT5), `texture.cache` reader. |
 | `gfx_movie.py` | Library: SWF/GFX parser. Atlas images and sub-images, shapes with all fill styles, sprites with frame labels, PlaceObject/RemoveObject, text fields, symbol classes. `display_list(sprite, frame)` gives what is visible on a frame. `GameMovies` loads movies and textures straight from `r4gui.bundle`. Checked against FFDec's dump: all 203 sprites match. |
 | `extract_skill_icons.py` | Skill icon export by skill id, plus `skills.json`. Used by the builder; as a CLI it also writes the hidden `perk_8` icon. |
@@ -123,6 +123,7 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `tooltip/` | `header.png`, `header-frame.png` |
 | `legend/` | `mouse-<left/right/middle/scroll>.png`, `key.svg` |
 | `points/` | `diamond.png` |
+| `popup/` | `frame.svg`, `buttons-frame.svg` (message popup, `popup_message.redswf`) |
 | `layout/` | Where the game places things: one JSON per sprite with each named child's matrix, color transform and text style |
 
 Colors: `red` combat, `blue` signs, `green` alchemy, `yellow` general, `grey` locked or not learned.
@@ -150,8 +151,9 @@ The silhouette (1920x1000) and vignette (1920x1080) textures cut earlier belong 
 - `tree/frame.png` over it at 0.5 scale, same origin.
 - Title text (`txtTitle`, 34px white, right-aligned) at (411, 38).
 - Five tabs (`layout/tab.json`) at x = 51, 131, 211, 291, 371, y = 34. A tab is `<tree>.png` with `<tree>-bar.png` under it (one shape draws both slices; bounds about (-30, -5) to (36, 47) around the tab origin).
-  - On hover the icon switches to `<tree>-hover.png`.
-  - On the open tab, `<tree>-selected.png` (`mcOpened`, 0.83 scale) is shown above the icon, together with a white highlight (`mcSelectedHighlight`).
+  - Each slice is a bitmap fill with its own matrix (manifest `fill`): the bar at 0.5 scale from (-30, 36), the icon at 0.83 scale from its own corner (Combat: (-18, -5)), so its bottom sits about 12px above the bar.
+  - On hover the icon switches to `<tree>-hover.png` (sprite `mcIcon_Over`, its own shape and fill matrix, 0.83 scale).
+  - On the open tab, `<tree>-selected.png` (`mcOpened`, 0.83 scale) is shown above the icon. `layout/tab.json` is read from frame `selected_up`, where `mcOpened` is moved to (1, 11) and made opaque; on frame 1 it is hidden at (1, 1). `mcSelectedHighlight` shows only on a selected tab that is not open (`AdvancedTabListItem.setIsOpen`).
   - The count text (`2/22`) is 21px `#aa9578`.
 - Skill grid (`mcSkillModule`) at (69.25, 111.6). Node layout and lines: [How the game draws the skill tree](#how-the-game-draws-the-skill-tree).
 - Below the panel (screen coordinates): `tree/separator.png` at (138, 905), the label (movie text "AVAILABLE POINTS:", localized at runtime) 32px `#95866e` right-aligned at (167, 917), the value 32px white at (397, 916), and `points/diamond.png` centered at (561.7, 935).
@@ -165,11 +167,55 @@ Children, back to front:
 3. `equipedIcon`: `node/equipped-<color>` full-color square when the skill is equipped. **Unverified** whether `equipped-overlay` is also visible.
 4. `coreFrame`: `node/core-border-<color>` (core skills only).
 5. `mcColorBackground`: `slots/fill-<color>`.
-6. `mcSkillPoints`: rank pips centered at (32, 62).
+6. `mcSkillPoints`: rank pips centered at (32, 62). `SlotPointIndicator.setCount` adds one `SkillPointIndicatorSingle` (`layout/pip.json`, sprite 31) per rank, spaced by its width: the 40px `node/pip-<color>` turned 45° at 0.249 scale (about 10px a side, 14.1px corner to corner), so neighbouring pips touch. Frame `on` adds `node/pip-fill` on top.
 7. `mcStateSelectedActive`: `node/selected.png` around the focused node. Its sprite (513) is a 35-frame loop; in game the border pulses, opacity 100% to 0% and back (seen in `reference/signs.png`; the exact curve has not been read from the frames).
 8. `mcCollapsedTooltipIcon`: `node/tooltip-hint.png`.
 
 The skill icon is loaded by code into the slot. The unlock flash is a white fade.
+
+Hold to acquire (`SlotSkillGrid.as`, `startPurchaseAnimation`): E held, or the **right** mouse button held, on a skill that can take a point (`hasRequiredSkillDependency`, level below 3). `HOLD_TIME` is 1 s. Over it, `equipedIcon.mcFullColor` alpha tweens to 1 (linear, 0.95 s), then the purchase fires. `mcHoldAnimBlock` (sprite 448: a 64x64 `#ffffff` square at 50% alpha) grows from y 64, height 0 to y 2, height 62 (linear), and its alpha follows `splitEase(0.75, 0.25)`: 0.5 to 0.375 over the first 75% and to 0 over the rest, each leg smoothstepped. Releasing the button or key, the pointer leaving the skill, or a change of selection cancels it, and `mcFullColor` returns to its alpha in 0.2 s. A double-click equips. The planner uses the left button for the mouse hold. Sockets are `SlotSkillGrid`s too (`SlotSkillSocket`, with its own `mcHoldAnimBlock`), so the hold works on an equipped skill.
+
+### Apply mode (equipping)
+
+Source: `MenuCharacterDupe` (`handleSkillAction`, `startApplyMode`, `endApplyMode`, `handleApplyModeAccept`), `CharacterModeBackground` (sprite 720 `SelectionMode`, root instance `applyMode`), `SlotsListBase.ReselectIndexIfInvalid`.
+
+- Starts from a tree skill with at least one point, or from an inventory mutagen, on Space or a double-click. It needs an unlocked socket or diamond.
+- `applyMode` sits at root depth 81, under `moduleSkillSlot` (depth 227), so the slot groups stay bright. Its `mcBackground` is a 1920x1080 `#000000` fill at alpha 0xd9 with a color transform alpha of 0.789, about 0.67 in all. It fades in over 1 s (`Exponential.easeOut`).
+- `createSlotAvatar` copies the slot being equipped over the mask, with a `GlowFilter` (`#FFFFB8`, alpha 0.5, blur 8, strength 1), and tweens it to scale 1.1 and alpha 1 over 1 s (`Exponential.easeOut`).
+- Equipping a skill makes the diamonds and locked sockets unselectable; equipping a mutagen makes every socket and locked diamonds unselectable. The tab module is disabled and the key legend is hidden.
+- The game's own popup: sprite 716 (shape 715, `#0e0d0c` at alpha 0.95 with a `#635449` frame) at (703.7, 933.9) scaled (0.98, 0.32), title `SELECT SLOT` (24 px, `#888478`), and `[E] Accept` / `[ESCAPE] Cancel`. The planner draws the message popup instead (below), by the owner's choice.
+- Accept (E or the button, or Space or a double-click on a socket) equips into the selected socket; Escape cancels. Equipping into a full socket replaces its skill; equipping an equipped skill moves it.
+- Outside apply mode, Space or a double-click on an equipped socket unequips it (`SlotSkillSocket.handleMouseDoubleClick`).
+- The planner preselects the first empty holder (else the item's own, else the first). The game keeps the socket list's current selection when it is selectable, else the nearest selectable one.
+
+### Hover glow
+
+Source: `SlotBase.updateImageLoaderStates`, `SlotBase.handleMouseOver`, `SlotsListBase.handleItemMouseOver`.
+
+- Hovering a slot with the mouse never selects it (the list only fires `ITEM_ROLL_OVER`). It puts a `GlowFilter` on the slot's image loader: `OVER_GLOW_COLOR` 15990722 (`#F3FFC2`), alpha 1, blur 15 x 15, strength 0.75, `BitmapFilterQuality.HIGH`.
+- Only when the slot is not empty, not drag-selected, and shows no indicator (selection frame, drop target, drop ready). Nothing glows while dragging.
+- The filter sits on the loader, around its content's alpha, so a faded (locked) skill icon glows faintly.
+- The planner draws it from a copy of the icon under the icon, through a glow-only SVG filter (`OVER_GLOW` in `gameArt.js`, `glowFilters` in `gamePieces.js`), in the piece's own units. Filtering the icon itself re-rasterized it and blurred icons at fractional positions. Inventory mutagens use a smaller blur (by eye): at the game's value the glow spread far past their cell. **Unverified:** whether the game's glow shrinks with the diamond's 0.61 scale; the planner's does.
+
+### Drop targets (hovering an item)
+
+Source: `SlotsTransferManager` (`handleMouseOver`, `showDropTargets`, `highlightDropTargets`), `SlotBase.getTargetIndicator`, `SlotSkillSocket.canDrop`, `SlotSkillMutagen.canDrop`, `SlotsListBase.applySelectionContext`.
+
+- With the mouse, hovering anything that `canDrag` (a tree skill with a point that is not a core skill, an equipped socket, an equipped diamond, an inventory mutagen) sets `dropSelection` on every drop target whose `canDrop` passes, except the hovered slot itself. With a gamepad the selected item does the same. Leaving the item clears them.
+- Those slots show `mcStateDropTarget` (sprite 509): sprite 508 at (-32, -32) with alpha 0.6, holding shape 507, a 1 px `#ffcc00` 64x64 square outline. The planner draws it as a vector rect (`gameArt.js`, `DROP_TARGET`) with a 1 px non-scaling stroke: as an image it blurred and lost an edge on the turned, scaled-down diamond. Full and empty slots both show it (seen in game: a full diamond shows it inside its frame, around the mutagen).
+- Indicators fade in and out over `INDICATE_ANIM_DURATION` (1.5 s, `Strong.easeOut`). The selection frame takes priority over it; `mcStateDropReady` (sprite 506, a `#ff9900` fill at alpha 0x1e) shows only while dragging over a slot.
+- Sockets light for skills only (`canDrop` needs a `skillType`, and checks `colorBorder` colours). By the code, `SlotSkillMutagen.canDrop` would accept a hovered skill too, but in game the diamonds stay dark then; the planner lights only the holders of the hovered item's kind.
+
+### Message popup (`popup_message.redswf`, `SystemMessageModuleRef`, `layout/popup.json`)
+
+The "Are you sure you want to quit?" popup. The Reset abilities mod (`modResetAbilities`) opens it through `ConfirmationPopupData`, and the planner uses its look for every popup.
+
+- Page mask: `#000000` at alpha 0.6 (`mcBackground`, shape 182).
+- Module centred at (958.6, 264.1). Panel `popup/frame.svg` (shape 174: `#0e0d0c` at 0.95 with a `#423831` double frame), placed at (-280.45, 3.6) and scaled (1.097, 0.656), so about 564 x 265.
+- `tfTitle` at y 24.15: 24 px, `#888478`, centred. `tfMessage` at y 67.4: 24 px, `#eddec1`, centred, 501 px wide.
+- `mcInputBackground` (`popup/buttons-frame.svg`, shape 176: `#0e0d0c` with a `#241d17` frame, 341 x 49) at (-168.8, 242.15), across the panel's bottom edge.
+- Button label colors (`ModuleInputFeedback.getColorByNavCode`): accept (A) `#1C971C`, back (B) `#9E2828`. Button background: `InputFeedbackButton_kb_background`, `#b4a17c` through a color transform (mult 0.1, add 23/22/22), about `#292623`.
+- Measured from an in-game "Load saved game" screenshot (scale about 0.91), which the planner follows over the values above: the button fill is `#161515` (the transform's add alone) inside a 1 px `#0c0b0a` ring and a faint `#141313` outline, 36 px tall, 16 px apart, with the key text grey (`#cecece`). The button strip shrinks around its buttons (about 12 px from its outer edge) and is 55 px tall, centred on the panel's bottom edge. Under the title is a 63 px header band: a faint warm glow brightest at the centre (`#463a28` at 0.035 to 0.1 over the panel) ending in a 3 px line (same colour, 0.05 to 0.19). Text starts 20 px under the band and ends 21 px above the strip.
 
 ### Tooltip (`componentslib`, `SkillTooltipRef`, `layout/tooltip.json`)
 
@@ -187,28 +233,33 @@ Text fields:
 | `tfCurrentLevelDescription` | (11, 87) | 24px | white | | |
 | `tfNextLevelDescription` | (11, 145) | 23px | `#c6bc9d` | | |
 
+Mutagen tooltips follow the item tooltip (`panel_character`, `TooltipInventory.as`) instead: the name, then the item type in upper case (`0xC8C8C7` in code), the stat list, the description and the rarity line. The planner leaves out the weight and price row. The other colours were sampled from an in-game Greater blue mutagen tooltip (name `#b9924d`, stat value `#fbeccc`, stat label `#d6d0b9`, rarity `#767372`). **Unverified:** the item header's text positions; the planner reuses the skill tooltip's.
+
 ### Key legend (`panel_common`, `InputFeedbackButtonRef`, `layout/legend-button.json`)
 
 - The buttons are **centered** horizontally at y ≈ 1023: `MenuCommon` sets `mcInpuFeedback.buttonAlign = "center"`. They are 15px apart (`BUTTONS_PADDING`), and the first button in the list is the rightmost.
 - Key cap: `legend/key.svg` (a rounded square) at 0.75 x 0.83 scale. Authored `#675943`, shown as `#191919` through a color transform.
 - Key letter: 28px `#c0ae8c`, centered.
+- **Drawn smaller in game than authored.** An in-game screenshot, measured against the label's cap height, shows the key cap about 32px tall (not 42) and the key letter about as tall as the label's letters (about 20px, not 28). The planner uses the measured sizes (`.gkey` in `styles.css`). The mouse icons match their 40px bitmaps.
 - Label: 22px `#c68e5b`.
 - Hold actions: the label is `"[Hold] " + label` in the same field, with the prefix wrapped in `<font color="#CD7D03">` by `GetHoldLabel()` (`localizedContent.ws`). Example: "[Hold] Acquire Ability".
-- Mouse actions use `legend/mouse-*.png` in place of the key cap.
+- Mouse actions use `legend/mouse-*.png` in place of the key cap (`InputFeedbackButton_mouseIcon`, frames `left`/`right`/`middle`/`scroll_up` = subs 401/400/399/398). The pressed button is a transparent hole in the bitmap; a white square (shape 402) behind every frame shows through it. The recipe bakes that square in with `"under"`.
 
 ### Mutagen area (`layout/mutagen-panel.json`, module at (617.95, 158))
 
-- `mcSlotsNormal` (`layout/mutagen-slots.json`) at (253.8, 58.25) holds 12 sockets, 4 diamonds, 16 connectors, 4 bonus sockets, 4 divider lines (`slots/divider.svg`) and the center ornament (`slots/divider-ornament.png`).
+- `mcSlotsNormal` (`layout/mutagen-slots.json`) at (253.8, 58.25) holds 12 sockets, 4 diamonds, 16 connectors, 4 bonus sockets, 4 divider lines (`slots/divider.svg`, unnamed in the game: named `divider{Top,Bottom,Left,Right}` by the recipe, scaled 1.375 to 275 px) and the center ornament (`slots/divider-ornament.png`).
 - **Socket** (`layout/mutagen-socket.json`), back to front:
   - colored border
-  - `slots/frame.svg` (border `#45362d` on `#212121`)
-  - `mcColorBorder`: edge glow `slots/glow-<colors>`, centered
+  - `slots/frame.svg` (border `#45362d` on `#212121`), unnamed sprite 615 at (-6, -6) scaled (0.937, 0.976): about 76 x 76, a 6px gap around the 64px skill. The recipe names it `frame` in the layout.
+  - `mcColorBorder`: edge glow `slots/glow-<colors>`, centered. Shown only for a slot whose data has `colorBorder` (the skill colours it accepts, `SlotSkillSocket.updateData` / `canDrop`), not when a skill matches its group's mutagen
   - `iconLock`: `slots/lock.svg`, gray `#777776`
+  - `mcStateDropTarget` (see Drop targets below), scaled 1.188 on the socket centre: about 76 x 76, on the frame's edge
   - `equipedIcon`
   - rank pips
 - **Mutagen diamond** (`layout/mutagen-diamond.json`), placed rotated 45° at 0.61 scale:
   - `mutagens/diamond-frame.svg` (`#45362d`)
   - the color fill
+  - `mcStateDropTarget` (see Drop targets below), scaled (1.071, 1.043) on the centre: inside the frame, on the fill's edge
   - the mutagen's inventory icon `mutagens/item-<color>-<size>.png`, loaded by `SlotSkillMutagen.loadIcon`. **Likely** tilted with the diamond, since no code counter-rotates it.
   - `slots/lock.svg` when locked
 
@@ -225,7 +276,8 @@ Text fields:
 
 - **Bonus label** (`mc_bonus_bkg_new`, 8 placements in `layout/mutagen-panel.json`):
   - `bonus/bar-<color>.png` at 280x64, alpha 0.8, offset (-4, 4). Mirrored (`scaleX(-1)`) on the right side.
-  - `bonus/shield.png` at (5, 8) with `bonus/glyph-<stat>.png` at about (5-6, 5) on top. The shield stays visible for every color.
+  - `bonus/shield.png` at (5, 8) with `bonus/glyph-<stat>.png` on top, each at its own offset: sword (6, 5), sign (4.75, 1.45), plus and person (4.95, 4.85). The shield stays visible for every color.
+  - Stat name and value: the layout text fields, but centred on the bar by cap height (the fields hang the text from the font ascent, which reads low).
   - Glyphs: sword = red (attack power), sign = blue (sign intensity), plus = green (vitality), person = yellow.
   - Text 23px white.
 
@@ -314,7 +366,7 @@ All ids are `perk_<n>`.
 | `SC_Blue` | `#0049C6` |
 | `SC_Yellow` | `#B27100` |
 
-**Unverified:** the softer look in screenshots probably comes from node and line alpha set elsewhere.
+Checked against an in-game screenshot: lines are one-way. With Muscle Memory and Three Strikes learned and Strength Training not, the Strength Training to Three Strikes line stays `#333333`. Lines are drawn opaque.
 
 ## How the game draws mutagen connectors
 
@@ -340,6 +392,7 @@ Connectors are predrawn vector shapes, not textures:
 - Each piece is a double line (two filled strips), like the tree lines.
 - Every instance is placed with its own matrix: 90° rotation, mirroring for top vs bottom and left vs right, slight stretch. Apply the matrix as an SVG `transform="matrix(a,b,c,d,e,f)"`.
 - Each piece SVG wraps its shape in `<g transform="matrix(1,0,0,1,ox,oy)">`, where `(ox, oy)` is where the piece origin sits inside the file: corner `(2.5, 10.5)`, line `(5.65, 6.1)`. Place the shape so that origin lands on the instance matrix.
+- The exported shapes are not what shows. `ConnectorLineRef` and `SkillSlotConnectorRef` mask `lineStatic` (depth 1, clip to 5) and `lineAnim` (depth 7, clip to 11) with sprite 646, a 14.5x13.75 rectangle. On the `complete` frame the static mask is collapsed and the anim mask is, in piece units: line x -3 to 3, y -4 to 26.5 (cuts the T-cap wings); corner x -3 to 94.3, y -1 to 24 (cuts the end that would enter the socket frame). `connector()` in `ui/gamePieces.js` clips to these rectangles. `gfx_movie.py` skips clip depth; it was read with a patched copy.
 
 ### Colors
 
@@ -364,7 +417,7 @@ Frame labels on the pieces, saved as `mutagens/connectors/{corner,line}-<color>.
 
 - Exact rule for connector colors and dual-color skills (`ModuleSkillsSocketsDupe`, `PlayerAbilityManager.ws` around `GetSkillGroupColorCount` / `LINK_BONUS_*`).
 - Default panorama (Velen is the likely one) and how the panorama is scaled to the screen (`MenuCommon.setBackgroundPosition`).
-- Node state details: when `equipped-overlay` shows, and the alpha of unavailable icons and lines.
+- Node state details: matched by eye only (no fill when unavailable, a darkened fill when available, see `treeNode` in `ui/gamePieces.js`).
 - Skill names and descriptions: `localisationName` keys resolve through `content0/*.w3strings` (encrypted string tables, not extracted yet).
 - Which panorama the app shows. The reference screenshots use Novigrad; Velen is the likely in-game default.
 

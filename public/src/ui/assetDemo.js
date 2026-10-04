@@ -2,8 +2,9 @@
 // screen, as a preview of where the planner's look is heading. Shows a made-up build, not yours.
 // The art loads the first time the page is opened.
 import { $, esc } from "./dom.js";
-import { artUrl, gridPos, doubleLine, lineEnds, loadArt, GAME_TABS, LINE_COLORS, MUTAGEN_ART, SOCKET, TREE_ART } from "./gameArt.js";
-import { createPieces, matrix, placed } from "./gamePieces.js";
+import { artUrl, loadArt, DEFAULT_REGION, GAME_TABS, MUTAGEN_ART, SCREEN, SOCKET, TREE_ART } from "./gameArt.js";
+import { createPieces, matrix } from "./gamePieces.js";
+import { createPanels } from "./gamePanels.js";
 
 // A made-up tree in game grid units (gridColumn, gridRow) that shows every node state and line
 // colour. Row 0 skills are roots. Links are [main, required skill] by index.
@@ -17,6 +18,7 @@ const DEMO_NODES = [
   { col: 3, row: 18 }, { col: 9, row: 18 },
   { col: 6, row: 21 }
 ];
+// [skill, the skill above it that opens it]
 const DEMO_LINKS = [[5, 0], [6, 1], [7, 2], [8, 3], [9, 4], [10, 6], [10, 8], [11, 5], [11, 10], [12, 9], [12, 10],
   [13, 11], [14, 12], [15, 13], [15, 14], [16, 15], [17, 15], [18, 16], [18, 17]];
 const DEMO_SELECTED = 2;
@@ -33,8 +35,7 @@ const DEMO_GROUPS = [
 // Key legend, left to right.
 const LEGEND = [
   { key: "R", label: "Reset abilities" },
-  { mouse: "middle", label: "Description size" },
-  { key: "E", label: "Acquire ability", hold: true }
+  { mouse: "left", key: "E", label: "Acquire ability", prefix: "[Hold]" }
 ];
 
 // Game text styles: CSS token (styles.css), size, weight, sample, where the game uses it.
@@ -58,8 +59,8 @@ export function mountAssetDemo(app) {
   const { catalog } = app;
   const el = $("pageDemo");
   // tab: the open game tab; tree: the last planner tree, used where Mutations has no art.
-  const view = { tab: "signs", tree: "signs", region: "velen" };
-  let status = "idle", art = null, pieces = null;
+  const view = { tab: "signs", tree: "signs", region: DEFAULT_REGION };
+  let status = "idle", art = null, pieces = null, panels = null;
 
   el.addEventListener("click", e => {
     const b = e.target.closest("[data-demo-tab]"); if (!b) return;
@@ -78,7 +79,7 @@ export function mountAssetDemo(app) {
     status = "loading";
     el.innerHTML = `<section class="card"><p class="meta">Loading game art…</p></section>`;
     loadArt().then(a => {
-      art = a; pieces = createPieces(a); status = "ready"; draw();
+      art = a; pieces = createPieces(a); panels = createPanels(a, pieces); status = "ready"; draw();
     }).catch(err => {
       status = "idle";
       el.innerHTML = `<section class="card"><p class="bad-msg">Could not load the game art: ${esc(err.message)}</p></section>`;
@@ -94,115 +95,50 @@ export function mountAssetDemo(app) {
   // ---- Character screen (1920x1080, screen.json coordinates) ----
 
   function screen() {
-    const S = art.layout("screen");
     const name = view.tab === "mutations" ? "Mutations" : catalog.trees[view.tab].name;
-    return `<svg class="gscreen" viewBox="0 0 1920 1080" role="img" aria-label="Character screen preview, ${esc(name)} tab">
-      ${backdrop(S)}
-      ${placed(S.mcDupeTabModule, treePanel(name))}
-      ${pointsRow(S)}
-      ${placed(S.moduleSkillSlot, mutagenPanel())}
-      <foreignObject x="0" y="996" width="1920" height="56">${legend()}</foreignObject>
+    return `<svg class="gscreen" viewBox="0 0 ${SCREEN.w} ${SCREEN.h}" role="img" aria-label="Character screen preview, ${esc(name)} tab">
+      ${pieces.backdrop(view.region)}
+      ${treePanel(name)}
+      ${panels.pointsRow(panels.pointsValue(DEMO_POINTS), { n: DEMO_POINTS })}
+      ${panels.mutagenPanel({ groups: demoGroups(), bonusSockets: true })}
+      <foreignObject x="0" y="996" width="${SCREEN.w}" height="56">${panels.legend(LEGEND)}</foreignObject>
     </svg>`;
   }
 
-  // #040404, the region panorama at 22%, two fog layers, the DNA image. Fog placement is unverified.
-  function backdrop(S) {
-    return `<rect width="1920" height="1080" fill="#040404"/>
-      ${pieces.img(`backdrop/panorama-${view.region}.jpg`, -23, -2, 1, ` opacity="0.22"`)}
-      ${pieces.box("backdrop/fog.png", 0, 0, 1500, 778, ` opacity="0.7"`)}
-      ${pieces.box("backdrop/fog.png", 420, 302, 1500, 778, ` opacity="0.6"`)}
-      ${placed(S.mcBackgroundImage, pieces.img("backdrop/dna.png", 0, 0))}`;
-  }
-
   function treePanel(name) {
-    const P = art.layout("tree-panel");
     const tree = TREE_ART[view.tab];
     const spent = DEMO_NODES.reduce((n, d) => n + (d.rank || 0), 0);
-    const tabs = GAME_TABS.map((t, i) =>
-      `<g class="gtab" data-demo-tab="${t}" transform="${matrix(P[`mcTabListItem${i + 1}`].matrix)}">${pieces.tab(t, t === view.tab, t === view.tab && tree ? spent : 0)}</g>`
-    ).join("");
-    return placed(P.mcNewTabBackground, pieces.img(`tree/bg-${view.tab}.png`, 0, 0) + pieces.img("tree/frame.png", 0, 0))
-      + tabs
-      + pieces.text(P.txtTitle, name.toUpperCase(), ` font-weight="700"`)
-      + (tree ? placed(P.mcSkillModule, skillGrid(tree)) : "");
+    const tabs = GAME_TABS.map(t => {
+      const open = t === view.tab;
+      return { id: t, open, count: open && tree ? spent : 0, attrs: ` data-demo-tab="${t}"` };
+    });
+    return panels.treePanel({ bg: view.tab, title: name, tabs, grid: tree && demoGrid(tree) });
   }
 
-  function skillGrid({ color, skills }) {
+  // The made-up tree as a grid view: node states follow the planner's rule (a root, or linked
+  // from a learned skill), lines are lit between learned skills and white from a learned one.
+  function demoGrid({ color, skills }) {
     const icons = art.skillIcons(skills);
-    const nb = DEMO_NODES.map(() => []);
-    DEMO_LINKS.forEach(([a, b]) => { nb[a].push(b); nb[b].push(a); });
+    const from = DEMO_NODES.map(() => []);
+    DEMO_LINKS.forEach(([to, req]) => from[to].push(req));
     const learned = i => (DEMO_NODES[i].rank || 0) > 0;
-    const state = i => learned(i) ? "learned" : DEMO_NODES[i].row === 0 || nb[i].some(learned) ? "open" : "locked";
-    const pos = DEMO_NODES.map(d => gridPos(d.col, d.row));
-
-    const lines = DEMO_LINKS.map(([m, d]) => {
-      const lit = learned(m) && learned(d);
-      const stroke = lit ? LINE_COLORS[color] : state(d) === "locked" ? LINE_COLORS.closed : LINE_COLORS.open;
-      const [a, b] = lineEnds(pos[m], pos[d]);
-      return doubleLine(a, b).map(([p, q]) =>
-        `<line class="gline${lit ? " lit" : ""}" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}" stroke="${stroke}"/>`).join("");
-    }).join("");
-    const nodes = DEMO_NODES.map((d, i) =>
-      `<g transform="translate(${pos[i].x} ${pos[i].y})">${pieces.treeNode({ icon: icons[i % icons.length], color, state: state(i), rank: d.rank, selected: i === DEMO_SELECTED })}</g>`
-    ).join("");
-    return lines + nodes;
+    const state = i => learned(i) ? "learned" : DEMO_NODES[i].row === 0 || from[i].some(learned) ? "open" : "locked";
+    const nodes = DEMO_NODES.map((d, i) => ({
+      col: d.col, row: d.row, icon: icons[i % icons.length], state: state(i), rank: d.rank, selected: i === DEMO_SELECTED
+    }));
+    const links = DEMO_LINKS.map(([b, a]) => ({
+      a, b, state: learned(a) && learned(b) ? "lit" : learned(a) ? "open" : "closed"
+    }));
+    return { color, nodes, links };
   }
 
-  function pointsRow(S) {
-    return placed(S.mcPointsBorder, pieces.img("tree/separator.png", 0, 0, 0.5))
-      + pieces.text(S.txfAvailablePoints, "POINTS AVAILABLE")
-      + pieces.text(S.txfPointsValue, String(DEMO_POINTS))
-      + placed(S.mcPointIcon, pieces.imgAt("points/diamond.png", 0, 0, 0.5));
-  }
-
-  // Groups with their connectors, diamonds and bonus labels, in mutagen-panel.json coordinates.
-  function mutagenPanel() {
-    const M = art.layout("mutagen-panel"), G = art.layout("mutagen-slots");
-    let wires = "", parts = "", labels = "";
-    // Next icon per colour, so no two sockets show the same skill.
+  // DEMO_GROUPS with an icon per equipped socket; no two sockets show the same skill.
+  function demoGroups() {
     const used = {};
     const nextIcon = color => iconsFor(color)[used[color] = (used[color] || 0) + 1];
-    DEMO_GROUPS.forEach((g, gi) => {
-      const n = gi + 1;
-      const match = g.sockets.map(s => !g.locked && !!s && s.color === g.mutagen);
-      wires += placed(G[`groupConnector${n}`], pieces.connector("line", match.some(Boolean) && g.mutagen));
-      g.sockets.forEach((s, si) => {
-        wires += placed(G[`connector_g${n}_s${si + 1}`], pieces.connector(si === 1 ? "line" : "corner", match[si] && g.mutagen));
-        const icon = s ? nextIcon(s.color) : undefined;
-        parts += placed(G[`gr${n}_socket${si + 1}`], pieces.socket({ ...s, icon, locked: g.locked, match: match[si] }));
-      });
-      parts += placed(G[`gr${n}_mutagen`], pieces.diamond({ color: g.mutagen, locked: g.locked }));
-      if (g.mutagen) labels += bonusLabel(M, n, g.mutagen, g.bonus);
-    });
-    for (let i = 1; i <= 4; i++) parts += placed(G[`bonusSocket${i}`], pieces.socket({ locked: true }));
-    return labels + placed(M.mcSlotsNormal, ornament(G) + wires + parts);
-  }
-
-  // mc_bonus_bkg_new: bar at alpha 0.8 with the stat glyph on a shield; right-side labels are mirrored.
-  function bonusLabel(M, n, color, value) {
-    const { glyph, stat } = MUTAGEN_ART[color];
-    const bkg = pieces.box(`bonus/bar-${color}.png`, -4, 4, 280, 64, ` opacity="0.8"`)
-      + pieces.img("bonus/shield.png", 5, 8) + pieces.img(`bonus/glyph-${glyph}.png`, 5.5, 5);
-    return placed(M[`groupBonusBkg${n}_1`], bkg)
-      + pieces.text(M[`txtBonus${n}_1`], stat) + pieces.text(M[`txtBonus${n}_1p`], value);
-  }
-
-  // Centre ornament between the groups, with four divider lines placed by eye.
-  function ornament(G) {
-    const top = G.gr1_socket3.matrix, right = G.gr2_socket3.matrix, bottom = G.gr3_socket1.matrix;
-    const cx = (top[4] + SOCKET + right[4]) / 2, cy = (top[5] + SOCKET + bottom[5]) / 2;
-    const line = (dx, dy, rot) => `<g transform="translate(${cx + dx} ${cy + dy}) rotate(${rot})">${pieces.piece("slots/divider.svg")}</g>`;
-    return line(0, -150, 0) + line(0, 150, 0) + line(-150, 0, 90) + line(150, 0, 90)
-      + pieces.imgAt("slots/divider-ornament.png", cx, cy, 0.5);
-  }
-
-  function legend() {
-    return `<div class="glegend">${LEGEND.map(b => {
-      const [w, h] = b.mouse ? art.size(`legend/mouse-${b.mouse}.png`) : [];
-      const cap = b.key ? `<span class="gkey">${esc(b.key)}</span>`
-        : `<img src="${artUrl(`legend/mouse-${b.mouse}.png`)}" alt="" width="${w}" height="${h}">`;
-      return `<span class="gbtn">${cap}<span class="glabel">${b.hold ? `<span class="ghold">[Hold]</span> ` : ""}${esc(b.label)}</span></span>`;
-    }).join("")}</div>`;
+    return DEMO_GROUPS.map(g => ({
+      ...g, sockets: g.sockets.map(s => s ? { ...s, icon: nextIcon(s.color) } : {})
+    }));
   }
 
   // ---- Single pieces, at their own size ----
@@ -246,34 +182,24 @@ export function mountAssetDemo(app) {
         ${tile(pieces.socket({ locked: true }), "Locked")}
         ${tile(pieces.socket({}), "Empty")}
         ${tile(pieces.socket({ icon: icon2, color, rank: 2 }), "Equipped")}
-        ${tile(pieces.socket({ icon: icon2, color, rank: 2, match: true }), "Mutagen match")}
+        ${tile(pieces.socket({ icon: icon2, color, rank: 2, allowed: color }), "Colour-restricted")}
         ${tile(pieces.socket({ icon: icon2, color, rank: 2, selected: true }), "Selected")}
       </div>`;
   }
 
   function tooltip() {
-    const T = catalog.trees[view.tree];
     const skill = catalog.skillsIn(view.tree)[0];
-    return `<div class="gtip">
-      <div class="gtip-head">
-        <img src="${artUrl("tooltip/header.png")}" alt="">
-        <img src="${artUrl("tooltip/header-frame.png")}" alt="">
-        <span class="gtip-name">${esc(skill.name.toUpperCase())}</span>
-        <span class="gtip-type">${esc(T.name)}</span>
-        <span class="gtip-level">LEVEL <b>1/3</b></span>
-        <span class="gtip-req">Required points spent: 8</span>
-      </div>
-      <p class="gtip-cur">${esc(skill.text)}</p>
-      <p class="gtip-next">Next level: rank 2 values aren't published yet.</p>
-    </div>`;
+    return panels.tooltip({
+      name: skill.name, level: "1/3", req: "Required points spent: 8",
+      current: [skill.text], next: ["Rank 2 values aren't published yet."]
+    });
   }
 
   function mutagens() {
     const colors = Object.keys(MUTAGEN_ART).filter(Boolean);
-    const M = art.layout("mutagen-panel");
     // A left-side label in its own SVG: group 1's bar and texts, cropped to the bar.
-    const [, , , , bx, by] = M.groupBonusBkg1_1.matrix;
-    const label = c => `<svg class="gbonus" viewBox="${bx - 4} ${by} 284 72" aria-label="${MUTAGEN_ART[c].stat} bonus">${bonusLabel(M, 1, c, "+15%")}</svg>`;
+    const [, , , , bx, by] = art.layout("mutagen-panel").groupBonusBkg1_1.matrix;
+    const label = c => `<svg class="gbonus" viewBox="${bx - 4} ${by} 284 72" aria-label="${MUTAGEN_ART[c].stat} bonus">${panels.bonusLabel(1, c, "+15%")}</svg>`;
     return `<h3 class="subhead">Diamonds</h3>
       <div class="gtiles">
         ${colors.map(c => diamondTile({ color: c }, titleCase(c))).join("")}
@@ -314,7 +240,7 @@ export function mountAssetDemo(app) {
     el.innerHTML = `
       <section class="card">
         <h2>Asset demo</h2>
-        <p class="meta" style="margin:0">The art extracted from the game, put together the way the game draws the Character screen. It shows a made-up build, not yours, and the planner doesn't use this art yet. Positions come from the game's layout data; a few details (node states, pips, fog, dividers) are matched by eye to in-game screenshots.</p>
+        <p class="meta" style="margin:0">The art extracted from the game, put together the way the game draws the Character screen. It shows a made-up build, not yours, and the planner doesn't use this art yet. Positions come from the game's layout data; a few details (node states, fog, dividers) are matched by eye to in-game screenshots.</p>
       </section>
       <section class="card">
         <h2>Character screen</h2>
@@ -330,7 +256,7 @@ export function mountAssetDemo(app) {
         <section class="card"><h2>Tooltip</h2><div id="demoTooltip"></div></section>
       </div>
       <section class="card"><h2>Mutagens and bonuses</h2>${mutagens()}</section>
-      <section class="card"><h2>Key legend</h2><div class="glegend-wrap">${legend()}</div></section>
+      <section class="card"><h2>Key legend</h2><div class="glegend-wrap">${panels.legend(LEGEND)}</div></section>
       <section class="card"><h2>Skill icons</h2><p class="meta" style="margin:0">The first ${SKILL_SAMPLES} of each tree, core skills first. Hover for the game id.</p>${skillIcons()}</section>
       <section class="card"><h2>Type</h2><p class="meta" style="margin:0">D-DIN Condensed (SIL OFL) stands in for the game's PF DIN Text Cond Pro. Sizes and colours are the game's.</p>${type()}</section>`;
     update();

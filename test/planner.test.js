@@ -5,7 +5,8 @@ import { createPlanner } from "../public/src/core/planner.js";
 
 // A small tree: r (root) - a - b, plus r - c. One slot group of 2.
 const cat = createCatalog({
-  rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 2, treeOrder: ["t"], mutagens: { "": "None", red: "Red" } },
+  rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 2, treeOrder: ["t"] },
+  mutagens: { stats: { red: { label: "Attack", unit: "%" } }, items: [{ id: "red-x", color: "red", value: 5 }] },
   trees: {
     t: {
       mutagen: "red", passive: { per: 1.5 },
@@ -21,7 +22,7 @@ const cat = createCatalog({
   archetypes: []
 });
 const planner = createPlanner(cat);
-const build = (pts = {}) => ({ pts, slots: [null, null], mut: ["red"] });
+const build = (pts = {}) => ({ pts, slots: [null, null], mut: ["red-x"] });
 
 test("only roots and neighbours of invested skills are open", () => {
   const b = build();
@@ -31,12 +32,33 @@ test("only roots and neighbours of invested skills are open", () => {
   assert.equal(planner.isOpen(b, "b"), true);
 });
 
+test("links open one way only", () => {
+  const b = build({ r: 1, a: 1 });
+  assert.equal(planner.isOpen(b, "b"), true);
+  // A point in b doesn't open a backwards.
+  const c = build({ b: 1 });
+  assert.equal(planner.isOpen(c, "a"), false);
+});
+
+test("skills already cut off don't block removing a point", () => {
+  // b has no path from r (an older build); removing c strands nothing new.
+  const b = build({ r: 1, c: 1, b: 1 });
+  assert.equal(planner.removePoint(b, "c").ok, true);
+});
+
 test("rank stops at maxRank", () => {
   const b = build({ r: 3 });
   const r = planner.addPoint(b, "r");
   assert.equal(r.ok, false);
   assert.match(r.msg, /already at rank 3/);
   assert.equal(b.pts.r, 3);
+});
+
+test("canAddPoint matches what addPoint accepts", () => {
+  const b = build({ r: 3 });
+  assert.equal(planner.canAddPoint(b, "r"), false);
+  assert.equal(planner.canAddPoint(b, "a"), true);
+  assert.equal(planner.canAddPoint(b, "b"), false);
 });
 
 test("can't remove a last point that strands other skills", () => {
@@ -67,10 +89,30 @@ test("slots need a point and run out", () => {
 
 test("mutagen bonus counts matching slotted skills", () => {
   const b = build({ r: 1, a: 1 });
-  planner.placeInSlot(b, 0, "r"); planner.placeInSlot(b, 1, "a");
-  assert.deepEqual(planner.groupBonus(b, 0), { mutagen: "red", matches: 2, multiplier: 3 });
+  planner.equipSkill(b, 0, "r"); planner.equipSkill(b, 1, "a");
+  assert.deepEqual(planner.groupBonus(b, 0), { mutagen: "red-x", color: "red", matches: 2, multiplier: 3, value: 15 });
   b.mut[0] = "";
-  assert.equal(planner.groupBonus(b, 0).multiplier, 0);
+  assert.equal(planner.groupBonus(b, 0).value, 0);
+});
+
+test("equipping a skill moves it, over any skill in the target slot", () => {
+  const b = build({ r: 1, a: 1 });
+  planner.equipSkill(b, 0, "r");
+  planner.equipSkill(b, 1, "r");
+  assert.deepEqual(b.slots, [null, "r"]);
+  planner.equipSkill(b, 1, "a");
+  assert.deepEqual(b.slots, [null, "a"]);
+  assert.equal(planner.equipSkill(b, 0, "b").ok, false);
+});
+
+test("mutagens equip into any number of groups and come out of all of them", () => {
+  const b = { pts: {}, slots: [], mut: ["", ""] };
+  assert.equal(planner.equipMutagen(b, 0, "red-x").ok, true);
+  assert.equal(planner.equipMutagen(b, 1, "red-x").ok, true);
+  assert.deepEqual(b.mut, ["red-x", "red-x"]);
+  assert.equal(planner.equipMutagen(b, 0, "nope").ok, false);
+  planner.unequipMutagen(b, "red-x");
+  assert.deepEqual(b.mut, ["", ""]);
 });
 
 test("passive and spent totals", () => {
