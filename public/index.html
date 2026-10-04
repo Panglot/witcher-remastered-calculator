@@ -21,7 +21,8 @@
 
   <main class="page" id="pagePlanner">
   <!-- The Character screen: each panel at its game position, drawn by ui/tree.js, points.js,
-       slots.js and legend.js once the game art has loaded; ui/tooltip.js floats over it.
+       slots.js and legend.js once the game art has loaded; ui/tooltip.js floats over it. The side
+       panels (ui/sidePanel.js) add their cards and toggles here.
        Apply mode (ui/applyMode.js) darkens the page and the [data-masked] parts, lifts the item
        being equipped over them and shows its popup over the page's middle, above the mask. -->
   <div class="apply-mask" id="applyMask" hidden></div>
@@ -37,35 +38,11 @@
   <!-- The skill or mutagen being dragged to a slot (ui/drag.js), following the pointer. -->
   <div class="drag-ghost" id="dragGhost" aria-hidden="true" hidden></div>
 
-  <!-- Under the planner: the points bar and archetypes take two thirds, sharing the last third. -->
+  <!-- Under the planner until the Build submenu replaces it (docs/roadmap.md, item 5). The points
+       and archetypes moved to the side panels (ui/statistics.js, ui/archetypes.js). -->
   <div class="below">
-    <div class="below-main">
-      <!-- Points summary under the planner: budget, spent/left, per-tree passives, clear buttons (ui/summary.js). -->
-      <section class="summary" aria-label="Points summary">
-        <div class="budget">
-          <label for="budget">Points you have <input id="budget" type="number" min="0" max="200" value="4" class="num"></label>
-          <span>Spent <span class="big num" id="spent">0</span></span>
-          <span><span id="leftLabel">Left</span> <span class="big num" id="left">0</span></span>
-        </div>
-        <div class="passives" id="passives"></div>
-        <div class="actions">
-          <button class="btn" id="resetTree" type="button">Clear tree</button>
-          <button class="btn" id="resetAll" type="button">Clear all</button>
-        </div>
-      </section>
-
-      <!-- Archetype chips: toggling one frames its skills in the tree (ui/archetypes.js). -->
-      <section class="arch" aria-label="Archetypes">
-        <h2>Highlight an archetype</h2>
-        <div class="chips" id="archChips"></div>
-      </section>
-    </div>
-
     <section class="card share" aria-label="Share build">
       <h2>Share build</h2>
-      <label class="field" for="buildName">Build name
-        <input id="buildName" type="text" maxlength="60" placeholder="e.g. Crossbow and bombs" autocomplete="off">
-      </label>
       <div class="actions">
         <button class="btn primary" id="copyCode" type="button">Copy code</button>
         <button class="btn" id="exportFile" type="button">Export file</button>

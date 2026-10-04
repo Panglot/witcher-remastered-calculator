@@ -1,5 +1,5 @@
-// The slot groups of the Character screen, drawn with the game art once it has loaded (app.game),
-// plus the "invested but not slotted" line below the screen.
+// The slot groups of the Character screen, drawn with the game art once it has loaded (app.game).
+// Skills with points but no slot are listed in the Statistics panel (ui/statistics.js).
 // Sockets (skills) and diamonds (mutagens) are holders and behave alike, by the rules in
 // core/slotKinds.js. Like the game: pressing a full one selects it (it is framed, not the panel
 // item); Space (on the focused or framed one), a double-click or right-click (or Delete) takes its

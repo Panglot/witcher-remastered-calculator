@@ -1,10 +1,11 @@
-// Share panel: name the build, copy its code or export it as a file; load from a pasted code or a file.
-import { $, syncInput } from "./dom.js";
+// Share panel: copy the build's code or export it as a file; load from a pasted code or a file.
+// The build is named in the Statistics panel (ui/statistics.js).
+import { $ } from "./dom.js";
 import { encodeBuildCode, decodeBuildCode, applyBuildData, exportFile, CODE_PREFIX } from "../core/build.js";
 
 export function mountShare(app) {
   const { catalog, state } = app;
-  const nameEl = $("buildName"), pasteEl = $("pasteCode"), fileEl = $("importInput"), msgEl = $("shareMsg");
+  const pasteEl = $("pasteCode"), fileEl = $("importInput"), msgEl = $("shareMsg");
 
   function setMsg(text, kind) {
     msgEl.textContent = text;
@@ -19,8 +20,6 @@ export function mountShare(app) {
     setMsg(state.name ? `Loaded ${state.name}.` : "Build loaded.", "ok");
     return true;
   }
-
-  nameEl.addEventListener("input", () => { state.name = nameEl.value; app.save(); });
 
   $("copyCode").addEventListener("click", () => {
     const code = encodeBuildCode(state);
@@ -51,9 +50,5 @@ export function mountShare(app) {
     catch (e) { setMsg(`Couldn't read ${file.name}.`, "bad"); }
   });
 
-  function render() {
-    syncInput(nameEl, state.name || "");
-  }
-
-  return { render };
+  return { render() {} };
 }

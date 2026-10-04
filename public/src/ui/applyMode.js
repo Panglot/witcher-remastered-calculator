@@ -39,6 +39,7 @@ export function mountApplyMode(app) {
   /** Starts equipping an item of a kind ("skill" or "mutagen"); false if it can't be equipped. */
   function start(kind, id) {
     if (app.apply || !kinds[kind].canEquip(state, id)) return false;
+    app.reveal(slots);
     app.apply = { kind, id, at: kinds[kind].target(state, id) };
     app.layers.open(layer);
     app.msg = ""; app.render();

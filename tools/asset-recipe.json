@@ -5,7 +5,8 @@
     "components": "gameplay/gui_new/swf/common/componentslib.redswf",
     "common": "gameplay/gui_new/swf/common/panel_common.redswf",
     "popup": "gameplay/gui_new/swf/popups/popup_message.redswf",
-    "menu": "gameplay/gui_new/swf/mainmenu/panel_ingamemenu.redswf"
+    "menu": "gameplay/gui_new/swf/mainmenu/panel_ingamemenu.redswf",
+    "inventory": "gameplay/gui_new/swf/inventory/panel_inventory.redswf"
   },
   "assets": {
     "backdrop/dna.png": {"from": "atlas", "movie": "character", "sub": 739, "note": "root.mcBackgroundImage at (614.9, 130.95) on the 1920x1080 screen"},
@@ -122,6 +123,11 @@
     "bonus/glyph-sign.png": {"from": "atlas", "movie": "character", "sub": 679},
     "bonus/glyph-plus.png": {"from": "atlas", "movie": "character", "sub": 684},
     "bonus/glyph-person.png": {"from": "atlas", "movie": "character", "sub": 689},
+    "stats/shield.png": {"from": "atlas", "movie": "inventory", "sub": 145, "note": "FullStatsItemRef (character stats popup row): shield at (16.5, 3.25), stat icon (mcStatIcons) centred on (49.25, 33.5) at alpha 0.6"},
+    "stats/icon-attack-steel.png": {"from": "atlas", "movie": "inventory", "sub": 149, "note": "mcStatIcons frame attack_steel, drawn at (-32, -31.95)"},
+    "stats/icon-spell-power.png": {"from": "atlas", "movie": "inventory", "sub": 155, "note": "mcStatIcons frame spell_power, drawn at (-33.15, -36.55)"},
+    "stats/icon-toxicity.png": {"from": "atlas", "movie": "inventory", "sub": 157, "note": "mcStatIcons frame toxicity, drawn at (-33.2, -34.15)"},
+    "stats/icon-additional.png": {"from": "atlas", "movie": "inventory", "sub": 163, "note": "mcStatIcons frame additional, drawn at (-32.1, -17)"},
     "tooltip/header.png": {"from": "atlas", "movie": "components", "sub": 255, "note": "SkillTooltipRef.mcHeaderBackground frame \"gray\" (the skill tooltip never changes it)"},
     "tooltip/header-frame.png": {"from": "atlas", "movie": "components", "sub": 258, "note": "Overlay on the header, visible on every header frame"},
     "legend/mouse-left.png": {"from": "atlas", "movie": "common", "sub": 401, "under": {"shape": 402}, "note": "InputFeedbackButton_mouseIcon frame \"left\": the pressed button is a hole showing the white square (shape 402) behind it"},

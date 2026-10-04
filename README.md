@@ -33,16 +33,18 @@ public/                  The whole site. GitHub Pages publishes exactly this fol
     index.js             Registers the trees, rules and archetypes.
     rules.js             Max rank, slot groups, tree order.
     mutagens.js          Mutagens (colour, size, bonus value, inventory cell) and their stats.
-    archetypes.js        Archetype highlight chips.
+    archetypes.js        Archetypes: groups of skills the Archetypes panel highlights.
     trees/*.js           One file per tree: skills (game id, game grid position, text) and links.
   src/
     main.js              Entry point. Creates the app context and mounts the panels.
     state.js             Page state and its localStorage copy.
+    settings.js          Viewer settings (open panel sections), stored apart from the build.
     core/                Pure logic, no DOM. Covered by tests.
       catalog.js         Turns data/ into lookups (nodes, edges) and lists data mistakes.
       planner.js         Rules: unlocking, ranks, slots, mutagen bonus, passives.
       slotKinds.js       Skills in sockets and mutagens in diamonds behind one set of slot and selection rules.
       build.js           Build codes and export files.
+      stats.js           What a build adds up to (points, passives, mutagen bonuses, slotted skills).
     ui/                  One module per panel: mountX(app) wires events and returns { render }.
       gameArt.js         Game art paths, colours, layout data loading and tree line geometry.
       gamePieces.js      SVG builders for Character-screen pieces (node, socket, diamond, tab, text).
@@ -54,8 +56,10 @@ public/                  The whole site. GitHub Pages publishes exactly this fol
       popup.js, hold.js  The game's yes / no popup, and press-and-hold actions.
       layers.js          Layer manager: the stack of popups, apply mode, drag and menu (Esc, keys, focus, inert).
       menu.js            The Esc menu with its Settings and About submenus.
-      summary.js, archetypes.js, share.js
-                         Points summary, archetype chips and share card under the screen (to move, docs/roadmap.md).
+      sidePanel.js       Side panels: a card over part of the screen (layer, toggle, animation, accordion).
+      statistics.js      The Statistics panel (C) over the tree panel.
+      archetypes.js      The Archetypes panel (A) over the slots.
+      share.js           Share card under the screen (to move into the Esc menu, docs/roadmap.md item 5).
 server/                  Local dev server only (static files + live reload). Not deployed.
 test/                    node:test suites for core/, state.js, layers.js and the real game data.
 tools/                   Python scripts that pull the UI art out of a local game install.

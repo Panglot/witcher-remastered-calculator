@@ -120,6 +120,7 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `slots/` | `fill-<color>`, `glow-<colors>`, `divider-ornament` (PNG), `frame.svg`, `lock.svg`, `divider.svg` |
 | `mutagens/` | `item-<color>-<lesser/normal/greater>.png`, `diamond-frame.svg`, `connectors/corner-<color>.svg`, `connectors/line-<colors>.svg` |
 | `bonus/` | `bar-<color>.png`, `shield.png`, `glyph-<sword/sign/plus/person>.png` |
+| `stats/` | `shield.png`, `icon-<attack-steel/spell-power/toxicity/additional>.png` (from `panel_inventory`, in `startup.bundle`) |
 | `tooltip/` | `header.png`, `header-frame.png` |
 | `legend/` | `mouse-<left/right/middle/scroll>.png`, `key.svg` |
 | `points/` | `diamond.png` |
@@ -304,6 +305,8 @@ Mutagen tooltips follow the item tooltip (`panel_character`, `TooltipInventory.a
   - Stat name and value: the layout text fields, but centred on the bar by cap height (the fields hang the text from the font ascent, which reads low).
   - Glyphs: sword = red (attack power), sign = blue (sign intensity), plus = green (vitality), person = yellow.
   - Text 23px white.
+
+- **Stat category icon** (character stats popup, `panel_inventory` `FullStatsItemRef`; the movie ships in `startup.bundle`, not `r4gui.bundle`, and uses DXT1 atlases): `stats/shield.png` (64x64) at (16.5, 3.25), the `mcStatIcons` glyph sprite at (49.25, 33.5) with alpha 0.6, each frame drawing its file at its own offset (attack_steel (-32, -31.95), spell_power (-33.15, -36.55), toxicity (-33.2, -34.15), additional (-32.1, -17), 64x32). `CharacterStatsPopup.ws` colours the categories: steel/silver/armor/crossbow red, vitality/toxicity green, signs/stamina blue, additional brown. Stat names are `#c0b49d` 23px, values `#f0e3cc` 29px. The planner uses one icon per tree on the side panels' section bars (`gameArt.js`, `TREE_ART.stat`).
 
 ### Font
 

@@ -10,7 +10,7 @@ Parses an uncompressed SWF (see gfx_to_swf) into:
 
 Units: pixels (twips / 20). Matrices are (a, b, c, d, tx, ty) as in SVG matrix().
 
-GameMovies(game_dir) loads movies straight from r4gui.bundle and gives each movie's atlas textures and slices.
+GameMovies(game_dir) loads movies straight from the UI bundles (r4gui, startup) and gives each movie's atlas textures and slices.
 """
 import struct
 import zlib
@@ -426,16 +426,24 @@ def gfx_to_swf(redswf_bytes):
 
 
 class GameMovies:
-    """Loads .redswf movies from r4gui.bundle once and caches the parsed movie and its textures."""
+    """Loads .redswf movies from the UI bundles once and caches the parsed movie and its textures.
+    Most panels are in r4gui.bundle; a few (panel_inventory) ship in startup.bundle."""
+
+    BUNDLES = ('r4gui.bundle', 'startup.bundle')
 
     def __init__(self, game_dir):
-        self.bundle = content_path(game_dir, 'bundles', 'r4gui.bundle')
-        self.entries = {e[0].replace('\\', '/').lower(): e for e in read_bundle_toc(self.bundle)}
+        self.entries = {}
+        for name in self.BUNDLES:
+            bundle = content_path(game_dir, 'bundles', name)
+            for e in read_bundle_toc(bundle):
+                if e[0].endswith('.redswf'):
+                    self.entries.setdefault(e[0].replace('\\', '/').lower(), (bundle, e))
         self._raw, self._movies, self._textures = {}, {}, {}
 
     def redswf(self, path):
         if path not in self._raw:
-            self._raw[path] = read_bundle_file(self.bundle, self.entries[path.lower()])
+            bundle, entry = self.entries[path.lower()]
+            self._raw[path] = read_bundle_file(bundle, entry)
         return self._raw[path]
 
     def swf(self, path):

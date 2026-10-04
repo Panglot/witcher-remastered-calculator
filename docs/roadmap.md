@@ -1,6 +1,6 @@
 # Roadmap: what comes after the planner core
 
-Status (2026-10-04): the Character screen works (trees, slots, mutagens, apply mode, share codes, saved state). The layer manager and a first pass of the Esc menu (Settings with Reset saved data, About) are in; the visible title, page tabs and asset demo are gone. Still open: the skill data is incomplete, and the points bar, archetype chips, share card and footer still sit under the screen as placeholder layout. This file collects what's next, with a recommendation and the open questions for each item.
+Status (2026-10-04): the Character screen works (trees, slots, mutagens, apply mode, share codes, saved state). The layer manager and a first pass of the Esc menu (Settings with Reset saved data, About) are in; the visible title, page tabs and asset demo are gone. The Statistics (C) and Archetypes (A) side panels are in (first pass). Still open: the skill data is incomplete, and the share card still sits under the screen as placeholder layout. This file collects what's next, with a recommendation and the open questions for each item.
 
 Each item has a **Recommendation** (an opinion, open to change) and **To decide** (questions only the owner can answer).
 
@@ -46,7 +46,14 @@ Each item has a **Recommendation** (an opinion, open to change) and **To decide*
 **Side panels:**
 - Not modal and not absolutely positioned over the page. Each one is a sheet that slides over one concrete element of the screen: Statistics over the tree panel, Archetypes over the slots. The rest of the screen stays usable.
 - Both can be open at once.
-- **Look: to design later.** Make them work first with a plain frame, then redesign.
+- **Look (decided 2026-10-04, built in `ui/sidePanel.js`):**
+  - A card that covers its part of the screen including the tree tabs, but not POINTS AVAILABLE or the legend. The covered part fades out under it, so the card keeps a translucent game look without the skills showing through.
+  - Border: the tree panel's frame (`tree/frame.png`, sides fading out at the bottom), like the game's cards.
+  - Header: the message popup's header band.
+  - Body: a first section with no header straight under the card header, then accordion sections (closed by default, several open at once, remembered in the viewer settings). Section headers are the game's stat category bar (`bonus/bar-<color>.png` over a stronger fill), one color per tree, with the dropdown arrow at the end. Inside: white capitals for sub-headings, value / label rows like the game's stat lists. The body scrolls when it overflows.
+  - Toggle: a key and an arrow button centred on the covered part's bottom edge (Statistics: right above POINTS AVAILABLE; Archetypes: under the slots), with a tooltip.
+  - Animation, like the game's screen change: the old view fades to 0, the new one fades in fast while rising the last fifth of its height into place. Timings (about 0.15 s fade, 0.3 s rise) are by eye: tune them against a screen recording.
+- **TODO:** the dropdown arrow is drawn by eye. The game's art (W3DropdownMenuListItem, alchemy and crafting panels) isn't extracted yet: add it to the asset recipe.
 
 **Escape menu:** centered, with its own mask, above everything that was open before it. Submenus (Build, Settings, About) switch the content inside the menu, they are not new layers. Esc in a submenu goes back to the menu's main list; Esc there closes the menu. The only popups that open over the menu are confirmations (load over a non-empty build, reset saved data).
 
@@ -75,7 +82,7 @@ Apply mode becomes one layer in that stack. This keeps the overlays from each ha
 - Hover frame: checked against `docs/reference/escape_menu.png`. In game it is the notched double frame (`SelectedFrameRef`) at half scale, light gray, 59 px tall over 43 px rows (docs/game-assets.md).
 - Logo (2026-10-04): the game's logo (`menu/logo.png`) above the title on every page, placed from the game data; the main page's title is "Build planner". The fan content notice is at the bottom of every page (About has it in its text).
 - Decided (2026-10-04): the build name stays under the menu title, and Reset saved data closes the menu.
-- Left for item 2: the side panel block (no side panel exists yet; it comes with items 3 and 4).
+- Side panel block: done (2026-10-04), see Side panels above.
 
 ## 3. Statistics panel (C)
 
@@ -93,9 +100,15 @@ No Clear tree / Clear all: Reset abilities (R) already covers it.
 
 **Recommendation:** yes, move the whole points bar into this panel. In-game, the screen itself only shows POINTS AVAILABLE, and the app already shows that, editable. Clearing the build is already on R (Reset abilities) in the legend. Nothing in the bar has to stay on the main screen.
 
-**To decide:**
-- Is the budget field in the panel the same as the POINTS AVAILABLE field on the screen, or does only one of them stay editable?
-- C toggles (press again to close) or C opens and Esc closes? Recommendation: both.
+**Decided (2026-10-04):** POINTS AVAILABLE stays the one editable points field; the panel only shows totals. C toggles, Esc closes too. Mutagens go into the section of their color.
+
+**First pass (2026-10-04):** `ui/statistics.js`, numbers from `core/stats.js` (tested). The points bar under the screen is gone.
+- No-header section: build name (renaming moved here from the share card), total / spent / available points, skills with points but no slot.
+- One section per tree: points spent, passive bonus, mutagens of its color with their bonus, slotted skills with rank, and a placeholder for summed skill bonuses (item 1).
+
+**TODO:**
+- Research how many skill points the game gives in total, with a breakdown: points from levels and points from places of power. Show it in the no-header section.
+- Fill the skill effects and summed bonuses once item 1 stores numbers per rank.
 
 ## 4. Archetype highlight
 
@@ -108,7 +121,11 @@ No Clear tree / Clear all: Reset abilities (R) already covers it.
 
 **Decided (2026-10-04):** a variant of option 1: H slides the right side panel (item 2) over the slots with the archetype list. The tree stays visible and usable, so the highlight can be checked while the list is open. The Statistics panel can still show coverage numbers (item 3).
 
-**To decide:** one archetype at a time or several (currently chips toggle)? Does picking an archetype switch to its tree?
+**First pass (2026-10-04):** `ui/archetypes.js`, the same side panel design over the slots, toggled with A or the arrow under the slots. One section per tree; each archetype is a row (skills with points / skills, name) that toggles its highlight; several can be on. The chips under the screen are gone.
+
+**TODO:** design the archetype buttons. The rows are placeholders.
+
+**To decide:** one archetype at a time or several (several for now)? Does picking an archetype switch to its tree?
 
 ## 5. Share build
 
@@ -153,7 +170,7 @@ All of this lives in the Esc menu (item 8): Settings and About are submenus ther
 
 **Done (2026-10-04):** the visible title and page tabs are gone; the `<h1>` is visually hidden. The Esc menu shows the build name under its title, a short notice on every page, and the full text in About.
 
-**Left:** move the points bar (item 3), archetype chips (item 4) and share card (item 5) off the area under the screen, set the browser tab title from the build name, and replace the footer with the faint corner notice.
+**Left:** move the share card (item 5) off the area under the screen (the points bar and archetype chips moved to the side panels), set the browser tab title from the build name, and replace the footer with the faint corner notice.
 
 **Recommendation:** go full screen.
 - Keep the `<title>` (browser tab, bookmarks, link previews) and keep an `<h1>` for screen readers, visually hidden. The browser tab is the page title.
@@ -274,9 +291,9 @@ Rejected: a "Remove points" mode toggle (easy to forget it's on), long-press rem
    2. Full-screen layout with the notice moved (item 7). The Esc menu takes over Share and Settings, which removes the cards below the screen.
    3. Build submenu, quick-access buttons, Copy toast, share links (item 5). Needs the TODO design first.
    4. Settings and About submenus (item 6).
-   5. Archetype side panel (item 4), plain frame first.
+   5. ~~Archetype side panel (item 4).~~ First pass done 2026-10-04; button design open.
 3. Skill data extraction tool and data (item 1). Can run alongside 1 and 2, it's independent.
-4. Statistics panel (item 3). Needs item 1 for its best parts (active effects, summed stats).
+4. Statistics panel (item 3). First pass done 2026-10-04; its best parts (active effects, summed stats) need item 1.
 5. Level and slot unlocks (item 10). Optional. Design the slot model so mutations can extend it.
 6. Blood and Wine mutations (item 11). Last: needs items 1, 2 and 10 and a new asset pass.
 

@@ -132,11 +132,15 @@ export function createPanels(art, pieces) {
   function pointsRow(value, { n = 0, labelAttrs = "" } = {}) {
     const S = art.layout("screen");
     return placed(S.mcPointsBorder, pieces.img("tree/separator.png", 0, 0, 0.5))
+      // The row sits lower than in the game, clear of the side panel toggle on the separator.
+      + `<g transform="translate(0 ${POINTS_DROP})">`
       + pieces.text(S.txfAvailablePoints, pointsLabel(n), labelAttrs)
       + value
       // Unlike the 2x slices around it, this one is drawn at its own size (by eye, from the reference).
-      + placed(S.mcPointIcon, pieces.imgAt("points/diamond.png", 0, 0));
+      + placed(S.mcPointIcon, pieces.imgAt("points/diamond.png", 0, 0))
+      + `</g>`;
   }
+  const POINTS_DROP = 6;
   // Overspent points read as a shortfall: "POINTS NEEDED 2" rather than "POINTS AVAILABLE -2".
   const pointsLabel = n => n < 0 ? "POINTS NEEDED" : "POINTS AVAILABLE";
   const pointsValue = n => pieces.text(art.layout("screen").txfPointsValue, String(Math.abs(n)));
@@ -198,20 +202,24 @@ export function createPanels(art, pieces) {
     return lines + pieces.imgAt("slots/divider-ornament.png", cx, cy, 0.5);
   }
 
-  /** Key legend (HTML), left to right. Sizes follow the CSS custom property --u (1 game px). */
+  /** Key legend (HTML), left to right. items: LegendItem[], or LegendItem[][] for groups set apart by a
+   *  wider gap, each kept together when the legend wraps. Sizes follow the CSS custom property --u (1 game px). */
   function legend(items) {
+    const groups = Array.isArray(items[0]) ? items : [items];
+    return `<div class="glegend">${groups.map(g => `<div class="glegend-group">${g.map(legendItem).join("")}</div>`).join("")}</div>`;
+  }
+
+  function legendItem(b) {
     const u = n => `calc(${n} * var(--u, 1px))`;
-    return `<div class="glegend">${items.map(b => {
-      const mouse = b.mouse && `legend/mouse-${b.mouse}.png`, [w, h] = mouse ? art.size(mouse) : [];
-      const cap = [
-        mouse && `<span class="gmouse"><img src="${artUrl(mouse)}" alt="" style="width:${u(w)};height:${u(h)}">${
-          b.clicks > 1 ? `<span class="gclicks">${b.clicks}x</span>` : ""}</span>`,
-        b.key && `<span class="gkey">${esc(b.key)}</span>`
-      ].filter(Boolean).join(`<span class="gor">/</span>`);
-      const label = `<span class="glabel">${b.prefix ? `<span class="ghold">${esc(b.prefix)}</span> ` : ""}${esc(b.label)}</span>`;
-      return b.action ? `<button type="button" class="gbtn" data-action="${esc(b.action)}">${cap}${label}</button>`
-        : `<span class="gbtn">${cap}${label}</span>`;
-    }).join("")}</div>`;
+    const mouse = b.mouse && `legend/mouse-${b.mouse}.png`, [w, h] = mouse ? art.size(mouse) : [];
+    const cap = [
+      mouse && `<span class="gmouse"><img src="${artUrl(mouse)}" alt="" style="width:${u(w)};height:${u(h)}">${
+        b.clicks > 1 ? `<span class="gclicks">${b.clicks}x</span>` : ""}</span>`,
+      b.key && `<span class="gkey">${esc(b.key)}</span>`
+    ].filter(Boolean).join(`<span class="gor">/</span>`);
+    const label = `<span class="glabel">${b.prefix ? `<span class="ghold">${esc(b.prefix)}</span> ` : ""}${esc(b.label)}</span>`;
+    return b.action ? `<button type="button" class="gbtn" data-action="${esc(b.action)}">${cap}${label}</button>`
+      : `<span class="gbtn">${cap}${label}</span>`;
   }
 
   // Tooltip frame: the gray header holding the given text spans, the body under it, and an

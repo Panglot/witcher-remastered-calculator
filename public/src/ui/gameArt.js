@@ -21,12 +21,26 @@ const VECTORS = [
 
 export const artUrl = file => `${BASE}/${file}`;
 
-// Game colour label and skill icon folder per planner tree.
+// Game colour label, skill icon folder and stat icon (STAT_GLYPHS) per planner tree. The stat icons
+// are the ones the character stats popup (CharacterStatsPopup.ws) gives its categories of that
+// colour: steel attack (red), sign intensity (blue), toxicity (green), additional (brown).
 export const TREE_ART = {
-  combat: { color: "red", skills: "sword" },
-  signs: { color: "blue", skills: "signs" },
-  alchemy: { color: "green", skills: "alchemy" },
-  general: { color: "yellow", skills: "perks" }
+  combat: { color: "red", skills: "sword", stat: "attack-steel" },
+  signs: { color: "blue", skills: "signs", stat: "spell-power" },
+  alchemy: { color: "green", skills: "alchemy", stat: "toxicity" },
+  general: { color: "yellow", skills: "perks", stat: "additional" }
+};
+// Stat icon of the character stats popup (panel_inventory, FullStatsItemRef): stats/shield.png at
+// `shield`, then the glyph (mcStatIcons) at alpha 0.6 with its sprite at `glyph`. Each glyph frame
+// draws its file at its own offset from there: STAT_GLYPHS, as [x, y, w, h]. The game draws the
+// glyph at alpha 0.6 on its dark rows; on the bright colour bars that washes out, so it is 0.9 here
+// (by eye).
+export const STAT_ICON = { shield: [16.5, 3.25, 64, 64], glyph: [49.25, 33.5], alpha: 0.9 };
+export const STAT_GLYPHS = {
+  "attack-steel": [-32, -31.95, 64, 64],
+  "spell-power": [-33.15, -36.55, 64, 64],
+  toxicity: [-33.2, -34.15, 64, 64],
+  additional: [-32.1, -17, 64, 32]
 };
 // The Character screen is laid out on a 1920x1080 screen; layout/screen.json uses these units.
 export const SCREEN = { w: 1920, h: 1080 };

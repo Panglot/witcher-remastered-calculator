@@ -6,7 +6,7 @@ writes catalog.json with, per slice, its atlas rectangle and who uses it, e.g.
 A slice is used either by a shape fill (followed up the sprite tree to the nearest
 sprites with an ActionScript class) or by name from code (export name, e.g. Mouse_LeftBtn.png).
 
-Usage: python tools/map_ui_atlas.py <game_dir> <movie path in r4gui.bundle> <out_dir>
+Usage: python tools/map_ui_atlas.py <game_dir> <movie path in the UI bundles> <out_dir>
 Example:
   python tools/map_ui_atlas.py "D:/Games/Steam/steamapps/common/The Witcher 3" \
       gameplay/gui_new/swf/character/panel_character_dupe.redswf research/atlas-map/panel_character_dupe

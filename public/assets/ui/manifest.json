@@ -1137,6 +1137,56 @@
     64
    ]
   },
+  "stats/shield.png": {
+   "from": "atlas",
+   "movie": "panel_inventory.redswf",
+   "sub": 145,
+   "size": [
+    64,
+    64
+   ],
+   "note": "FullStatsItemRef (character stats popup row): shield at (16.5, 3.25), stat icon (mcStatIcons) centred on (49.25, 33.5) at alpha 0.6"
+  },
+  "stats/icon-attack-steel.png": {
+   "from": "atlas",
+   "movie": "panel_inventory.redswf",
+   "sub": 149,
+   "size": [
+    64,
+    64
+   ],
+   "note": "mcStatIcons frame attack_steel, drawn at (-32, -31.95)"
+  },
+  "stats/icon-spell-power.png": {
+   "from": "atlas",
+   "movie": "panel_inventory.redswf",
+   "sub": 155,
+   "size": [
+    64,
+    64
+   ],
+   "note": "mcStatIcons frame spell_power, drawn at (-33.15, -36.55)"
+  },
+  "stats/icon-toxicity.png": {
+   "from": "atlas",
+   "movie": "panel_inventory.redswf",
+   "sub": 157,
+   "size": [
+    64,
+    64
+   ],
+   "note": "mcStatIcons frame toxicity, drawn at (-33.2, -34.15)"
+  },
+  "stats/icon-additional.png": {
+   "from": "atlas",
+   "movie": "panel_inventory.redswf",
+   "sub": 163,
+   "size": [
+    64,
+    32
+   ],
+   "note": "mcStatIcons frame additional, drawn at (-32.1, -17)"
+  },
   "tooltip/header.png": {
    "from": "atlas",
    "movie": "componentslib.redswf",

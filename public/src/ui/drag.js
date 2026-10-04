@@ -44,6 +44,7 @@ export function mountDrag(app) {
     cancelHolds();
     const { kind, id, from, size } = press;
     app.drag = { kind, id, from };
+    app.reveal($("slotsPanel"));
     app.layers.open(layer);
     ghost.style.setProperty("--size", `${size}px`);
     ghost.innerHTML = `<img src="${artUrl(app.views.tree.icon(kind, id))}" alt="">`;

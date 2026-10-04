@@ -87,10 +87,14 @@ class CR2W:
             p += 4 + size
 
 
-def dxt5_dds(width, height, blocks):
+def dxt5_dds(width, height, blocks, fourcc=b'DXT5'):
     header = struct.pack('<4sIIIIIII44xII4sIIIIIIIIII', b'DDS ', 124, 0x81007, height, width, len(blocks), 0, 1,
-                         32, 4, b'DXT5', 0, 0, 0, 0, 0, 0x1000, 0, 0, 0, 0)
+                         32, 4, fourcc, 0, 0, 0, 0, 0, 0x1000, 0, 0, 0, 0)
     return header + blocks
+
+
+# CSwfTexture compression -> DDS FourCC.
+SWF_TEXTURE_FOURCC = {'TCM_DXTAlpha': b'DXT5', 'TCM_DXTNoAlpha': b'DXT1'}
 
 
 def swf_textures(redswf_bytes):
@@ -101,14 +105,14 @@ def swf_textures(redswf_bytes):
             continue
         props, p = cr2w.properties(export)
         compression = cr2w.names[struct.unpack('<H', props['compression'][1])[0]]
-        if compression != 'TCM_DXTAlpha':
+        if compression not in SWF_TEXTURE_FOURCC:
             raise NotImplementedError(f'texture compression {compression}')
         name = props['linkageName'][1][1:].decode('latin1').rstrip('\0')
         # after properties: unk u32, mip count u32, then per mip: width, height, pitch, size, block size, data
         p += 8
         width, height, _pitch, size, _block = struct.unpack_from('<IIIII', cr2w.data, p)
         p += 20
-        dds = dxt5_dds(width, height, cr2w.data[p:p + size])
+        dds = dxt5_dds(width, height, cr2w.data[p:p + size], SWF_TEXTURE_FOURCC[compression])
         yield name, Image.open(io.BytesIO(dds))
 
 

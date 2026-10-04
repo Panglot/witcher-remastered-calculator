@@ -48,9 +48,11 @@ export function createHotkeys(layers) {
 
 /**
  * What a page-wide key acts on in `panel`: its focused part matching `selector`, else `fallback()`
- * (the panel's selection). Null while a part of another panel has focus: that one takes the key.
+ * (the panel's selection). Null while a part of another panel has focus (that one takes the key)
+ * or while the panel is inert (a side panel covers it, ui/sidePanel.js).
  */
 export function keyTarget(panel, selector, fallback) {
+  if (panel.inert) return null;
   const f = document.activeElement, owner = f && f.closest && f.closest("[data-panel]");
   if (owner && owner !== panel) return null;
   return (owner && f.closest(selector)) || fallback();

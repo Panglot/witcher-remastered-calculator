@@ -8,11 +8,11 @@ import { createCatalog } from "./core/catalog.js";
 import { createPlanner } from "./core/planner.js";
 import { createSlotKinds } from "./core/slotKinds.js";
 import { loadState, saveState } from "./state.js";
+import { loadSettings, saveSettings } from "./settings.js";
 import { $, esc, blockKeyDefaults, createHotkeys, PLANNER_KEYS } from "./ui/dom.js";
 import { loadArt } from "./ui/gameArt.js";
 import { createPieces, glowFilters } from "./ui/gamePieces.js";
 import { createPanels } from "./ui/gamePanels.js";
-import { mountSummary } from "./ui/summary.js";
 import { mountTree } from "./ui/tree.js";
 import { mountPoints } from "./ui/points.js";
 import { mountLegend } from "./ui/legend.js";
@@ -22,6 +22,7 @@ import { mountApplyMode } from "./ui/applyMode.js";
 import { createDropTargets } from "./ui/dropTargets.js";
 import { createPageLayers } from "./ui/layers.js";
 import { mountDrag } from "./ui/drag.js";
+import { mountStatistics } from "./ui/statistics.js";
 import { mountArchetypes } from "./ui/archetypes.js";
 import { mountShare } from "./ui/share.js";
 import { mountMenu } from "./ui/menu.js";
@@ -38,6 +39,8 @@ const app = {
   // Skills and mutagens as slot kinds: one set of slotting and selection rules for both.
   kinds: createSlotKinds(catalog, planner),
   state: loadState(catalog),
+  // Viewer settings, stored apart from the build (settings.js).
+  settings: loadSettings(),
   // Feedback for the last action (why a point couldn't be added, etc.), shown in the tooltip.
   msg: "",
   // The item being equipped while apply mode is on (ui/applyMode.js), else null. Not saved.
@@ -53,10 +56,15 @@ const app = {
   game: null,
   views: {},
   save() { saveState(app.state); },
+  saveSettings() { saveSettings(app.settings); },
   // Redraws every view, or every view but `except` (a panel that changed itself in place).
   render(except = "") {
     Object.entries(app.views).forEach(([name, v]) => { if (name !== except) v.render(); });
     app.save();
+  },
+  // Closes the side panels covering `el` (equipping needs the slots in view).
+  reveal(el) {
+    Object.values(app.views).forEach(v => { if (v.cover === el && v.close) v.close(); });
   },
   // Selects a skill and opens its tree.
   select(id) {
@@ -68,15 +76,16 @@ const app = {
 // Render order follows this list: the tooltip goes after the panels it points at.
 app.views = {
   backdrop: mountBackdrop(app),
-  summary: mountSummary(app),
   tree: mountTree(app),
   points: mountPoints(app),
   slots: mountSlots(app),
   apply: mountApplyMode(app),
   drag: mountDrag(app),
   legend: mountLegend(app),
-  tooltip: mountTooltip(app),
+  // Side panels (C, H) over the tree and the slots.
+  stats: mountStatistics(app),
   archetypes: mountArchetypes(app),
+  tooltip: mountTooltip(app),
   share: mountShare(app),
   // The Esc menu; Esc with nothing open opens it.
   menu: mountMenu(app)

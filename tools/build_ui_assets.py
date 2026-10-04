@@ -15,7 +15,7 @@ The recipe (tools/asset-recipe.json) maps every output file to where it comes fr
 Every source may carry a "note" that is copied into the manifest. Images are written as PNG, or as JPEG
 when the output name ends in .jpg (for large opaque art).
 
-Movie aliases are defined in the recipe's "movies" map (alias -> path inside r4gui.bundle).
+Movie aliases are defined in the recipe's "movies" map (alias -> path inside the UI bundles, see gfx_movie.GameMovies).
 Writes <out_dir>/manifest.json describing every file, and lists files in <out_dir> that the
 recipe does not produce (candidates for deletion).
 

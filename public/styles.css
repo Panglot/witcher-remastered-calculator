@@ -1,5 +1,5 @@
 /* Layout: the Character screen (tree panel and slots at their game positions, key legend under
-   them), then the points summary, archetypes and sharing. Stacks on phones. */
+   them, side panels over them), then sharing. Stacks on phones. */
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
@@ -34,6 +34,8 @@
   --game-current: #ebdba4;
   --game-req: #bf0000;
   --game-key: #c0ae8c;
+  /* Stat names in the character stats popup (FullStatsItemRef.textField). */
+  --game-stat: #c0b49d;
   --game-label: #c68e5b;
   --game-hold: #cd7d03;
   --game-tooltip: rgba(14, 14, 15, .87);
@@ -62,30 +64,12 @@ button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 .num { font-variant-numeric: tabular-nums; }
 
-/* Summary bar */
-.summary { display: grid; grid-template-columns: auto 1fr auto; gap: 16px 24px; align-items: center; background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; }
-.budget { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 14px; color: var(--muted); }
-.budget label { display: flex; align-items: center; gap: 8px; }
-.budget input { width: 64px; background: var(--bg); border: 1px solid var(--line); padding: 4px 6px; font-family: var(--font-display); font-size: 20px; color: var(--fg); text-align: center; }
-.budget .big { font-size: 24px; color: var(--fg); letter-spacing: .02em; }
-.budget .over { color: var(--bad); }
-.passives { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; color: var(--muted); min-width: 0; }
-.passives b { color: var(--fg); font-weight: 500; }
+/* Buttons (the share card) */
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn { background: var(--panel-2); border: 1px solid var(--line); padding: 6px 12px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 14px; }
 .btn:hover { border-color: var(--muted); }
 .btn[disabled] { opacity: .4; cursor: not-allowed; }
 .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-
-/* Archetypes */
-.arch { display: grid; gap: 8px; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--line); padding: 4px 10px; font-size: 14px; }
-.chip .dot { width: 8px; height: 8px; flex: none; }
-.chip .cnt { color: var(--faint); font-family: var(--font-display); }
-.chip[aria-pressed="true"] { border-color: var(--mark); background: var(--panel-2); }
-.chip[aria-pressed="true"] .cnt { color: var(--muted); }
-.chip:hover { border-color: var(--muted); }
 
 /* Planner screen (ui/tree.js, points.js, slots.js, legend.js, tooltip.js): the Character screen's
    panels side by side at their game positions. Column widths are the panels' widths in game px
@@ -102,10 +86,9 @@ button { cursor: pointer; }
 .screen-slots { grid-area: slots; }
 /* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px. */
 .screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(20 * var(--gpx)); }
-.screen-tip { position: absolute; z-index: 2; pointer-events: none; --u: max(.6px, var(--gpx)); }
+.screen-tip { position: absolute; z-index: 3; pointer-events: none; --u: max(.6px, var(--gpx)); }
 .screen-error { grid-column: 1 / -1; margin: 0; }
-.below { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-.below-main { display: grid; gap: 16px; min-width: 0; }
+.below { display: grid; grid-template-columns: minmax(0, 560px); gap: 16px; align-items: start; }
 
 /* Game SVG parts (ui/gamePanels.js). */
 .gsvg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -193,14 +176,15 @@ button { cursor: pointer; }
 
 @media (max-width: 800px) {
   .screen { --gpx: calc(100cqw / 616.35); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "legend"; }
-  .summary { grid-template-columns: 1fr; }
   .below { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Game key legend: centred buttons 15px apart, key cap recoloured from #675943 to #191919 through a mask.
    Sizes are game px times --u (1px unless a container scales it). Key cap sizes are measured from an in-game
    screenshot against the label: cap 32px tall, its letter about as tall as the label's (20px font). */
-.glegend { --u1: var(--u, 1px); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: calc(8 * var(--u1)) calc(15 * var(--u1)); height: 100%; font-family: var(--font-game); }
+/* Groups (skill controls, general controls) sit 45px apart, three times the gap between buttons. */
+.glegend { --u1: var(--u, 1px); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: calc(8 * var(--u1)) calc(45 * var(--u1)); height: 100%; font-family: var(--font-game); }
+.glegend-group { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: calc(8 * var(--u1)) calc(15 * var(--u1)); }
 .gbtn { display: inline-flex; align-items: center; gap: calc(8 * var(--u1)); white-space: nowrap; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; }
 button.gbtn:hover .glabel { color: var(--game-hold); }
 .gkey { display: inline-grid; place-items: center; min-width: calc(30 * var(--u1)); height: calc(32 * var(--u1)); padding-inline: calc(7 * var(--u1)); position: relative; color: var(--game-key); font-size: calc(20 * var(--u1)); line-height: 1; isolation: isolate; }
@@ -225,6 +209,9 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gpopup-title {
   align-self: stretch; display: grid; place-items: center; height: calc(63 * var(--u1));
   margin: calc(-1 * var(--inset)) calc(-1 * (var(--px) + var(--inset))) 0; padding: 0 calc(var(--px) + var(--inset)) calc(3 * var(--u1));
+}
+/* The header band, shared with the side panels' header (.gside-title). */
+.gpopup-title, .gside-title {
   background:
     linear-gradient(90deg, rgba(70, 58, 40, .05), rgba(70, 58, 40, .19), rgba(70, 58, 40, .05)) bottom / 100% calc(3 * var(--u1)) no-repeat,
     linear-gradient(90deg, rgba(70, 58, 40, .035), rgba(70, 58, 40, .1), rgba(70, 58, 40, .035)) top / 100% calc(100% - 3 * var(--u1)) no-repeat;
@@ -287,6 +274,115 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gmenu-note { flex: none; margin: auto 0 0; padding: calc(40 * var(--u)) var(--gmenu-pad) 0; color: #6b5d56; font-size: calc(18 * var(--u)); }
 .gmenu-legend { position: absolute; right: calc(185 * var(--u)); bottom: calc(41 * var(--u)); }
 @media (prefers-reduced-motion: reduce) { .gmenu-item:focus::before { animation: none; } }
+
+/* Side panels (ui/sidePanel.js): a card over one grid area of the screen (Statistics over the tree panel and
+   its tabs, Archetypes over the slots), leaving POINTS AVAILABLE and the legend in view. contain: size keeps a
+   long body from growing the row; the body scrolls instead. The frame is the tree panel's (tree/frame.png at
+   half size, 9-sliced so its fading sides stay at the bottom); the fill is translucent like the game's panels,
+   since the covered part fades out under it. The header is the message popup's band. Sizes are game px times --u. */
+.gside { --u1: max(.6px, var(--gpx)); position: relative; z-index: 1; contain: size; align-self: stretch; display: flex; flex-direction: column;
+  width: calc(606 * var(--u1)); max-width: 100%; border: 0 solid transparent;
+  border-image: url("assets/ui/tree/frame.png") 24 24 300 24 / calc(12 * var(--u1)) calc(12 * var(--u1)) calc(150 * var(--u1));
+  background: linear-gradient(rgba(12, 11, 10, .9), rgba(8, 8, 8, .82) 80%, rgba(8, 8, 8, 0));
+  font-family: var(--font-game); color: #c9b48c; font-size: calc(23 * var(--u1)); line-height: 1.25; }
+.gside:focus { outline: none; }
+.gside-tree { grid-area: tree; }
+/* Archetypes sits over the slots area but its card takes only the tree's row, so both cards end at the
+   same height. It is as wide as Statistics, centred on the mutagen grid's divider (screen x 1311.2, like its
+   toggle), which covers the slots (diamond tips at about 1018 and 1580). Under it, the separator the tree has
+   above POINTS AVAILABLE (screen y 905, 3 px tall), stretched to the card inside its frame's sides; its toggle
+   sits on it like the tree's. */
+.gside-slots { grid-row: tree; grid-column: slots; }
+.gside.gside-slots { justify-self: start; margin-left: calc(466.2 / 971.35 * 100% - 303 * var(--u1)); }
+.gside.gside-slots::after { content: ""; position: absolute; left: calc(12 * var(--u1)); right: calc(12 * var(--u1)); bottom: calc(-8 * var(--gpx)); height: calc(3 * var(--gpx)); background: url("assets/ui/tree/separator.png") 0 0 / 100% 100%; pointer-events: none; }
+.gside-title { flex: none; display: grid; place-items: center; height: calc(63 * var(--u1)); margin: calc(5 * var(--u1)) calc(5 * var(--u1)) 0; font-family: inherit; font-weight: 400; letter-spacing: 0; }
+/* The frame is a border-image over a 0 border, so it paints over the body's edges: the right margin keeps the
+   scrollbar inside the frame's 12 u side (the padding is cut by the same so the text stays put), and the gutter
+   is always reserved so opening a section that adds a scrollbar does not narrow the content and shift it. */
+.gside-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #4a403b transparent; scrollbar-gutter: stable;
+  margin-right: calc(12 * var(--u1)); padding: calc(18 * var(--u1)) calc(14 * var(--u1)) calc(60 * var(--u1)) calc(26 * var(--u1)); }
+.gside-head:empty { display: none; }
+/* The first section: no header, straight under the card's. */
+.gside-overview { margin-bottom: calc(10 * var(--u1)); }
+.gside-field { display: grid; gap: calc(4 * var(--u1)); margin-bottom: calc(14 * var(--u1)); color: #ffffff; font-size: calc(20 * var(--u1)); text-transform: uppercase; }
+.gside-field input { width: 100%; padding: calc(4 * var(--u1)) 0; border: 0; border-bottom: max(1px, var(--u1)) solid #4a403b; background: transparent; color: #eddec1; font: inherit; font-size: calc(24 * var(--u1)); text-transform: none; }
+.gside-field input::placeholder { color: #6b5d56; }
+.gside-field input:focus { outline: none; border-bottom-color: #c9b48c; }
+/* An accordion section: the header bar in its tree's colour (bonus/bar-<colour>.png, the textured bar with its
+   frame lines, over a stronger fill so it reads like the game's stat headers), the game's arrow at its end. */
+.gside-sec { margin-top: calc(18 * var(--u1)); }
+.gside-sec[data-color="red"] { --bar: #8e0a05; --bar-art: url("assets/ui/bonus/bar-red.png"); }
+.gside-sec[data-color="blue"] { --bar: #0b3a94; --bar-art: url("assets/ui/bonus/bar-blue.png"); }
+.gside-sec[data-color="green"] { --bar: #10661b; --bar-art: url("assets/ui/bonus/bar-green.png"); }
+.gside-sec[data-color="yellow"] { --bar: #7e4f06; --bar-art: url("assets/ui/bonus/bar-yellow.png"); }
+.gside-bar { display: flex; align-items: center; gap: calc(12 * var(--u1)); height: calc(56 * var(--u1)); padding: 0 calc(20 * var(--u1));
+  background: var(--bar-art) 0 0 / 100% 100%, linear-gradient(90deg, var(--bar) 0, var(--bar) 45%, rgba(0, 0, 0, 0) 100%);
+  color: var(--game-stat); font-size: calc(24 * var(--u1)); text-transform: uppercase; list-style: none; cursor: pointer; user-select: none; }
+.gside-bar::-webkit-details-marker { display: none; }
+.gside-bar:hover { filter: brightness(1.15); }
+.gside-bar:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+.gside-bar-title { flex: 1 1 auto; min-width: 0; }
+.gside-bar-aside { margin-left: calc(6 * var(--u1)); text-transform: none; }
+.gside-bar-end { flex: none; color: #efe6d2; }
+/* Stat icon (sidePanel.statIcon): the shield fills the bar's height like the stats popup's rows. */
+.gstat-icon { flex: none; width: calc(48 * var(--u1)); height: calc(48 * var(--u1)); margin-left: calc(-10 * var(--u1)); overflow: visible; }
+.garrow { flex: none; width: calc(14 * var(--u1)); height: auto; aspect-ratio: 42 / 32; fill: #8a7660; overflow: visible; }
+.garrow-tri { transform-box: view-box; transform-origin: 0 0; transition: rotate .3s ease-in-out; }
+.gside-sec[open] > .gside-bar .garrow-tri { rotate: 180deg; }
+.gside-sec-body { padding: calc(14 * var(--u1)) calc(4 * var(--u1)) calc(4 * var(--u1)); }
+/* Value and label rows: values in their own column, labels lined up after it (subgrid), like the game's lists. */
+.gstats { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: calc(18 * var(--u1)); row-gap: calc(6 * var(--u1)); }
+.gstat { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: baseline; }
+.gstat-value { color: #efe6d2; white-space: nowrap; }
+.gstat-label { color: #c9b48c; }
+/* Rows that are buttons (archetypes): placeholders until they get their own design. */
+.gstat-btn { margin: 0; padding: calc(2 * var(--u1)) calc(6 * var(--u1)); border: 0; border-left: calc(3 * var(--u1)) solid transparent; background: none; font: inherit; text-align: left; cursor: pointer; }
+.gstat-btn:hover .gstat-label { color: #ffffff; }
+.gstat-btn[aria-pressed="true"] { border-left-color: var(--bar, #c9b48c); background: rgba(255, 255, 255, .06); }
+.gstat-btn[aria-pressed="true"] .gstat-label { color: #ffffff; }
+.gside-sub { margin: calc(16 * var(--u1)) 0 calc(6 * var(--u1)); color: #ffffff; text-transform: uppercase; }
+.gside-note { margin: calc(6 * var(--u1)) 0 0; color: #7d7163; font-size: calc(21 * var(--u1)); }
+.gside-link { margin: calc(8 * var(--u1)) 0 0; padding: 0; border: 0; background: none; color: #c9b48c; font: inherit; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
+.gside-link:hover { color: #ffffff; }
+/* The toggle: a round button with the arrow, centred on the covered part's bottom edge. The tree's sits on the
+   line above POINTS AVAILABLE (tree/separator.png at screen y 905, 3 px tall: 6.5 px under the tree area's
+   bottom at 900). The slots' sits on the Archetypes card's copy of that line, level with the tree's, which is
+   also under the mutagen grid's lower divider line (dividerBottom: screen x 1311.2, ending at y 888.75):
+   466.2 px in from the slots area's left at 845, a margin in % of the area's 971.35 px width. Phones stack
+   the areas, so there it goes back to the slots area's bottom (63.5 px over it, at 970).
+   Its fill and dark rim are the legend's lit mouse button (legend/mouse-*.png). The arrow turns from up
+   (closed) to down (open). Its tooltip is the screen's (data-hint). */
+.gside-toggle-wrap { --u1: max(.6px, var(--gpx)); position: relative; z-index: 2; align-self: end; justify-self: center; translate: 0 50%; }
+.gside-toggle-wrap.gside-tree { justify-self: start; width: calc(606 * var(--u1)); max-width: 100%; display: flex; justify-content: center; pointer-events: none; translate: 0 calc(50% + 6.5 * var(--gpx)); }
+.gside-toggle-wrap.gside-slots { justify-self: start; margin-left: calc(466.2 / 971.35 * 100%); translate: -50% calc(50% + 6.5 * var(--gpx)); }
+@media (max-width: 800px) {
+  .gside-slots { grid-area: slots; }
+  .gside.gside-slots { justify-self: stretch; width: auto; margin-left: 0; }
+  .gside.gside-slots::after { display: none; }
+  .gside-toggle-wrap.gside-slots { margin-bottom: calc(63.5 / 971.35 * 100%); translate: -50% 50%; }
+}
+/* The circle, its rim and the arrow are one SVG (ui/sidePanel.js, TOGGLE_ART), so they are drawn at the same
+   sub-pixel spot. A CSS background and border get snapped to whole pixels while the vector arrow does not,
+   which left them half a pixel apart. The arrow group turns on the SVG's (0, 0), the triangle's centroid. */
+.gside-toggle { display: block; width: calc(28 * var(--u1)); height: calc(28 * var(--u1)); margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: #f8f8f8; cursor: pointer; pointer-events: auto; }
+.gtoggle { display: block; width: 100%; height: 100%; overflow: visible; }
+.gtoggle-disc { fill: #685942; stroke: #100808; stroke-width: 1; }
+.gtoggle-ring { fill: none; stroke: #100808; stroke-width: 1.5; }
+.gtoggle-arrow { fill: currentColor; transform-box: view-box; transform-origin: 0 0; rotate: 180deg; transition: rotate .3s ease-in-out; }
+.gside-toggle[aria-expanded="true"] .gtoggle-arrow { rotate: none; }
+.gside-toggle:hover { color: var(--game-hold); }
+.gside-toggle:focus { outline: none; }
+.gside-toggle:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+/* Switching, like the game's screen change: the old view fades out fast; the new one fades in about as fast
+   while it rises the last fifth of its height into place (clipped to its own box, so it never covers the
+   points row). The covered part stays hidden until the card closes. */
+.gside-enter, .gside-uncover { animation: gside-rise .32s var(--ease-expo-out), gside-show .16s linear; }
+.gside-leave, .gside-covered { animation: gside-hide .14s linear forwards; }
+.gside-covered { visibility: hidden; }
+@keyframes gside-rise { from { translate: 0 20%; clip-path: inset(0 0 20% 0); } }
+@keyframes gside-show { from { opacity: 0; } }
+@keyframes gside-hide { from { opacity: 1; visibility: visible; } to { opacity: 0; visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) { .gside-enter, .gside-uncover, .gside-leave, .gside-covered { animation: none; } .garrow-tri, .gtoggle-arrow { transition: none; } }
 
 /* Game skill tooltip: gray header with its frame, translucent panel. Text positions and colours from
    layout/tooltip.json, label colours sampled from docs/reference. Sizes are game px times --u. */

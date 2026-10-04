@@ -1,6 +1,6 @@
 // Game-style tooltip over the planner screen. It follows the pointer, or the keyboard focus, onto
 // any part with one of the KINDS attributes, and sits at that part's bottom-right corner like the
-// game's (flipped left when it would leave the screen).
+// game's (flipped left or above when it would leave the screen).
 // Every render rebuilds it, so it follows rank changes and redraws of the part under it. Hidden
 // while an item is dragged (ui/drag.js).
 import { $ } from "./dom.js";
@@ -74,10 +74,13 @@ export function mountTooltip(app) {
 
   function place(part) {
     const s = screen.getBoundingClientRect(), r = part.getBoundingClientRect();
-    const w = el.offsetWidth;
+    const w = el.offsetWidth, h = el.offsetHeight;
     const left = r.right - s.left + w > s.width ? r.left - s.left - w : r.right - s.left;
+    // Flipped above the part when it would run past the bottom of the screen or the window.
+    const bottom = Math.min(s.bottom, window.innerHeight);
+    const top = r.bottom + h > bottom ? r.top - h : r.bottom;
     el.style.left = `${Math.max(0, left)}px`;
-    el.style.top = `${r.bottom - s.top}px`;
+    el.style.top = `${Math.max(0, top - s.top)}px`;
   }
 
   function render() {
