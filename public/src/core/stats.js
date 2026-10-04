@@ -1,7 +1,7 @@
 // What a build adds up to, for the Statistics panel (ui/statistics.js): the points, then per tree
 // its spent points, passive bonus, the mutagens of its colour with their bonus, and its slotted
 // skills. Pure: works on a plain build object { pts, slots, mut, budget } and the catalog.
-// Skill effects are not in yet: they come with the per-rank skill data (docs/roadmap.md, item 1).
+// Skill effects are not in yet (docs/roadmap.md, "Statistics panel, second pass").
 
 /**
  * @typedef {{ id: string, name: string, rank: number }} SkillRank

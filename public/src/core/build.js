@@ -1,15 +1,22 @@
 // Build format: what gets packed into share codes and export files.
 // Build data: { p: { skillId: rank }, s: slot ids (null = empty), m: mutagen id per group ("" = none), b: point budget, n?: name }
 // A code is CODE_PREFIX + base64(UTF-8 JSON). Codes made before names were added are plain ASCII
-// JSON, so they decode the same way.
+// JSON, so they decode the same way. A share link is the page's address with the code in the
+// SHARE_PARAM query parameter; anything that takes a code also takes a link.
 
 export const CODE_PREFIX = "W3R1.";
 export const MAX_NAME_LENGTH = 60;
+export const SHARE_PARAM = "build";
 const EXPORT_TITLE = "Wild Hunt Skill Planner build";
 
 // Minimal shape check; applyBuildData() cleans up the details.
 export function isBuildData(d) {
   return !!d && typeof d === "object" && !!d.p && typeof d.p === "object";
+}
+
+/** True when the build holds nothing worth asking about before it is replaced: no points, mutagens or name. */
+export function isEmptyBuild(state) {
+  return !Object.keys(state.pts || {}).length && !(state.mut || []).some(Boolean) && !state.name;
 }
 
 export function toBuildData(state) {
@@ -40,10 +47,10 @@ export function encodeBuildCode(state) {
   return CODE_PREFIX + toBase64(JSON.stringify(toBuildData(state)));
 }
 
-// Finds a build code anywhere in text (a pasted code, or an export file) and returns its build data,
-// or null if there isn't a valid one. Whitespace is ignored, so a code wrapped across lines still loads.
+// Finds a build code anywhere in text (a pasted code or link, or an export file) and returns its build
+// data, or null if there isn't a valid one. Whitespace is ignored, so a code wrapped across lines still loads.
 export function decodeBuildCode(text) {
-  const compact = String(text || "").replace(/\s+/g, "");
+  const compact = unescapeLink(String(text || "")).replace(/\s+/g, "");
   // Last match: an export file's header may contain the prefix inside the build name.
   const at = compact.lastIndexOf(CODE_PREFIX);
   if (at < 0) return null;
@@ -53,6 +60,27 @@ export function decodeBuildCode(text) {
     const d = JSON.parse(fromBase64(b64[0]));
     return isBuildData(d) ? d : null;
   } catch (e) { return null; }
+}
+
+// A link carries the code percent-encoded (+, / and = are). Base64 has no %, so a plain code is unchanged.
+function unescapeLink(text) {
+  try { return decodeURIComponent(text); } catch (e) { return text; }
+}
+
+/** The page address `pageUrl` with the build's code in it; opening it loads the build. */
+export function shareLink(pageUrl, state) {
+  const url = new URL(pageUrl);
+  url.searchParams.set(SHARE_PARAM, encodeBuildCode(state));
+  url.hash = "";
+  return url.href;
+}
+
+/** The code a share link carries ("" for none), and the same address without it. */
+export function readShareLink(pageUrl) {
+  const url = new URL(pageUrl);
+  const code = url.searchParams.get(SHARE_PARAM) || "";
+  url.searchParams.delete(SHARE_PARAM);
+  return { code, rest: url.href };
 }
 
 // File name for an exported build: letters (any alphabet), digits, dash, underscore.

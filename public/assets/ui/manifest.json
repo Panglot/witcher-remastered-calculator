@@ -1330,6 +1330,123 @@
    ],
    "note": "mcGameLogo (mcGameLogoRE_28) frame EN: the Witcher 3 Remastered logo, placed at (-1, -227) on the list at scale 0.22855. CDPR trademark: shown only with the fan content notice"
   },
+  "menu/slider-track.svg": {
+   "from": "svg",
+   "movie": "panel_ingamemenu.redswf",
+   "shape": 15,
+   "note": "sliderTrackToggle (SubMenuSliderToggle.track): notched double outline, #45362d at alpha 0.45, 9-sliced at x 4 / 356 of its -8.1..368 bounds. SubMenuSlider's track (shape 21) has the same outline"
+  },
+  "menu/option-edge.png": {
+   "from": "atlas",
+   "movie": "panel_ingamemenu.redswf",
+   "sub": 340,
+   "size": [
+    8,
+    77
+   ],
+   "note": "ListItemBG_189 (shape 341): the brown bar at the left end of an option row, at 1:1 over a white gradient (alpha 0.04 to 0) 1167 x 77"
+  },
+  "icons/copy.png": {
+   "from": "atlas",
+   "movie": "photomode.redswf",
+   "sub": 62,
+   "mask": "alpha",
+   "trim": true,
+   "canvas": 62,
+   "size": [
+    62,
+    62
+   ],
+   "note": "PhotomodeTabRendererBig.m_icon (shape 63): two overlapping rounded squares, white. The planner's Copy code icon"
+  },
+  "icons/export.png": {
+   "from": "atlas",
+   "movie": "photomode.redswf",
+   "sub": 66,
+   "mask": "alpha",
+   "trim": true,
+   "arrow": {
+    "at": "above",
+    "width": 48,
+    "gap": 4
+   },
+   "canvas": 108,
+   "size": [
+    108,
+    108
+   ],
+   "note": "Photo mode's floppy (a tab icon) under an arrow pointing up. The planner's Export file icon"
+  },
+  "icons/import.png": {
+   "from": "atlas",
+   "movie": "photomode.redswf",
+   "sub": 66,
+   "mask": "alpha",
+   "trim": true,
+   "arrow": {
+    "at": "below",
+    "width": 48,
+    "gap": 4
+   },
+   "canvas": 108,
+   "size": [
+    108,
+    108
+   ],
+   "note": "The floppy over an arrow pointing up into it. The planner's Import file icon"
+  },
+  "icons/share.png": {
+   "from": "atlas",
+   "movie": "photomode.redswf",
+   "sub": 66,
+   "mask": "alpha",
+   "trim": true,
+   "arrow": {
+    "at": "corner",
+    "cut": [
+     66,
+     0,
+     80,
+     14
+    ],
+    "width": 34,
+    "gap": 4
+   },
+   "canvas": 108,
+   "size": [
+    108,
+    108
+   ],
+   "note": "The floppy with an arrow out of its cut corner. The planner's Copy share link icon"
+  },
+  "icons/load.png": {
+   "from": "atlas",
+   "movie": "popup_overlay.redswf",
+   "sub": 173,
+   "mask": {
+    "dark": 70,
+    "thicken": 1,
+    "solid": 128
+   },
+   "trim": true,
+   "canvas": 69,
+   "size": [
+    69,
+    69
+   ],
+   "note": "The save indicator's parchment save card (IndicatorSave_3), solid, its two lines cut out a pixel thicker. The planner's Load code icon"
+  },
+  "icons/dropdown-arrow.png": {
+   "from": "atlas",
+   "movie": "panel_alchemy.redswf",
+   "sub": 73,
+   "mask": "alpha",
+   "size": [
+    18,
+    14
+   ],
+   "note": "DropDownArrows_76 (IconDropDownListItem.mcOpenedState): 18 x 14, pointing down on frame closed (shape 74), flipped on opened (shape 75). Brown #4a3829 in the game; white here so the side panel tints it. The planner's section arrow"
+  },
   "points/diamond.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",

@@ -126,24 +126,50 @@ export function createPanels(art, pieces) {
   }
 
   /**
-   * POINTS AVAILABLE under the tree. `value` is markup at txfPointsValue: pointsValue(n) or a
-   * caller's field. `n` picks the label (pointsLabel); `labelAttrs` lets a caller find it to update.
+   * POINTS AVAILABLE under the tree, `n` the points left (overspent: negative). The game right-aligns
+   * the label and the number in two fixed fields, so a third digit runs into the label. Here they are
+   * one text, right-aligned at the number's field (txfPointsValue), with POINTS_GAP between them, and
+   * the diamond after it. The text's width is known only once drawn, so centerPointsRow then centres
+   * the row (class "gpoints-row") under the separator.
    */
-  function pointsRow(value, { n = 0, labelAttrs = "" } = {}) {
-    const S = art.layout("screen");
+  function pointsRow(n) {
+    const S = art.layout("screen"), L = S.txfAvailablePoints.text, V = S.txfPointsValue;
+    const [, , x1] = V.text.box, [, , , , tx, ty] = V.matrix;
+    // Flash text fields have a 2px gutter inside their box (gamePieces.text).
+    const text = `<text x="${fmt(tx + x1 - 2)}" y="${fmt(ty)}" dominant-baseline="text-before-edge" font-size="${V.text.size}" text-anchor="end">`
+      + `<tspan fill="${L.color}" font-size="${L.size}">${esc(pointsLabel(n))}</tspan>`
+      // Overspent, the number turns red (styles.css, .gpoints-value.over).
+      + `<tspan dx="${POINTS_GAP}" fill="${V.text.color}" class="gpoints-value${n < 0 ? " over" : ""}">${Math.abs(n)}</tspan></text>`;
     return placed(S.mcPointsBorder, pieces.img("tree/separator.png", 0, 0, 0.5))
       // The row sits lower than in the game, clear of the side panel toggle on the separator.
-      + `<g transform="translate(0 ${POINTS_DROP})">`
-      + pieces.text(S.txfAvailablePoints, pointsLabel(n), labelAttrs)
-      + value
+      + `<g transform="translate(0 ${POINTS_DROP})"><g class="gpoints-row">` + text
       // Unlike the 2x slices around it, this one is drawn at its own size (by eye, from the reference).
       + placed(S.mcPointIcon, pieces.imgAt("points/diamond.png", 0, 0))
-      + `</g>`;
+      + `</g></g>`;
+  }
+
+  /**
+   * Centres a drawn pointsRow under the separator: from the label's start to the diamond's right
+   * tip. Call again when the text's width may change (a new value, the game font loading).
+   * @param {Element} root  an element holding the row
+   */
+  function centerPointsRow(root) {
+    const row = root.querySelector(".gpoints-row");
+    const width = row && row.querySelector("text").getComputedTextLength();
+    if (!width) return; // not drawn (hidden)
+    const S = art.layout("screen"), V = S.txfPointsValue;
+    const end = V.matrix[4] + V.text.box[2] - 2;
+    const left = end - width, right = S.mcPointIcon.matrix[4] + POINTS_DIAMOND_HALF;
+    const center = S.mcPointsBorder.matrix[4] + art.size("tree/separator.png")[0] * 0.5 / 2;
+    row.setAttribute("transform", `translate(${fmt(center - (left + right) / 2)} 0)`);
   }
   const POINTS_DROP = 6;
+  // Space between the label and the number, in screen units (by eye).
+  const POINTS_GAP = 12;
+  // Half the diamond's solid width (points/diamond.png: alpha over 128 spans x 27 to 69, centred), without its glow.
+  const POINTS_DIAMOND_HALF = 21;
   // Overspent points read as a shortfall: "POINTS NEEDED 2" rather than "POINTS AVAILABLE -2".
   const pointsLabel = n => n < 0 ? "POINTS NEEDED" : "POINTS AVAILABLE";
-  const pointsValue = n => pieces.text(art.layout("screen").txfPointsValue, String(Math.abs(n)));
 
   /**
    * The slot groups at their screen position: sockets, connectors, diamonds, bonus labels and the
@@ -223,31 +249,40 @@ export function createPanels(art, pieces) {
   }
 
   // Tooltip frame: the gray header holding the given text spans, the body under it, and an
-  // optional red note line at the bottom.
-  const tipFrame = (head, body, note, cls = "") => `<div class="gtip${cls}">
+  // optional note line at the bottom, red unless `noteOk` (what an action did, when it worked).
+  const tipFrame = (head, body, note, cls = "", noteOk = false) => `<div class="gtip${cls}">
       <div class="gtip-head">
         <img src="${artUrl("tooltip/header.png")}" alt="">
         <img src="${artUrl("tooltip/header-frame.png")}" alt="">
         ${head}
       </div>
       ${body}
-      ${note ? `<p class="gtip-note">${esc(note)}</p>` : ""}
+      ${note ? `<p class="gtip-note${noteOk ? " ok" : ""}">${esc(note)}</p>` : ""}
     </div>`;
   const span = (cls, text) => text ? `<span class="${cls}">${esc(text)}</span>` : "";
 
   /**
+   * A tooltip line: plain text, or segments of text with an optional class each (a highlighted number).
+   * @typedef {string | (string | { text: string, cls?: string })[]} TipLine
+   */
+  const tipLine = l => `<span>${typeof l === "string" ? esc(l)
+    : l.map(p => typeof p === "string" ? esc(p) : p.cls ? span(p.cls, p.text) : esc(p.text)).join("")}</span>`;
+
+  /**
    * Skill tooltip (HTML, SkillTooltipRef): the gray header with the name, optional type and the
    * level string ("1/3"), then the current and next level blocks. Each block is a list of lines.
+   * `all` replaces both with one unlabelled block (the "Modern" text for every rank, ui/tooltip.js).
    * `req` is the red requirement text, `note` a red line under everything.
-   * @param {{ name: string, type?: string, level?: string, req?: string, current?: string[],
-   *   next?: string[], note?: string }} o
+   * @param {{ name: string, type?: string, level?: string, req?: string, current?: TipLine[],
+   *   next?: TipLine[], all?: TipLine[], note?: string }} o
    */
-  function tooltip({ name, type = "", level = "", req = "", current, next, note = "" }) {
+  function tooltip({ name, type = "", level = "", req = "", current, next, all, note = "" }) {
     const block = (cls, label, lines) => lines && lines.length
-      ? `<div class="${cls}"><span class="gtip-label">${label}</span>${lines.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : "";
+      ? `<div class="${cls}">${label ? `<span class="gtip-label">${label}</span>` : ""}${lines.map(tipLine).join("")}</div>` : "";
     return tipFrame(
       span("gtip-name", name.toUpperCase()) + span("gtip-type", type) + span("gtip-level", level) + span("gtip-req", req),
-      block("gtip-cur", "Current level:", current) + block("gtip-next", "Next level:", next), note);
+      all ? block("gtip-cur gtip-all", "", all)
+        : block("gtip-cur", "Current level:", current) + block("gtip-next", "Next level:", next), note);
   }
 
   /**
@@ -268,11 +303,11 @@ export function createPanels(art, pieces) {
 
   /**
    * Hint tooltip (HTML, SkillTooltipRef as the game shows it over an empty slot): the header with
-   * only the title, then one plain line.
-   * @param {{ title?: string, text: string }} o
+   * only the title, then one plain line, and an optional note under it (red when `noteBad`).
+   * @param {{ title?: string, text: string, note?: string, noteBad?: boolean }} o
    */
-  function hintTooltip({ title = "", text }) {
-    return tipFrame(span("gtip-name", title.toUpperCase()), `<p class="gtip-text">${esc(text)}</p>`, "", " gtip-hint");
+  function hintTooltip({ title = "", text, note = "", noteBad = false }) {
+    return tipFrame(span("gtip-name", title.toUpperCase()), `<p class="gtip-text">${esc(text)}</p>`, note, " gtip-hint", !noteBad);
   }
 
   /**
@@ -280,17 +315,18 @@ export function createPanels(art, pieces) {
    * sure you want to quit?"): the title in its header band, optional text, and the buttons on a strip
    * over the bottom edge. Without text the panel shrinks to its title and buttons (.gpopup-short).
    * A tone colours the label like the game's A / B buttons (ModuleInputFeedback.getColorByNavCode).
-   * @param {{ title: string, text?: string, buttons: PopupButton[] }} o
+   * body: markup under the text (ui/popup.js puts its fields there), escaped by the caller.
+   * @param {{ title: string, text?: string, body?: string, buttons: PopupButton[] }} o
    */
-  function popup({ title, text = "", buttons }) {
+  function popup({ title, text = "", body = "", buttons }) {
     const button = b => `<button type="button" class="${classes("gpopup-btn", b.tone)}" data-action="${esc(b.action)}">`
       + `<span class="gpopup-key">[${esc(b.key.toUpperCase())}]</span> ${esc(b.label)}</button>`;
-    return `<div class="${classes("gpopup", !text && "gpopup-short")}">
+    return `<div class="${classes("gpopup", !text && !body && "gpopup-short")}">
       <p class="gpopup-title">${esc(title)}</p>
-      ${text ? `<p class="gpopup-text">${esc(text)}</p>` : ""}
+      ${text ? `<p class="gpopup-text">${esc(text)}</p>` : ""}${body}
       <div class="gpopup-buttons">${buttons.map(button).join("")}</div>
     </div>`;
   }
 
-  return { svg, treePanel, treePanelLift, skillGrid, inventory, pointsRow, pointsLabel, pointsValue, mutagenPanel, bonusLabel, legend, tooltip, itemTooltip, hintTooltip, popup };
+  return { svg, treePanel, treePanelLift, skillGrid, inventory, pointsRow, centerPointsRow, mutagenPanel, bonusLabel, legend, tooltip, itemTooltip, hintTooltip, popup };
 }

@@ -24,7 +24,7 @@ export function mountSlots(app) {
   const { catalog, planner, state, kinds } = app;
   const { nodes, maxRank, mutagens, slots } = catalog;
   const el = $("slotsPanel");
-  const hold = createHold();
+  const hold = createHold(() => app.settings.holdMs);
 
   /** The holder under `node`: its element, kind name, kind and index. */
   function holderAt(node) {

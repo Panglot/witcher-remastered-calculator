@@ -4,7 +4,11 @@ The recipe (tools/asset-recipe.json) maps every output file to where it comes fr
   {"from": "atlas", "movie": "<alias>", "sub": 418}           slice of a movie's texture atlas (GFX sub-image)
       optional "under": {"shape": 402, "at": [0, -6]}         a solid shape drawn behind it (see AtlasSource)
       optional "shape": 554                                    the shape that draws it; its fill matrix goes to the manifest
-  {"from": "atlas", "movie": "<alias>", "image": 694}         a whole movie texture (a bitmap a shape fills with directly)
+      optional "mask": "alpha" | [68, 216] | {"dark": 70}      keep only the glyph, white (see AtlasSource.glyph)
+      optional "trim": true                                    crop to the visible pixels
+      optional "canvas": 108                                   centre it on a square this size (see AtlasSource.on_canvas)
+      optional "arrow": {"at": "above", "width": 48, ...}      with a 45 degree arrowhead (needs "canvas", see AtlasSource.arrow)
+  {"from": "atlas", "movie": "<alias>", "image": 694}       a whole movie texture (a bitmap a shape fills with directly)
   {"from": "cache", "path": "gameplay/gui_new/icons/...png"}  texture from content0/texture.cache
   {"from": "svg", "movie": "<alias>", "shape": 603}            vector shape, exported with JPEXS FFDec
   {"from": "svg", "movie": "<alias>", "sprite": 665, "frame": "SC_Red"}   one sprite frame (number or label), via FFDec
@@ -31,7 +35,7 @@ import subprocess
 import sys
 import tempfile
 
-from PIL import Image, ImageColor, ImageDraw
+from PIL import Image, ImageChops, ImageColor, ImageDraw
 
 from extract_skill_icons import main as extract_skills
 from game_files import TextureCache, content_path
@@ -104,7 +108,13 @@ class AtlasSource:
     bounding box in its first solid fill; "at" (default [0, 0]) is the slice's placement offset relative
     to the shape's, both placed in the same parent sprite.
     An optional "shape" (the shape that draws the slice as a bitmap fill) writes that fill's matrix to
-    the manifest as "fill": where the slice lands, in px, in the shape's own units."""
+    the manifest as "fill": where the slice lands, in px, in the shape's own units.
+    "mask", "trim", "canvas" and "arrow" turn a slice into a one-colour icon the page tints itself (CSS mask-image)."""
+
+    # Alpha at or below this counts as empty when trimming (soft edges and faint glows).
+    TRIM_ALPHA = 8
+    # Arrows are drawn this many times larger, then scaled down, for smooth diagonal edges.
+    SUPERSAMPLE = 8
 
     def build(self, ctx, src, dest):
         path = ctx.movie_path(src['movie'])
@@ -114,6 +124,12 @@ class AtlasSource:
             image = ctx.movies.subimage(path, src['sub'])
         if 'under' in src:
             image = self.over_shape(ctx.movie(src['movie']), image, src['under'])
+        if 'mask' in src:
+            image = self.glyph(image, src['mask'])
+        if src.get('trim'):
+            image = image.crop(image.getchannel('A').point(lambda v: 255 if v > self.TRIM_ALPHA else 0).getbbox())
+        if 'canvas' in src:
+            image = self.on_canvas(image, src['canvas'], self.arrow(image, src['arrow']) if 'arrow' in src else None)
         info = save_image(image, dest)
         if 'shape' in src:
             info['fill'] = self.fill_matrix(ctx.movie(src['movie']), src['shape'], src['sub'])
@@ -139,6 +155,82 @@ class AtlasSource:
         base = Image.new('RGBA', image.size, (0, 0, 0, 0))
         ImageDraw.Draw(base).rectangle((x0, y0, x1 - 1, y1 - 1), fill=ImageColor.getcolor(color, 'RGBA'))
         return Image.alpha_composite(base, image.convert('RGBA'))
+
+    @staticmethod
+    def glyph(image, mask):
+        """White pixels whose alpha is the glyph. "alpha": the slice's own alpha (a glyph on transparency).
+        [lo, hi]: brightness lo (the backing, transparent) to hi (the glyph, opaque), for a light glyph
+        baked onto an opaque disc. {"dark": 70, "thicken": 1}: the slice's alpha with holes where it is
+        darker than "dark" (lines drawn on a light card), each hole "thicken" px taller (default 0), and
+        alpha from "solid" up made opaque (a card that is partly see-through in the game; default 255)."""
+        image = image.convert('RGBA')
+        alpha = image.getchannel('A')
+        if isinstance(mask, dict):
+            holes = image.convert('L').point(lambda v: 255 if v < mask['dark'] else 0)
+            for _ in range(mask.get('thicken', 0)):
+                lower = Image.new('L', holes.size, 0)
+                lower.paste(holes, (0, 1))
+                holes = ImageChops.lighter(holes, lower)
+            solid = mask.get('solid', 255)
+            alpha = ImageChops.subtract(alpha.point(lambda v: min(255, round(v * 255 / solid))), holes)
+        elif mask != 'alpha':
+            lo, hi = mask
+            light = image.convert('L').point(lambda v: max(0, min(255, round((v - lo) * 255 / (hi - lo)))))
+            alpha = ImageChops.multiply(alpha, light)
+        out = Image.new('RGBA', image.size, (255, 255, 255, 0))
+        out.putalpha(alpha)
+        return out
+
+    @staticmethod
+    def arrow(image, spec):
+        """An arrowhead next to the glyph, as a triangle in the glyph's px (base corners, then the tip):
+        twice as wide as it is tall, so its sides run at 45 degrees like a cut corner.
+          "width": the base, px; "gap": its distance from the glyph, px
+          "at": "above" / "below": pointing up, centred over / under the glyph; "corner": pointing out of
+                the cut corner "cut" ([x0, y0, x1, y1], the cut edge in the glyph's px, from its top-left
+                end), the base along the cut."""
+        w, gap = spec['width'], spec['gap']
+        gw, gh = image.size
+        # The triangle in the glyph's px: base corners, then the tip.
+        if spec['at'] == 'above':
+            triangle = [(gw / 2 - w / 2, -gap), (gw / 2 + w / 2, -gap), (gw / 2, -gap - w / 2)]
+        elif spec['at'] == 'below':
+            base = gh + gap + w / 2
+            triangle = [(gw / 2 - w / 2, base), (gw / 2 + w / 2, base), (gw / 2, gh + gap)]
+        elif spec['at'] == 'corner':
+            x0, y0, x1, y1 = spec['cut']
+            length = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5
+            t = ((x1 - x0) / length, (y1 - y0) / length)   # along the cut
+            n = (t[1], -t[0])                              # out of the glyph
+            mid = ((x0 + x1) / 2, (y0 + y1) / 2)
+
+            def at(along, out):
+                return (mid[0] + t[0] * along + n[0] * out, mid[1] + t[1] * along + n[1] * out)
+            triangle = [at(-w / 2, gap), at(w / 2, gap), at(0, gap + w / 2)]
+        else:
+            sys.exit(f"unknown arrow place {spec['at']!r}; known: above, below, corner")
+        return triangle
+
+    @classmethod
+    def on_canvas(cls, image, size, triangle=None):
+        """The glyph, and the arrowhead `triangle` (in the glyph's px) if any, centred together on a
+        size x size canvas. The glyph keeps its own pixels (placed on whole pixels); the arrowhead is
+        drawn smooth. Icons of one set share a size, so their glyphs show at one scale."""
+        gw, gh = image.size
+        xs, ys = [0, gw] + [p[0] for p in triangle or ()], [0, gh] + [p[1] for p in triangle or ()]
+        if max(xs) - min(xs) > size or max(ys) - min(ys) > size:
+            sys.exit(f'canvas {size} is smaller than its content ({max(xs) - min(xs):g} x {max(ys) - min(ys):g} px)')
+        ox, oy = round((size - max(xs) - min(xs)) / 2), round((size - max(ys) - min(ys)) / 2)
+        alpha = Image.new('L', (size, size), 0)
+        alpha.paste(image.getchannel('A'), (ox, oy))
+        if triangle:
+            k = cls.SUPERSAMPLE
+            drawn = Image.new('L', (size * k, size * k), 0)
+            ImageDraw.Draw(drawn).polygon([((x + ox) * k, (y + oy) * k) for x, y in triangle], fill=255)
+            alpha = ImageChops.lighter(alpha, drawn.resize((size, size), Image.Resampling.BOX))
+        out = Image.new('RGBA', (size, size), (255, 255, 255, 0))
+        out.putalpha(alpha)
+        return out
 
 
 class CacheSource:

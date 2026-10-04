@@ -118,7 +118,7 @@ function createSkillTree(app, el) {
     ["slots", "legend", "tooltip"].forEach(v => app.views[v].render()); app.save();
   }
   // Hold to acquire: the game only starts the fill on a skill that can take a point.
-  const hold = createHold();
+  const hold = createHold(() => app.settings.holdMs);
   const acquire = id => act(id, planner.addPoint);
   // The skill E and Space act on: the focused one, else the selection when the panel frames it.
   const target = () => keyTarget(el, ".gnode[data-id]",

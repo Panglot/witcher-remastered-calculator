@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import data from "../public/data/index.js";
 import { createCatalog } from "../public/src/core/catalog.js";
-import { encodeBuildCode, decodeBuildCode, applyBuildData, exportFile, exportFileName } from "../public/src/core/build.js";
+import { encodeBuildCode, decodeBuildCode, applyBuildData, exportFile, exportFileName, shareLink, readShareLink, isEmptyBuild } from "../public/src/core/build.js";
 
 const cat = createCatalog(data);
 const blank = () => ({ pts: {}, slots: Array(cat.slots.total).fill(null), mut: Array(cat.slots.groups).fill(""), budget: 4, name: "" });
@@ -66,4 +66,30 @@ test("export file names are safe", () => {
   assert.equal(exportFileName("Ведьмак"), "ведьмак.txt");
   assert.equal(exportFileName("../../etc"), "etc.txt");
   assert.equal(exportFileName(""), "witcher-build.txt");
+});
+
+test("share link carries the code and loads back, pasted or opened", () => {
+  const a = sample(); a.name = "Ведьмак + bombs / 100%";
+  const link = shareLink("https://example.com/planner/?x=1#top", a);
+  assert.ok(link.startsWith("https://example.com/planner/?x=1&build=W3R1."));
+  assert.ok(!link.includes("#"));
+  assert.deepEqual(buildOf(loaded(link)), buildOf(a));
+  assert.deepEqual(buildOf(loaded(`Try this: ${link} !`)), buildOf(a));
+  const { code, rest } = readShareLink(link);
+  assert.deepEqual(buildOf(loaded(code)), buildOf(a));
+  assert.equal(rest, "https://example.com/planner/?x=1");
+  assert.deepEqual(readShareLink("https://example.com/"), { code: "", rest: "https://example.com/" });
+});
+
+test("text with a stray percent sign still loads its code", () => {
+  const a = sample(); a.name = "100% crit";
+  assert.equal(loaded(exportFile(a).text).name, "100% crit");
+});
+
+test("a build is empty without points, mutagens and a name", () => {
+  assert.ok(isEmptyBuild(blank()));
+  assert.ok(isEmptyBuild({ ...blank(), budget: 30 }));
+  assert.ok(!isEmptyBuild({ ...blank(), name: "x" }));
+  assert.ok(!isEmptyBuild({ ...blank(), pts: { c_mm: 1 } }));
+  assert.ok(!isEmptyBuild({ ...blank(), mut: ["", "red-lesser", "", ""] }));
 });

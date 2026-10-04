@@ -16,13 +16,14 @@
 <!-- Shared SVG filters, filled by src/main.js. Rendered (not display: none) so every browser applies them. -->
 <svg class="svg-defs" id="gameDefs" aria-hidden="true" width="0" height="0"></svg>
 <div class="wrap">
-  <!-- No visible title: the browser tab is the page title (docs/roadmap.md, item 7). -->
+  <!-- No visible title: the browser tab is the page title. -->
   <h1 class="visually-hidden">Witcher 3 Remastered Build planner</h1>
 
   <main class="page" id="pagePlanner">
   <!-- The Character screen: each panel at its game position, drawn by ui/tree.js, points.js,
        slots.js and legend.js once the game art has loaded; ui/tooltip.js floats over it. The side
-       panels (ui/sidePanel.js) add their cards and toggles here.
+       panels (ui/sidePanel.js) add their cards and toggles here, the share tools (ui/buildRail.js)
+       their column right of the slots.
        Apply mode (ui/applyMode.js) darkens the page and the [data-masked] parts, lifts the item
        being equipped over them and shows its popup over the page's middle, above the mask. -->
   <div class="apply-mask" id="applyMask" hidden></div>
@@ -32,32 +33,16 @@
     <div class="screen-lift" id="applyLift" aria-hidden="true" hidden></div>
     <div class="screen-points" id="points" data-panel data-masked></div>
     <div class="screen-slots" id="slotsPanel" data-panel></div>
+    <!-- The build's share tools in the right margin (ui/buildRail.js). -->
+    <div class="screen-rail" id="buildRail" data-panel data-masked></div>
     <div class="screen-legend" id="legend" data-masked></div>
     <div class="screen-tip" id="tooltip" hidden></div>
   </section>
   <!-- The skill or mutagen being dragged to a slot (ui/drag.js), following the pointer. -->
   <div class="drag-ghost" id="dragGhost" aria-hidden="true" hidden></div>
+  <!-- The fan content notice in the window's bottom right corner (ui/pageInfo.js). -->
+  <p class="page-notice" id="fanNotice"></p>
 
-  <!-- Under the planner until the Build submenu replaces it (docs/roadmap.md, item 5). The points
-       and archetypes moved to the side panels (ui/statistics.js, ui/archetypes.js). -->
-  <div class="below">
-    <section class="card share" aria-label="Share build">
-      <h2>Share build</h2>
-      <div class="actions">
-        <button class="btn primary" id="copyCode" type="button">Copy code</button>
-        <button class="btn" id="exportFile" type="button">Export file</button>
-      </div>
-      <h2 class="subhead">Load a build</h2>
-      <textarea id="pasteCode" spellcheck="false" placeholder="Paste a build code (W3R1.…)" aria-label="Build code to load"></textarea>
-      <div class="actions">
-        <button class="btn" id="loadCode" type="button">Load code</button>
-        <button class="btn" id="importFile" type="button">Import file</button>
-        <input id="importInput" type="file" accept=".txt,text/plain" hidden>
-      </div>
-      <span class="meta" id="shareMsg" role="status"></span>
-      <p class="meta" style="margin:0">Your current build is kept in this browser between visits. Export a file or copy the code to keep it safe or move it elsewhere.</p>
-    </section>
-  </div>
   </main>
 </div>
 <script type="module" src="src/main.js"></script>

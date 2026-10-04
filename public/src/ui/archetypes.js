@@ -1,4 +1,4 @@
-// The Archetypes panel (docs/roadmap.md, item 4): a side panel (ui/sidePanel.js) over the slots,
+// The Archetypes panel: a side panel (ui/sidePanel.js) over the slots,
 // toggled with A or the arrow under the slots, so the tree stays visible while picking. One section
 // per tree lists its archetypes; pressing one toggles its highlight, which frames its skills in
 // the tree (ui/tree.js). The rows are placeholders until the buttons get their own design.

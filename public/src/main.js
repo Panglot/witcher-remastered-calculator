@@ -24,9 +24,13 @@ import { createPageLayers } from "./ui/layers.js";
 import { mountDrag } from "./ui/drag.js";
 import { mountStatistics } from "./ui/statistics.js";
 import { mountArchetypes } from "./ui/archetypes.js";
-import { mountShare } from "./ui/share.js";
+import { createBuildShare } from "./ui/share.js";
 import { mountMenu } from "./ui/menu.js";
+import { mountBuildRail } from "./ui/buildRail.js";
 import { mountBackdrop } from "./ui/backdrop.js";
+import { statIconFilters } from "./ui/sidePanel.js";
+import { createToaster } from "./ui/toast.js";
+import { mountPageInfo } from "./ui/pageInfo.js";
 
 const catalog = createCatalog(data);
 catalog.problems.forEach(p => console.error(p));
@@ -52,11 +56,19 @@ const app = {
   layers,
   // Page-wide planner keys; panels add their handlers. Open layers get keys first.
   hotkeys: createHotkeys(layers),
+  // Short messages at the bottom of the page that go away on their own: app.toast.show(text).
+  toast: createToaster(),
   // Game art and its builders ({ art, pieces, panels }), set once loaded.
   game: null,
   views: {},
   save() { saveState(app.state); },
   saveSettings() { saveSettings(app.settings); },
+  // Changes one setting, saves it and tells the views that react to it (settingChanged(key)).
+  setSetting(key, value) {
+    app.settings[key] = value;
+    app.saveSettings();
+    Object.values(app.views).forEach(v => { if (v.settingChanged) v.settingChanged(key); });
+  },
   // Redraws every view, or every view but `except` (a panel that changed itself in place).
   render(except = "") {
     Object.entries(app.views).forEach(([name, v]) => { if (name !== except) v.render(); });
@@ -76,9 +88,13 @@ const app = {
 // Render order follows this list: the tooltip goes after the panels it points at.
 app.views = {
   backdrop: mountBackdrop(app),
+  // The fan notice under the legend and the browser tab title (the build name).
+  page: mountPageInfo(app),
   tree: mountTree(app),
   points: mountPoints(app),
   slots: mountSlots(app),
+  // The share tools right of the slots, with Ctrl+C, Ctrl+V and Ctrl+S.
+  rail: mountBuildRail(app),
   apply: mountApplyMode(app),
   drag: mountDrag(app),
   legend: mountLegend(app),
@@ -86,7 +102,6 @@ app.views = {
   stats: mountStatistics(app),
   archetypes: mountArchetypes(app),
   tooltip: mountTooltip(app),
-  share: mountShare(app),
   // The Esc menu; Esc with nothing open opens it.
   menu: mountMenu(app)
 };
@@ -99,13 +114,15 @@ blockKeyDefaults(PLANNER_KEYS);
 
 app.render();
 
-// Filters every game SVG references by id (the hover glow).
-$("gameDefs").innerHTML = glowFilters();
+// Filters every game SVG references by id (the hover glow, the stat icons' shield).
+$("gameDefs").innerHTML = glowFilters() + statIconFilters();
 
 loadArt().then(art => {
   const pieces = createPieces(art);
   app.game = { art, pieces, panels: createPanels(art, pieces) };
   app.render();
+  // A share link opened in the browser loads its build (asking first over a non-empty one).
+  createBuildShare(app).loadFromAddress();
 }).catch(err => {
   $("screen").insertAdjacentHTML("afterbegin", `<p class="bad-msg screen-error">Could not load the game art: ${esc(err.message)}</p>`);
 });

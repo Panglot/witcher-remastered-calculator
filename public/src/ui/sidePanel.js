@@ -1,4 +1,4 @@
-// Side panels (docs/roadmap.md, item 2): a card that slides over one part of the Character screen
+// Side panels: a card that slides over one part of the Character screen
 // (Statistics over the tree panel and its tabs, Archetypes over the slots) while the rest stays
 // usable. Each is a non-modal layer (ui/layers.js): Esc closes the one opened last, and both can be
 // open at once. A key and an arrow button on the covered part's bottom edge toggle it.
@@ -14,19 +14,29 @@
 import { esc } from "./dom.js";
 import { artUrl, STAT_GLYPHS, STAT_ICON } from "./gameArt.js";
 
-// The dropdown arrow of the game's category lists (W3DropdownMenuListItem), pointing down; open
-// sections and the toggle of a closed panel turn it up. Drawn by eye from the alchemy menu: the
-// game's own art is not extracted yet. The view box is padded so the triangle's centroid (a third of
-// its height from the flat side) is the box centre: centred and turned on that, it looks centred.
-// The centroid is the SVG's (0, 0) and the inner group turns on it, like the toggle's arrow: turning
-// the outer <svg> box let it drift sideways mid-turn.
-const ARROW = `<svg class="garrow" viewBox="-21 -16 42 32" aria-hidden="true"><g class="garrow-tri"><path d="M-21 -8H21L0 16Z"/></g></svg>`;
+// The dropdown arrow of the game's category lists (IconDropDownListItem.mcOpenedState, the alchemy
+// panel's DropDownArrows): game art cut to a one-colour glyph (tools/asset-recipe.json,
+// icons/dropdown-arrow.png), pointing down; open sections turn it up (styles.css, .garrow).
+const ARROW = `<span class="garrow" aria-hidden="true"></span>`;
 // The toggle (28 u): the disc with the legend buttons' double rim (a 1 u dark edge, 1 u of the fill,
-// then a 1.5 u dark ring) and the same triangle, 11 u wide, in one SVG so the browser draws them all
-// at the same sub-pixel position (styles.css, .gtoggle). The triangle's centroid is at (0, 0), the
+// then a 1.5 u dark ring) and the dropdown arrow 11 u wide, in one SVG so the browser draws them all
+// at the same sub-pixel position (styles.css, .gtoggle). The arrow is a rect in the text colour
+// masked by the art (an SVG mask, so it is tinted and drawn in the same pass); `maskId` keeps the
+// mask's id unique per toggle. The art's centroid (9, 4.68 of its 18 x 14 px) is at (0, 0), the
 // disc's centre, so it is centred and turns on that.
-const TOGGLE_ART = `<svg class="gtoggle" viewBox="-14 -14 28 28" aria-hidden="true"><circle class="gtoggle-disc" r="13.5"/>`
-  + `<circle class="gtoggle-ring" r="11.25"/><path class="gtoggle-arrow" d="M-5.5-2.095H5.5L0 4.19Z"/></svg>`;
+const ARROW_W = 11, ARROW_H = ARROW_W * 14 / 18, ARROW_TOP = -ARROW_W * 4.68 / 18;
+const toggleArt = maskId => `<svg class="gtoggle" viewBox="-14 -14 28 28" aria-hidden="true">`
+  + `<mask id="${maskId}"><image href="${artUrl("icons/dropdown-arrow.png")}" x="${-ARROW_W / 2}" y="${ARROW_TOP}" width="${ARROW_W}" height="${ARROW_H}" preserveAspectRatio="none"/></mask>`
+  + `<circle class="gtoggle-disc" r="13.5"/><circle class="gtoggle-ring" r="11.25"/>`
+  + `<g class="gtoggle-arrow"><rect x="${-ARROW_W / 2}" y="${ARROW_TOP}" width="${ARROW_W}" height="${ARROW_H}" mask="url(#${maskId})"/></g></svg>`;
+
+const SHIELD_FILTER_ID = "gstat-shield";
+
+/** The stat icons' shield filter (alpha times STAT_ICON.shieldBoost), to put once in an always-rendered <svg>. */
+export function statIconFilters() {
+  return `<filter id="${SHIELD_FILTER_ID}" color-interpolation-filters="sRGB">`
+    + `<feComponentTransfer><feFuncA type="linear" slope="${STAT_ICON.shieldBoost}"/></feComponentTransfer></filter>`;
+}
 
 /**
  * A stat icon like the character stats popup's (gameArt.js, STAT_ICON): the glyph on a shield, in
@@ -36,7 +46,7 @@ const TOGGLE_ART = `<svg class="gtoggle" viewBox="-14 -14 28 28" aria-hidden="tr
 export function statIcon(glyph) {
   const [sx, sy, sw, sh] = STAT_ICON.shield, [gx, gy] = STAT_ICON.glyph, [x, y, w, h] = STAT_GLYPHS[glyph];
   return `<svg class="gstat-icon" viewBox="${sx} ${sy} ${sw} ${sh}" aria-hidden="true">`
-    + `<image href="${artUrl("stats/shield.png")}" x="${sx}" y="${sy}" width="${sw}" height="${sh}"/>`
+    + `<image href="${artUrl("stats/shield.png")}" x="${sx}" y="${sy}" width="${sw}" height="${sh}" filter="url(#${SHIELD_FILTER_ID})"/>`
     + `<image href="${artUrl(`stats/icon-${glyph}.png`)}" x="${gx + x}" y="${gy + y}" width="${w}" height="${h}" opacity="${STAT_ICON.alpha}"/></svg>`;
 }
 
@@ -109,7 +119,7 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
   toggleWrap.className = `gside-toggle-wrap gside-${area}`;
   toggleWrap.dataset.panel = "";
   toggleWrap.innerHTML = `<button type="button" class="gside-toggle" aria-controls="${id}" aria-expanded="false"
-    aria-label="${esc(title)}" data-hint-title="${esc(title)}" data-hint="${esc(`${hint} Key: ${key.toUpperCase()}.`)}">${TOGGLE_ART}</button>`;
+    aria-label="${esc(title)}" data-hint-title="${esc(title)}" data-hint="${esc(`${hint}`)}">${toggleArt(`${id}-arrow`)}</button>`;
   const toggleBtn = toggleWrap.querySelector("button");
   screen.append(root, toggleWrap);
 
@@ -121,6 +131,12 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
     el.classList.remove(cls, other);
     void el.offsetWidth;
     el.classList.add(cls);
+  }
+  // The rise classes clip the screen while they are on (styles.css), so they come off once the rise ends.
+  for (const el of [root, cover]) {
+    el.addEventListener("animationend", e => {
+      if (e.target === el && e.animationName === "gside-rise") el.classList.remove("gside-enter", "gside-uncover");
+    });
   }
   // Runs `fn` once the element's animation ends, or now if it has none (reduced motion).
   function afterAnimation(el, fn) {

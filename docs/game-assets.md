@@ -45,6 +45,9 @@ To add or change an asset, edit [tools/asset-recipe.json](../tools/asset-recipe.
 | `render_movie.py` | Library: draws a sprite's bitmaps at their placement matrices (no vectors or text). |
 | `compare_screen.py` | Check: renders the Character screen (Signs tab, Novigrad backdrop) and writes it side by side and blended with `docs/reference/fullscreen.png`. |
 | `sprite_tree.py` | Research aid: prints a sprite's placement tree with matrices, fills and text styles. |
+| `extract_skill_text.py` | Skill names and per-rank tooltip templates with their numbers, to `public/data/skillText.js`. See [Skill text](#skill-text). |
+| `w3strings.py` | Library and CLI: reads `<lang>.w3strings` string tables (both the classic and the 5.0 format) by key. |
+| `wscript.py` | Library: a small WitcherScript interpreter that runs the game's own UI text functions. |
 | `map_ui_atlas.py` | Research aid: crops every slice and writes `catalog.json` (slice, atlas rect, export name, users such as `SlotSkillSocketRef[SC_Red].mcEdgeGlow`). |
 | `extract_gfx_movies.py` | Research aid: `.redswf` to plain `.swf` for FFDec. |
 
@@ -71,7 +74,9 @@ java -jar ffdec.jar -format sprite:png -zoom 2 -export sprite out research/swf/p
 | Skill tooltip, other shared components | `r4gui.bundle`: `gameplay\gui_new\swf\common\componentslib.redswf` | same |
 | Menu frame: background, key legend, top bar | `r4gui.bundle`: `gameplay\gui_new\swf\common\panel_common.redswf` | same |
 | In-game Esc menu | `r4gui.bundle`: `gameplay\gui_new\swf\mainmenu\panel_ingamemenu.redswf` | same |
-| Skill definitions | `xml.bundle`: `gameplay\abilities\geralt_skills.xml` | XML |
+| Skill definitions and their numbers | `xml.bundle`: `gameplay\abilities\geralt_skills.xml` (other abilities: `gameplay\abilities\*.xml`) | XML |
+| Skill tooltip text logic | `scripts/game/gui/menus/characterMenuDupe.ws`: `GetSkillTooltipDescriptionForSkillLevel` | Plain text |
+| Localized text | `content/content0/<lang>.w3strings` (one file per language, no DLC string files) | Encrypted string table |
 | Skill icons, mutagen icons, menu panoramas | `content/content0/texture.cache` (31 GB) | Paged zlib blobs |
 | Game logic | `content/content0/scripts/**/*.ws` | Plain text |
 
@@ -125,7 +130,8 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `legend/` | `mouse-<left/right/middle/scroll>.png`, `key.svg` |
 | `points/` | `diamond.png` |
 | `popup/` | `frame.svg`, `buttons-frame.svg` (message popup, `popup_message.redswf`) |
-| `menu/` | `sheet.png`, `frame.png`, `title-underline.png` (Esc menu, `panel_ingamemenu.redswf`) |
+| `menu/` | `sheet.png`, `frame.png`, `title-underline.png`, `logo.png`, `slider-track.svg`, `option-edge.png` (Esc menu and options list, `panel_ingamemenu.redswf`) |
+| `icons/` | `copy`, `export`, `load`, `import`, `share` (PNG): white one-colour glyphs for the Build menu's tools, tinted by the page (see [Icons for the Build menu](#icons-for-the-build-menu)); `dropdown-arrow` (PNG): the side panel sections' arrow |
 | `layout/` | Where the game places things: one JSON per sprite with each named child's matrix, color transform and text style |
 
 Colors: `red` combat, `blue` signs, `green` alchemy, `yellow` general, `grey` locked or not learned.
@@ -241,6 +247,40 @@ The in-game menu (`IngameMenu`) is a list module at (333, 370) on the screen, le
 - Logo `mcGameLogo` (`mcGameLogoRE_28`, one frame per language, 1024 x 501 slices) at (-1, -227), scale 0.22855. Frame EN is `menu/logo.png` (sub 697, drawn by shape 698 at 2.05x from (-1034, -491)), so on screen it is 480 x 235 with its top left at (-237, -339) from the first item and its bottom 28 px above the title. It is wider than the sheet; its transparent margins hide that.
 - Key hints: `mcInputFeedbackModule` at (1735, 1023), bottom right.
 - `mcBlackBackground` (`MC_IMG_Background_Assets`) is a full black backdrop with fog, shown behind submenus that hide the game. The planner uses the popup's 0.6 mask instead, fainter than the sheet.
+
+### Options list and sliders (`panel_ingamemenu.redswf`, `OptionListModuleRef`, `W3SubMenuListItemRenderer`)
+
+The game's options screens (Video, Gameplay, ...) put the menu list on the left and the option rows on its right. In `docs/reference` terms: rows from (562, 172) on the 1080p screen, 1167 x 77, 78.5 apart (`mcOptionListItem1..9` at y -68, 10.5, 89, ...). The planner uses this layout for menu pages with options (`ui/options.js`, `ui/menu.js`).
+
+- Row background `ListItemBG_189` (shape 341) at (-150, -7) of the item: a white linear gradient across 1167 px (alpha 0x0a to ratio 55, 0x08 at 146, 0 at 255) and the brown bar `menu/option-edge.png` (sub 340, 8 x 77) at its left end, 1:1.
+- Text, in row-background coordinates: name `textField` at x 31, 24 px `#adadad`, white on the `selected_*` frames. Current value `tfCurrentValue` 26 px white, right-aligned in a box ending at x 829. A toggle shows "off" in `#808080` (`OnSliderValueChanged`, 8421504).
+- Slider at (870, 42) (`initSlider` / `initToggleSlider`: x 720, y 35 on the item). The option type picks the art: `Toggle` uses `SubMenuSliderToggle`, 140 wide, offsets 35 / 45; `List` and `Slider` use `SubMenuSlider`, 296 wide, offsets 32 / 35 (200 / 100 inside dropdowns). A `List` slider has one step per choice (`maximum` = choices - 1, `snapInterval` 1).
+- Track (`sliderTrackToggle` shape 15, `sliderTrack_options` shape 21): the same notched double outline, `#45362d` at alpha 0.45, bounds x -8.1..368, at y -0.9 in the slider. Both sprites have a 9-slice grid at x 4 / 356 (`DefineScalingGrid`), so stretched to the slider width the corners keep their size. `menu/slider-track.svg` is shape 15 (30 tall, no invisible hit strip).
+- Thumb: a rounded bar (radius 4), `#a8a5a3`, `over` frame `#b7b5b3` (toggle `#bdbbb9`); 51.3 x 15.05 (`sliderThumb`, inside a 68.1 wide invisible hit shape) or 68.3 x 15.05 (`sliderThumbToggle`), from y -7.9. CLIK's `Slider.updateThumb` puts its left at `(value - min) / (max - min) * (width - offsetLeft - offsetRight) - thumb.width / 2 + offsetLeft`, `thumb.width` being the hit shape's width; the bar starts 0.6 into it. Checked against a 1080p screenshot of the Interface options: list thumb at 0 from x 1430 to 1480, toggle thumb 1433..1500 off and 1493..1560 on.
+- Input (`W3Slider`, CLIK `Slider`): left / right step by one and stop at the ends, the A button steps up and wraps to the first value, pressing the track jumps to the nearest value, the thumb drags. Clicking a toggle row flips it (`activate`).
+
+### Icons for the Build menu
+
+Searched 2026-10-04: every named image in the 125 UI movies of `r4gui.bundle` and `startup.bundle`, every class name matching save / load / copy / share / download / upload, and contact sheets of every atlas slice in `panel_ingamemenu`, `photomode`, `panel_startup`, `panel_modmenu`, `popup_overlay` and `panel_overlay`.
+
+- **No copy, paste, upload or share icons by name.** `ICO_PlayS_Share.png` and `ICO_Switch_Share.png` are controller button glyphs.
+- **Save:** the save indicator (`IndicatorSave_3` in `popup_overlay`, `OverlayPopupMenu.mcIndicatorLoad`; the same in `panel_mainmenu_autosavewarning`): a parchment save card (sub 173, 45 x 54) inside a turning ouroboros ring (sub 169, 111 x 111), both drawn at 0.6. `photomode` also has a flat floppy disk (sub 66, a photo mode tab icon).
+- The next-gen menus have flat white icons (Material-like, not the Witcher style):
+  - `panel_ingamemenu`: download arrow into a tray on a grey disc (sub 55, `DownloadButtonRef`; frame `down` is sub 57, light disc), a box with an arrow out of its corner (sub 470, `MarketingConsentPopupRef`), plus, gamepad, cloud with devices, overlapping squares, eye and "..." (subs 82 to 96, the patch notes popup `nge_update_icon_125`)
+  - `photomode`: overlapping squares (sub 62), floppy (66), crop, aperture, contrast, weather, person (tab icons)
+  - `photomode` sub 281: an upload arrow out of a tray in a dark circle, but it is the Xbox Share button glyph (`HintButtonRef.mcIconXbox`) and the glyph is only about 36 x 21.
+
+What the planner uses (`icons/`, cut by the recipe's `mask` / `trim` / `canvas` / `arrow` options into white glyphs on transparency). The arrowhead is drawn, not game art: the side panel toggle's triangle made exactly twice as wide as tall, so its sides run at 45 degrees like the floppy's cut corner. Every icon sits on a square canvas sized so the glyphs show at one scale (the floppy is 80 of 108 px).
+
+| Tool | File | Source |
+| --- | --- | --- |
+| Copy code | `icons/copy.png` | `photomode` sub 62 |
+| Export file | `icons/export.png` | `photomode` sub 66 (floppy), the arrowhead above it pointing up |
+| Load code | `icons/load.png` | `popup_overlay` sub 173 (the save card), filled solid (the game draws it partly see-through), its two lines cut out a pixel thicker |
+| Import file | `icons/import.png` | `photomode` sub 66, the arrowhead below it pointing up |
+| Copy share link | `icons/share.png` | `photomode` sub 66, the arrowhead pointing out of its cut corner |
+
+The side panel sections' arrow, `icons/dropdown-arrow.png`, is the dropdown lists' own: `panel_alchemy` sub 73, 18 x 14, `#4a3829` in the game. `DropDownArrows_76` (placed as `IconDropDownListItem.mcOpenedState`) draws it pointing down on frame `closed` (shape 74) and flipped on `opened` (shape 75). The crafting, glossary, journal, world map and mod menu panels have a `DropDownArrows` sprite too (not compared).
 
 ### Tooltip (`componentslib`, `SkillTooltipRef`, `layout/tooltip.json`)
 
@@ -440,12 +480,35 @@ Frame labels on the pieces, saved as `mutagens/connectors/{corner,line}-<color>.
 - Timing at 40 fps: corner frames `start` 2 to `complete` 15 (~0.33s), line frames 2 to 6 (~0.1s).
 - Which connectors light up was checked against an in-game screenshot only (the logic in `ModuleSkillsSocketsDupe` and `PlayerAbilityManager.ws` was not read). A socket's connector takes the group color when the equipped skill's color matches the mutagen. The group connector is colored when at least one socket in the group matches. For example, a blue mutagen with three blue skills lights all four pieces; a green mutagen with one green skill in the bottom slot lights that corner and the group line.
 
+## Skill text
+
+Regenerate with `python tools/extract_skill_text.py "$G" public/data/skillText.js` (~5 s). It prints warnings, the skills with character-dependent values, and fails on any skill it can't run.
+
+How the game builds a skill tooltip (checked in the 5.0 files, 2026-10-05):
+
+- Each `<skill>` names a description key per rank (`localisationDescription`, `...Level2`, `...Level3`). Many skills reuse one key; some word ranks differently (Muscle Memory, Undying, Whirl).
+- `GetSkillTooltipDescriptionForSkillLevel` picks the key for the rank and calls the tree's function (`GetSwordSkillsTooltipDescription` and so on). Each has a hand-written `case` per skill: which ability attributes it reads, how it scales them (`* skillLevel`, `* (skillLevel - 1)`, a separate attribute per rank such as `focus_gain_lvl2`, or a literal like `5 * skillLevel`), and how it rounds (`RoundMath(x * 100)`).
+- The numbers fill `$I$` (ints), `$F$` (floats, trailing zeros cut) and `$S$` (strings) in the string, first occurrence each (`GetLocStringByKeyExtWithParams`, `localizedContent.ws`).
+- Each tree function appends its passive line ("Adrenaline Point gain: +1%", Stamina regeneration, potion duration, Vitality). The extractor drops it: the planner shows the tree passive itself.
+- Attribute values: `type="add"` / `"mult"` / `"base"` set `valueAdditive` / `valueMultiplicative` / `valueBase`. One attribute can be listed once per type and the entries combine (`magic_s11.direct_damage_per_sec` is add 10 and mult 0.001). `CalculateAttributeValue` is `base * mult + add`.
+- Rather than copying 127 cases, `extract_skill_text.py` runs that script code with `wscript.py`, so a game update only needs a rerun. Numbers keep the name of the XML attribute they came from, which becomes the template placeholder (`{damage_increase}`); literals in the script become `{value}`.
+- Per-rank wording: a number one rank's text leaves out is `null` at that rank in `values`. The planner's "Modern" descriptions (all ranks in one text, `allRanksParts` in `core/skillText.js`) use the template with the most numbers and show such a rank as 0, which matches the text in 8 of the 9 skills (e.g. Active Shield "does not drain Stamina" at rank 3). The exception is Muscle Memory, whose rank 1 reads "your next Fast Attack": `MISSING_VALUES` in the extractor writes `missing: { trigger_at_attack_count: 1 }` for it.
+- Character-dependent values: Sun and Stars multiplies by max Stamina, read as 100. It is listed under `dynamic`. None of the planner's other skills read live stats. Geralt's max Stamina is `ConGeralt` base 100 (`geralt_stats.xml`) and nothing in normal play raises it. Checked in-game: the tooltip shows the flat value the extractor gives, and the planner keeps it flat.
+- `gameplay\abilities_plus\` (and `items_plus\`, and the same pair in the `ep1`/`bob`/`dlc12` DLC folders) is **likely the New Game+ set**: the executable names both folders side by side, `abilities_plus\geralt_stats.xml` adds levels 51 to 100 (the NG+ level cap), and only `items_plus\` has `_ng_plus_item_extensions.xml`. The engine picks the set natively (`IsNewGamePlusEnabled` is an import), so the scripts don't confirm it. The extractor uses `gameplay\abilities\`. Run against `_plus`, only 2 of the 80 skills change: Pyrotechnics 100/200/300 instead of 50/100/150, and Delayed Recovery 0% (the set lacks `toxicity_threshold_lvl1..3`, so an NG+ tooltip would likely read 0%). **Unverified** in an NG+ save.
+- The game's tooltips show odd values that the extractor copies as they are: Griffin School Techniques shows Stamina regeneration +0/s, +0/s, +1/s (0.002 * 100 * rank, rounded). Checked in-game, as are Supercharged Glyphs at 10/20/30 Vitality per second.
+
+### w3strings format
+
+`"RTSW"`, u32 version, u16 key1; three blocks, each starting with a variable-length count: string entries (id ^ magic, offset, length), key hashes (hash, id ^ magic) and the encrypted text; u16 key2 at the end. `key1 << 16 | key2` picks the language and its magic. Each text unit is XORed with `(length + 1) * key`, where the key starts at `(magic >> 8) & 0xFFFF` and rotates left one bit per unit. Keys exist only as a hash (`h = h * 31 + c` over the lower-cased UTF-16 key), so strings are looked up by key name.
+
+- Version 162 (classic, documented by the modding tools) stores UTF-16 and counts offsets and lengths in 16-bit units.
+- Version 164 (5.0) stores **UTF-8** and counts in bytes. Found by testing; the public decoders (w3strings encoder, WolvenKit, the `w3strings` Rust crate) only read 162 as of this writing.
+
 ## Open questions
 
 - Exact rule for connector colors and dual-color skills (`ModuleSkillsSocketsDupe`, `PlayerAbilityManager.ws` around `GetSkillGroupColorCount` / `LINK_BONUS_*`).
 - Default panorama (Velen is the likely one, and what the app shows; the reference screenshots use Novigrad) and how the panorama is scaled to the screen (`MenuCommon.setBackgroundPosition`).
 - Node state details: matched by eye only (no fill when unavailable, a darkened fill when available, see `treeNode` in `ui/gamePieces.js`).
-- Skill names and descriptions: `localisationName` keys resolve through `content0/*.w3strings` (encrypted string tables, not extracted yet).
 
 ## Research folder
 
@@ -461,4 +524,4 @@ Generated on demand with the commands above, not kept: `research/swf/` (plain `.
 
 ## Legal
 
-Game assets are used under the [CD PROJEKT RED Fan Content Guidelines](https://www.cdprojektred.com/en/fan-content): free and non-commercial, with the "unofficial fan work, not approved/endorsed by CD PROJEKT RED" notice visible (already in the README and page footer). Ship extracted images, not decompiled code or raw game data files.
+Game assets are used under the [CD PROJEKT RED Fan Content Guidelines](https://www.cdprojektred.com/en/fan-content): free and non-commercial, with the "unofficial fan work, not approved/endorsed by CD PROJEKT RED" notice visible (already in the README and page footer). Ship extracted images and the skill text and numbers in `data/skillText.js` (the same content as the in-game tooltips), not decompiled code, game scripts or raw game data files. The tools in `tools/` are shipped: they only read a local install and contain no game data.

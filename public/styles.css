@@ -1,5 +1,5 @@
 /* Layout: the Character screen (tree panel and slots at their game positions, key legend under
-   them, side panels over them), then sharing. Stacks on phones. */
+   them, side panels over them) and the Esc menu. Stacks on phones. */
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
@@ -52,8 +52,11 @@ body { background: var(--game-bg); color: var(--fg); font-family: var(--font-bod
 /* Game backdrop (ui/backdrop.js): fixed behind the page, the 1920x1080 screen scaled to cover the window. */
 .backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
 .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
-.backdrop svg { display: block; width: 100%; height: 100%; }
-.wrap { padding-inline: var(--game-edge); padding-block: 8px 40px; display: grid; gap: 16px; }
+.backdrop svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transition: opacity 1.2s ease; }
+/* A new panorama fades in over the old one (by eye). */
+.backdrop svg.entering { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .backdrop svg { transition: none; } }
+.wrap { --wrap-top: 8px; padding-inline: var(--game-edge); padding-block: var(--wrap-top) 0; display: grid; gap: 16px; }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: .02em; margin: 0; text-wrap: balance; }
 /* Read by screen readers, not shown. */
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
@@ -64,12 +67,6 @@ button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 .num { font-variant-numeric: tabular-nums; }
 
-/* Buttons (the share card) */
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.btn { background: var(--panel-2); border: 1px solid var(--line); padding: 6px 12px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 14px; }
-.btn:hover { border-color: var(--muted); }
-.btn[disabled] { opacity: .4; cursor: not-allowed; }
-.btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 
 /* Planner screen (ui/tree.js, points.js, slots.js, legend.js, tooltip.js): the Character screen's
    panels side by side at their game positions. Column widths are the panels' widths in game px
@@ -80,15 +77,29 @@ button { cursor: pointer; }
   container-type: inline-size; position: relative; display: grid; align-items: start;
   grid-template-columns: minmax(0, 616.35fr) minmax(0, 125fr) minmax(0, 971.35fr);
   grid-template-areas: "tree . slots" "points . slots" "legend legend legend";
+  /* Fit the viewport height too: the screen is about 916 game px tall (panels y 130 to 970, then the
+     legend row with its padding), so it is never wider than that height allows. Centred when capped. */
+  --screen-h: 916;
+  width: min(100%, (100dvh - var(--wrap-top)) * 1712.7 / var(--screen-h)); justify-self: center;
 }
 .screen-tree { grid-area: tree; }
 .screen-points { grid-area: points; }
 .screen-slots { grid-area: slots; }
+/* The share tools (ui/buildRail.js): a column centred on the slots area's height, its icons' right edge on the
+   screen's right edge, mirroring the tree panel's left edge (both one --game-edge from the window, more when the
+   screen is capped by the window's height and centred). The icon is 30 px in a 62 px button, so the button
+   reaches 16 px past that edge. Absolutely placed in the slots area, so it takes no room. */
+.screen-rail { grid-area: slots; position: absolute; right: calc(-16 * var(--gpx)); top: 0; bottom: 0; display: grid; place-items: center; --u: max(.6px, var(--gpx)); }
+.gbuild-rail { display: flex; flex-direction: column; }
 /* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px. */
-.screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(20 * var(--gpx)); }
+.screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(4 * var(--gpx)); }
+/* The fan content notice (ui/pageInfo.js), faint like the menu's notice. Outside the screen, so it takes
+   no room from it: pinned to the window's bottom right corner (absolute to the page, which fits the window),
+   clear of the centred legend. Phones scroll, so there it follows the screen in the flow. Sizes are
+   game px times --u, fitted to the window's shorter side like the menu. */
+.page-notice { --u: max(.6px, min(100vw / 1920, 100vh / 1080)); position: absolute; right: calc(8 * var(--u)); bottom: calc(8 * var(--u)); margin: 0; color: #6b5d56; font-family: var(--font-game); font-size: max(10px, calc(15 * var(--u))); line-height: 1; white-space: nowrap; }
 .screen-tip { position: absolute; z-index: 3; pointer-events: none; --u: max(.6px, var(--gpx)); }
 .screen-error { grid-column: 1 / -1; margin: 0; }
-.below { display: grid; grid-template-columns: minmax(0, 560px); gap: 16px; align-items: start; }
 
 /* Game SVG parts (ui/gamePanels.js). */
 .gsvg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -155,28 +166,19 @@ button { cursor: pointer; }
   margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2); scale: 1.1; filter: drop-shadow(0 0 8px rgba(255, 255, 184, .5)); }
 .drag-ghost img { display: block; width: 100%; height: 100%; }
 .dragging, .dragging * { cursor: grabbing !important; }
-/* POINTS AVAILABLE value (ui/points.js): a number field set like the game's 32px text. */
-.gpoints { display: block; width: 100%; height: 100%; margin: 0; padding: 0 2px 0 0; border: 0; background: transparent; color: var(--game-text); font-family: var(--font-game); font-size: 32px; line-height: 1; text-align: right; -moz-appearance: textfield; appearance: textfield; }
-.gpoints::-webkit-inner-spin-button, .gpoints::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.gpoints:hover, .gpoints:focus { background: rgba(255, 255, 255, .06); outline: none; }
-.gpoints.over { color: var(--bad); }
+/* POINTS AVAILABLE value (ui/points.js): display only, red when overspent. */
+.gpoints-value.over { fill: var(--bad); }
 
-/* Cards */
-.card { background: var(--panel); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+/* Text */
 .treetag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .1em; font-size: 13px; color: var(--tc); }
-.meta { font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
-
-.share textarea { width: 100%; min-height: 64px; background: var(--bg); border: 1px solid var(--line); padding: 8px; font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 12px; resize: vertical; }
-.field { display: grid; gap: 4px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--muted); }
-.field input { background: var(--bg); border: 1px solid var(--line); padding: 6px 8px; font-family: var(--font-body); font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--fg); }
-.share .subhead { margin-top: 6px; }
-#shareMsg:empty { display: none; }
-.ok-msg { color: var(--alchemy); }
 .bad-msg { color: var(--bad); }
 
 @media (max-width: 800px) {
-  .screen { --gpx: calc(100cqw / 616.35); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "legend"; }
-  .below { grid-template-columns: minmax(0, 1fr); }
+  .screen { --gpx: calc(100cqw / 616.35); width: auto; justify-self: stretch; grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "rail" "legend"; }
+  .page-notice { position: static; padding: 0 0 8px; text-align: right; white-space: normal; }
+  /* No margin to spare: a row under the slots. */
+  .screen-rail { grid-area: rail; position: static; }
+  .gbuild-rail { flex-direction: row; }
 }
 
 /* Game key legend: centred buttons 15px apart, key cap recoloured from #675943 to #191919 through a mask.
@@ -220,6 +222,11 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gpopup-text { margin: calc(20 * var(--u1)) 0 0; color: #eddec1; font-size: calc(24 * var(--u1)); line-height: 1.25; }
 /* 55px tall: 9 frame + 1 + 36 button + 9 frame, so -(9 + 55 / 2) puts its middle on the panel's outer edge. */
 .gpopup-buttons { display: flex; justify-content: center; gap: calc(16 * var(--u1)); margin: calc(21 * var(--u1)) 0 calc(-36.5 * var(--u1)); padding: var(--u1) calc(3.5 * var(--u1)) 0; border: calc(9 * var(--u1)) solid transparent; border-image: url("assets/ui/popup/buttons-frame.svg") 9 fill / calc(9 * var(--u1)); }
+/* Text fields of a popup that asks for text (ui/popup.js, fieldsPopup), the build name's look (.gfield). */
+.gpopup-fields { align-self: stretch; margin-top: calc(20 * var(--u1)); text-align: left; }
+.gpopup-fields .gfield { margin-bottom: calc(8 * var(--u1)); }
+.gpopup-fields input[readonly] { color: #c9b48c; }
+.gpopup-error { margin: 0; color: var(--bad); font-size: calc(20 * var(--u1)); text-align: center; }
 .gpopup-short .gpopup-buttons { margin-top: calc(14 * var(--u1)); }
 /* A dark fill inside a thin dark ring and a faint outline. */
 .gpopup-btn { height: calc(36 * var(--u1)); padding: 0 calc(12 * var(--u1)); border: max(1px, var(--u1)) solid #141313; border-radius: calc(3 * var(--u1)); background: #161515; box-shadow: inset 0 0 0 max(1px, var(--u1)) #0c0b0a; color: #cecece; font-family: var(--font-game); font-size: calc(22 * var(--u1)); line-height: 1; white-space: nowrap; }
@@ -232,7 +239,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    makes room for the button strip hanging under the panel. Layers (ui/layers.js) share one z-index above
    the page; a later one is appended later, so it draws on top. */
 .glayer { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; }
-.glayer-mask { position: absolute; inset: 0; background: rgba(0, 0, 0, .6); }
+.glayer-mask { position: absolute; inset: 0; background: rgba(0, 0, 0, .7); }
 .gdialog, .apply-popup { --u: max(.6px, calc(100vw / 1920)); padding: 0 0 calc(28 * var(--u)); }
 .gdialog { position: relative; }
 .gdialog:focus { outline: none; }
@@ -269,11 +276,78 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gmenu-item.back { color: #ffffff; }
 .gmenu-item[aria-disabled="true"] { color: #555555; cursor: default; }
 .gmenu-item:focus { outline: none; }
-.gmenu-item:focus::before { content: ""; position: absolute; inset: 50% 0 auto; height: calc(59 * var(--u)); translate: 0 -50%; border: calc(7 * var(--u)) solid transparent; border-image: url("assets/ui/menu/frame.png") 14 / calc(7 * var(--u)); filter: grayscale(1) brightness(2.6); animation: gmenu-pulse calc(26s / 30) linear infinite; pointer-events: none; }
+.gmenu-item:focus::before, .gopt:focus::before, .gbuild-tool:focus::before { content: ""; position: absolute; inset: 50% 0 auto; height: calc(59 * var(--u)); translate: 0 -50%; border: calc(7 * var(--u)) solid transparent; border-image: url("assets/ui/menu/frame.png") 14 / calc(7 * var(--u)); filter: grayscale(1) brightness(2.6); animation: gmenu-pulse calc(26s / 30) linear infinite; pointer-events: none; }
 @keyframes gmenu-pulse { 50% { opacity: .4; } }
 .gmenu-note { flex: none; margin: auto 0 0; padding: calc(40 * var(--u)) var(--gmenu-pad) 0; color: #6b5d56; font-size: calc(18 * var(--u)); }
 .gmenu-legend { position: absolute; right: calc(185 * var(--u)); bottom: calc(41 * var(--u)); }
-@media (prefers-reduced-motion: reduce) { .gmenu-item:focus::before { animation: none; } }
+/* A page with options (Settings), like the game's options screen: the menu column at the game's place
+   (MenuListModule at x 333) and the option rows on its right, from (562, 172), 78.5 apart
+   (OptionListModuleRef). Positions are on the 1920x1080 screen centred in the window. The column and
+   sheet slide there and back (translate, so it can ease) and the rows fade in. */
+.gmenu-layer { --gmenu-shift: calc((333 - 960) * var(--u)); }
+.gmenu, .gmenu-sheet { transition: translate .3s cubic-bezier(.2, .7, .3, 1); }
+.gmenu-layer.has-options .gmenu { translate: var(--gmenu-shift) 0; }
+.gmenu-layer.has-options .gmenu-sheet { translate: calc(-50% + var(--gmenu-shift)) -50%; }
+/* Not in the game: a second mask over the first darkens the page further while options show, since the
+   rows sit on the bare mask and the page behind them otherwise reads as clutter. */
+.gmenu-options-mask { opacity: 0; transition: opacity .3s ease-out; }
+.gmenu-layer.has-options .gmenu-options-mask { opacity: 1; }
+.gopts { animation: gopts-in .3s ease-out; }
+@keyframes gopts-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .gmenu, .gmenu-sheet, .gmenu-options-mask { transition: none; } .gopts { animation: none; } }
+/* overflow-y clips x too, so a 3px side gutter keeps the focus frame (3px outside the row) visible. */
+.gopts { position: absolute; left: calc((562 - 333 - 3) * var(--u) + var(--gmenu-w) / 2); top: calc(50% - 368 * var(--u)); width: calc((1167 + 6) * var(--u)); padding: 0 calc(3 * var(--u)); max-height: calc(780 * var(--u)); overflow-y: auto; scrollbar-width: none; text-align: left; }
+/* Option row (W3SubMenuListItemRenderer over ListItemBG_189): a faint white gradient with the brown
+   bar at its left end; the name 24px #adadad (white when focused) at x 31, the value 26px white
+   right-aligned to x 829, the slider's origin at (870, 42). The frame is the menu's, 3px outside. */
+.gopt { position: relative; height: calc(77 * var(--u)); margin: calc(3 * var(--u)) 0 calc(4.5 * var(--u)); color: #adadad; font-size: calc(24 * var(--u)); line-height: calc(77 * var(--u)); white-space: nowrap; cursor: default;
+  background: url("assets/ui/menu/option-edge.png") 0 0 / calc(8 * var(--u)) 100% no-repeat, linear-gradient(90deg, rgb(255 255 255 / .039) 21.6%, rgb(255 255 255 / .031) 57.3%, transparent); }
+.gopt:focus { outline: none; color: #ffffff; }
+.gopt:focus::before { inset: calc(-3 * var(--u)); height: auto; translate: none; }
+.gopt.toggle { cursor: pointer; }
+.gopt-label { position: absolute; left: calc(31 * var(--u)); }
+.gopt-value { position: absolute; right: calc((1167 - 829) * var(--u)); color: #ffffff; font-size: calc(26 * var(--u)); }
+.gopt.off .gopt-value { color: #808080; }
+/* Slider (SubMenuSlider 296 wide, SubMenuSliderToggle 140): the box is the track, its left edge at
+   --x from the origin; the notched outline is 9-sliced at 12px. The thumb (sliderThumb) is a rounded
+   bar #a8a5a3, #b7b5b3 under the pointer, --tw wide, placed by options.js at --at. */
+.gopt-slider { position: absolute; left: calc((870 + var(--x)) * var(--u)); top: calc(26.1 * var(--u)); width: calc(var(--w) * var(--u)); height: calc(30 * var(--u)); cursor: pointer; touch-action: none; }
+.gopt-slider::before { content: ""; position: absolute; inset: 0; border: solid transparent; border-width: 0 calc(12 * var(--u)); border-image: url("assets/ui/menu/slider-track.svg") 0 12 fill / 0 calc(12 * var(--u)); }
+.gopt-thumb { position: absolute; left: calc(var(--at, 0) * var(--u)); top: calc(8 * var(--u)); width: calc(var(--tw) * var(--u)); height: calc(15.05 * var(--u)); border-radius: calc(4 * var(--u)); background: #a8a5a3; }
+.gopt-slider:hover .gopt-thumb, .gopt-slider.dragging .gopt-thumb { background: #b7b5b3; }
+.gopt.toggle .gopt-slider:hover .gopt-thumb, .gopt.toggle .gopt-slider.dragging .gopt-thumb { background: #bdbbb9; }
+@media (prefers-reduced-motion: reduce) { .gmenu-item:focus::before, .gopt:focus::before, .gbuild-tool:focus::before { animation: none; } }
+
+/* The menu's tooltip (ui/tipHost.js), in the menu's units. */
+.gmenu-tip { position: absolute; z-index: 1; pointer-events: none; text-align: left; }
+
+/* A menu item's drawer (ui/menu.js): opens under the item like an accordion, sliding as the menu's
+   options do. Closed, it is inert and hidden once the slide ends. */
+.gmenu-drawer { display: grid; grid-template-rows: 0fr; visibility: hidden; opacity: 0;
+  transition: grid-template-rows .3s cubic-bezier(.2, .7, .3, 1), opacity .2s ease-out, visibility 0s linear .3s; }
+.gmenu-drawer.open { grid-template-rows: 1fr; visibility: visible; opacity: 1; transition-delay: 0s; }
+.gmenu-drawer-body { min-height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .gmenu-drawer { transition: none; } }
+
+/* The share tools (ui/buildTools.js) as icons the colour of the menu text, white when focused or hovered, with
+   the game's hint tooltip: in the Build drawer (ui/buildMenu.js), with the name and code fields, where the
+   focused one has the menu's hover frame, and on the rail right of the slots (ui/buildRail.js). */
+.gbuild { --u1: var(--u); padding: calc(4 * var(--u)) var(--gmenu-pad) 0; text-align: left; }
+/* The title's underline under the Build item: what follows belongs to it. */
+.gbuild::before { content: ""; display: block; width: calc(150 * var(--u)); height: calc(3 * var(--u)); margin: 0 auto calc(14 * var(--u)); background: url("assets/ui/menu/title-underline.png") 0 0 / 100% 100%; opacity: .39; }
+.gbuild .gfield { margin-bottom: calc(8 * var(--u)); color: inherit; }
+.gbuild .gfield:last-child { margin-bottom: 0; }
+/* No space under the tools: the next item's hover frame (59 tall over a 43 item) then sits just under the
+   icons, the tool button's own empty half-height (59 - 30) / 2 being the only gap. */
+.gbuild-tools { display: flex; justify-content: space-between; }
+.gbuild-tool { position: relative; display: grid; place-items: center; width: calc(62 * var(--u)); height: calc(59 * var(--u)); margin: 0; padding: 0; border: 0; background: none; color: #979797; cursor: pointer; }
+.gbuild-tool:focus, .gbuild-tool:hover { outline: none; color: #ffffff; }
+/* On the rail the frame marks keyboard focus only: a clicked tool doesn't keep it. */
+.screen-rail .gbuild-tool:focus:not(:focus-visible) { color: #979797; }
+.screen-rail .gbuild-tool:focus:not(:focus-visible):hover { color: #ffffff; }
+.screen-rail .gbuild-tool:focus:not(:focus-visible)::before { content: none; }
+.gbuild-icon { width: calc(30 * var(--u)); height: calc(30 * var(--u)); background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
 
 /* Side panels (ui/sidePanel.js): a card over one grid area of the screen (Statistics over the tree panel and
    its tabs, Archetypes over the slots), leaving POINTS AVAILABLE and the legend in view. contain: size keeps a
@@ -298,16 +372,28 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gside-title { flex: none; display: grid; place-items: center; height: calc(63 * var(--u1)); margin: calc(5 * var(--u1)) calc(5 * var(--u1)) 0; font-family: inherit; font-weight: 400; letter-spacing: 0; }
 /* The frame is a border-image over a 0 border, so it paints over the body's edges: the right margin keeps the
    scrollbar inside the frame's 12 u side (the padding is cut by the same so the text stays put), and the gutter
-   is always reserved so opening a section that adds a scrollbar does not narrow the content and shift it. */
-.gside-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #4a403b transparent; scrollbar-gutter: stable;
+   is always reserved so opening a section that adds a scrollbar does not narrow the content and shift it.
+   Positioned so absolute content (the bar ends' .visually-hidden labels) scrolls and clips with it; with the
+   card as their containing block they sat at their unscrolled spot, below the card, and grew the page. */
+.gside-body { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #4a403b transparent; scrollbar-gutter: stable;
   margin-right: calc(12 * var(--u1)); padding: calc(18 * var(--u1)) calc(14 * var(--u1)) calc(60 * var(--u1)) calc(26 * var(--u1)); }
 .gside-head:empty { display: none; }
 /* The first section: no header, straight under the card's. */
 .gside-overview { margin-bottom: calc(10 * var(--u1)); }
-.gside-field { display: grid; gap: calc(4 * var(--u1)); margin-bottom: calc(14 * var(--u1)); color: #ffffff; font-size: calc(20 * var(--u1)); text-transform: uppercase; }
-.gside-field input { width: 100%; padding: calc(4 * var(--u1)) 0; border: 0; border-bottom: max(1px, var(--u1)) solid #4a403b; background: transparent; color: #eddec1; font: inherit; font-size: calc(24 * var(--u1)); text-transform: none; }
-.gside-field input::placeholder { color: #6b5d56; }
-.gside-field input:focus { outline: none; border-bottom-color: #c9b48c; }
+/* A text field with its label on its left (the build name, in Statistics and the Esc menu's Build drawer). */
+.gfield { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: calc(14 * var(--u1)); margin-bottom: calc(14 * var(--u1)); color: #ffffff; font-size: calc(20 * var(--u1)); text-transform: uppercase; }
+.gfield input { width: 100%; padding: calc(4 * var(--u1)) 0; border: 0; border-bottom: max(1px, var(--u1)) solid #4a403b; background: transparent; color: #eddec1; font: inherit; font-size: calc(24 * var(--u1)); text-transform: none; }
+.gfield input::placeholder { color: #6b5d56; }
+.gfield input:focus { outline: none; border-bottom-color: #c9b48c; }
+.gfield input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.gfield input[type="number"]::-webkit-inner-spin-button, .gfield input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+/* The Total points row (Statistics): the budget field, sized to its digits (statistics.js, BUDGET_DIGITS), then
+   the points spent and left as value-label pairs. Wraps when the card is too narrow. */
+.gpoints { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: calc(28 * var(--u1)); row-gap: calc(6 * var(--u1)); margin-bottom: calc(14 * var(--u1)); }
+.gpoints .gfield { margin-bottom: 0; grid-template-columns: auto auto; }
+.gfield-num input { width: calc(3ch + 2 * var(--u1)); font-variant-numeric: tabular-nums; }
+.gpoints-stat { white-space: nowrap; }
+.gpoints-stat .gstat-value { margin-right: calc(6 * var(--u1)); }
 /* An accordion section: the header bar in its tree's colour (bonus/bar-<colour>.png, the textured bar with its
    frame lines, over a stronger fill so it reads like the game's stat headers), the game's arrow at its end. */
 .gside-sec { margin-top: calc(18 * var(--u1)); }
@@ -326,9 +412,13 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gside-bar-end { flex: none; color: #efe6d2; }
 /* Stat icon (sidePanel.statIcon): the shield fills the bar's height like the stats popup's rows. */
 .gstat-icon { flex: none; width: calc(48 * var(--u1)); height: calc(48 * var(--u1)); margin-left: calc(-10 * var(--u1)); overflow: visible; }
-.garrow { flex: none; width: calc(14 * var(--u1)); height: auto; aspect-ratio: 42 / 32; fill: #8a7660; overflow: visible; }
-.garrow-tri { transform-box: view-box; transform-origin: 0 0; transition: rotate .3s ease-in-out; }
-.gside-sec[open] > .gside-bar .garrow-tri { rotate: 180deg; }
+/* The game draws the 18 x 14 arrow at 1:1 and flips it when open. Here it turns on the art's centroid
+   (9, 4.68), not its box centre (9, 7), so it stays in place; the box moves down by the difference so the
+   centroid sits on the bar's middle, like the toggle's arrow (ui/sidePanel.js, toggleArt). */
+.garrow { flex: none; width: calc(18 * var(--u1)); height: calc(14 * var(--u1)); background: #8a7660;
+  -webkit-mask: url("assets/ui/icons/dropdown-arrow.png") center / 100% 100% no-repeat; mask: url("assets/ui/icons/dropdown-arrow.png") center / 100% 100% no-repeat;
+  translate: 0 calc(2.32 * var(--u1)); transform-origin: 50% calc(4.68 * var(--u1)); transition: rotate .3s ease-in-out; }
+.gside-sec[open] > .gside-bar .garrow { rotate: 180deg; }
 .gside-sec-body { padding: calc(14 * var(--u1)) calc(4 * var(--u1)) calc(4 * var(--u1)); }
 /* Value and label rows: values in their own column, labels lined up after it (subgrid), like the game's lists. */
 .gstats { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: calc(18 * var(--u1)); row-gap: calc(6 * var(--u1)); }
@@ -361,9 +451,9 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
   .gside.gside-slots::after { display: none; }
   .gside-toggle-wrap.gside-slots { margin-bottom: calc(63.5 / 971.35 * 100%); translate: -50% 50%; }
 }
-/* The circle, its rim and the arrow are one SVG (ui/sidePanel.js, TOGGLE_ART), so they are drawn at the same
-   sub-pixel spot. A CSS background and border get snapped to whole pixels while the vector arrow does not,
-   which left them half a pixel apart. The arrow group turns on the SVG's (0, 0), the triangle's centroid. */
+/* The circle, its rim and the arrow are one SVG (ui/sidePanel.js, toggleArt), so they are drawn at the same
+   sub-pixel spot. A CSS background and border get snapped to whole pixels while the SVG arrow does not,
+   which left them half a pixel apart. The arrow group turns on the SVG's (0, 0), the arrow's centroid. */
 .gside-toggle { display: block; width: calc(28 * var(--u1)); height: calc(28 * var(--u1)); margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: #f8f8f8; cursor: pointer; pointer-events: auto; }
 .gtoggle { display: block; width: 100%; height: 100%; overflow: visible; }
 .gtoggle-disc { fill: #685942; stroke: #100808; stroke-width: 1; }
@@ -379,10 +469,14 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gside-enter, .gside-uncover { animation: gside-rise .32s var(--ease-expo-out), gside-show .16s linear; }
 .gside-leave, .gside-covered { animation: gside-hide .14s linear forwards; }
 .gside-covered { visibility: hidden; }
+/* The rise starts the panel 20% lower; clip-path hides that part but it still counts as page overflow,
+   which flashes a scrollbar. Clip the screen vertically while a panel rises (ui/sidePanel.js drops the
+   class when the rise ends). */
+@media (prefers-reduced-motion: no-preference) { .screen:has(> .gside-enter, > .gside-uncover) { overflow-y: clip; } }
 @keyframes gside-rise { from { translate: 0 20%; clip-path: inset(0 0 20% 0); } }
 @keyframes gside-show { from { opacity: 0; } }
 @keyframes gside-hide { from { opacity: 1; visibility: visible; } to { opacity: 0; visibility: hidden; } }
-@media (prefers-reduced-motion: reduce) { .gside-enter, .gside-uncover, .gside-leave, .gside-covered { animation: none; } .garrow-tri, .gtoggle-arrow { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .gside-enter, .gside-uncover, .gside-leave, .gside-covered { animation: none; } .garrow, .gtoggle-arrow { transition: none; } }
 
 /* Game skill tooltip: gray header with its frame, translucent panel. Text positions and colours from
    layout/tooltip.json, label colours sampled from docs/reference. Sizes are game px times --u. */
@@ -398,8 +492,11 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gtip-next { font-size: calc(23 * var(--u1)); color: var(--game-next); margin-top: calc(12 * var(--u1)); }
 .gtip-cur .gtip-label { color: var(--game-current); }
 .gtip-next .gtip-label { color: var(--game-level); }
+/* "Modern" skill descriptions: every rank's numbers in one text, the current rank's in the [Hold] colour. */
+.gtip-on { color: var(--game-hold); }
 .gtip p { margin: calc(8 * var(--u1)) calc(11 * var(--u1)) 0; }
 .gtip-note { color: var(--game-req); font-size: calc(23 * var(--u1)); }
+.gtip-note.ok { color: var(--game-current); }
 /* Item tooltip (TooltipInventory). Type colour from its code (0xC8C8C7), the rest sampled from an
    in-game Greater blue mutagen tooltip. The type sits where a skill's level does. */
 .gtip-item .gtip-name { color: #b9924d; }
@@ -414,3 +511,17 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* Hint tooltip (an empty slot's): title only in the header, one line under it. */
 .gtip-hint .gtip-text { margin-top: calc(10 * var(--u1)); }
 @media (max-width: 900px) { .gpair { grid-template-columns: minmax(0, 1fr); } }
+
+/* Toasts (ui/toast.js): bottom centre, over the layers. Each is the message popup's frame (popup/frame.svg,
+   its lines only) on the tooltip's fill, with the tooltip's text. Sizes are game px times --u. */
+.gtoasts { --u: max(.6px, min(100vw / 1920, 100vh / 1080)); position: fixed; z-index: 20; left: 50%; bottom: calc(60 * var(--u)); translate: -50% 0;
+  display: flex; flex-direction: column; align-items: center; gap: calc(10 * var(--u)); width: max-content; max-width: calc(100vw - 32px); pointer-events: none; }
+.gtoast { min-width: calc(420 * var(--u)); max-width: calc(640 * var(--u)); padding: calc(22 * var(--u)) calc(44 * var(--u));
+  border: calc(9 * var(--u)) solid transparent; border-image: url("assets/ui/popup/frame.svg") 9 / calc(9 * var(--u));
+  background: var(--game-tooltip) padding-box; box-shadow: 0 6px 18px #000;
+  font-family: var(--font-game); color: var(--game-next); font-size: calc(28 * var(--u)); line-height: 1.25; text-align: center;
+  pointer-events: auto; cursor: pointer; animation: gtoast-in .2s ease-out; }
+.gtoast.bad { color: var(--bad); }
+.gtoast.leaving { opacity: 0; translate: 0 calc(8 * var(--u)); transition: opacity .2s ease-in, translate .2s ease-in; }
+@keyframes gtoast-in { from { opacity: 0; translate: 0 calc(8 * var(--u)); } }
+@media (prefers-reduced-motion: reduce) { .gtoast { animation: none; } .gtoast.leaving { transition: none; } }

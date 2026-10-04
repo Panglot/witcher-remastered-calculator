@@ -34,8 +34,9 @@ export const TREE_ART = {
 // `shield`, then the glyph (mcStatIcons) at alpha 0.6 with its sprite at `glyph`. Each glyph frame
 // draws its file at its own offset from there: STAT_GLYPHS, as [x, y, w, h]. The game draws the
 // glyph at alpha 0.6 on its dark rows; on the bright colour bars that washes out, so it is 0.9 here
-// (by eye).
-export const STAT_ICON = { shield: [16.5, 3.25, 64, 64], glyph: [49.25, 33.5], alpha: 0.9 };
+// (by eye). The shield art is black at about 12% alpha, which vanishes on the bars too, so its alpha
+// is multiplied by `shieldBoost` (sidePanel.statIconFilters, by eye).
+export const STAT_ICON = { shield: [16.5, 3.25, 64, 64], glyph: [49.25, 33.5], alpha: 0.9, shieldBoost: 5 };
 export const STAT_GLYPHS = {
   "attack-steel": [-32, -31.95, 64, 64],
   "spell-power": [-33.15, -36.55, 64, 64],
@@ -52,9 +53,21 @@ export const DROP_TARGET = { color: "#ffcc00", alpha: 0.6 };
 // quality). Three box-blur passes of 15px come close to a Gaussian of sigma 7.5. Inventory mutagens fill
 // their whole cell with a bright round icon, so the game's blur spreads far past it: they use a smaller one (by eye).
 export const OVER_GLOW = { color: "#f3ffc2", strength: 0.75, sigma: { skill: 7.5, item: 3 } };
-// Panorama when no world is picked: no_mans_land (Velen) has no case in commonMenu.ws, so it is
-// likely the container's default.
-export const DEFAULT_REGION = "velen";
+// Menu background panoramas per world (commonMenu.ws SetMenuBackground): backdrop/panorama-<id>.jpg
+// and the world's name. no_mans_land (Velen) has no case there, so it is likely the container's
+// default when no world is picked.
+export const REGIONS = [
+  { id: "velen", label: "Velen" },
+  { id: "white-orchard", label: "White Orchard" },
+  { id: "white-orchard-winter", label: "White Orchard (winter)" },
+  { id: "vizima", label: "Vizima" },
+  { id: "novigrad", label: "Novigrad" },
+  { id: "skellige", label: "Skellige" },
+  { id: "kaer-morhen", label: "Kaer Morhen" },
+  { id: "isle-of-mists", label: "Isle of Mists" },
+  { id: "spiral", label: "The Spiral" },
+  { id: "toussaint", label: "Toussaint" }
+];
 // Tabs in game order. "mutations" has tab and background art but no planner tree.
 export const GAME_TABS = ["combat", "signs", "alchemy", "general", "mutations"];
 
