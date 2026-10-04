@@ -4,7 +4,6 @@ Research notes from the installed game (next-gen / "Remastered" build, Steam, ch
 
 - Generated asset set: [public/assets/ui/](../public/assets/ui/), with [manifest.json](../public/assets/ui/manifest.json) describing every file
 - Tools: [tools/](../tools/)
-- Plan and status: [asset-plan.md](asset-plan.md)
 - In-game screenshots to compare against: [reference/](reference/)
 - Local-only research material: `research/` (gitignored, see [Research folder](#research-folder))
 
@@ -129,6 +128,16 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 Colors: `red` combat, `blue` signs, `green` alchemy, `yellow` general, `grey` locked or not learned.
 
 Skill icons are 64x64 glyphs on transparency, no frame. The cache also holds ~205px `_debug` / `_notfunctional` cards under `skills_rework/`; those are placeholders and are skipped. `perk_8` (no tree, hidden core skill, same icon as `perk_6`) is excluded.
+
+### Left out on purpose
+
+- Controller button glyphs (Xbox/PS/Switch/Steam): keyboard and mouse only. Easy to add later from the same atlases.
+- Mutation art (Mutations panel background and silhouette, mutation orbs, research progress, `MutationTooltip*`): mutations are out of scope for now.
+- `panel_character` and `panel_character_perks`, and the old `CharacterTabbedListModuleRef` inside `_dupe`: older versions of the same screen. Its tree header bars (`mcTabBackgrounds`) are never placed by the live screen.
+- `mc_background_color` (the big coloured orbs): the equipped Mutation display in the screen centre. The diamond shows the mutagen's inventory icon instead (`SlotSkillMutagen.loadIcon`).
+- Mutagen decoction potion icons (`mutagen_potions/`) and the `unique` / base mutagen icons: not used by skill mutagens.
+
+Possible follow-up: the tree backgrounds are 1212x1406 PNGs with alpha (0.8 to 2 MB each, 7 MB total). WebP would cut that a lot; the builder already picks the format from the output extension, as it does for `.jpg`.
 
 ## How the Character screen is composed
 
@@ -416,10 +425,9 @@ Frame labels on the pieces, saved as `mutagens/connectors/{corner,line}-<color>.
 ## Open questions
 
 - Exact rule for connector colors and dual-color skills (`ModuleSkillsSocketsDupe`, `PlayerAbilityManager.ws` around `GetSkillGroupColorCount` / `LINK_BONUS_*`).
-- Default panorama (Velen is the likely one) and how the panorama is scaled to the screen (`MenuCommon.setBackgroundPosition`).
+- Default panorama (Velen is the likely one, and what the app shows; the reference screenshots use Novigrad) and how the panorama is scaled to the screen (`MenuCommon.setBackgroundPosition`).
 - Node state details: matched by eye only (no fill when unavailable, a darkened fill when available, see `treeNode` in `ui/gamePieces.js`).
 - Skill names and descriptions: `localisationName` keys resolve through `content0/*.w3strings` (encrypted string tables, not extracted yet).
-- Which panorama the app shows. The reference screenshots use Novigrad; Velen is the likely in-game default.
 
 ## Research folder
 

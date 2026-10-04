@@ -2,7 +2,7 @@
 
 Screenshots of the real Character screen (next-gen build), used to check the rebuilt UI against the game. See [game-assets.md](../game-assets.md) for how each part is drawn.
 
-Only `fullscreen.png` is a full 1920x1080 capture, in the same coordinate space as the layout files in `public/assets/ui/layout/`. Use it for measuring positions and sampling colors. The others are cropped to leave out the top menu bar (not part of the rebuild), so their coordinates are offset.
+`fullscreen.png` and `reset_modal_fullscreen.png` are full 1920x1080 captures, in the same coordinate space as the layout files in `public/assets/ui/layout/`. Use them for measuring positions and sampling colors. The others are cropped to leave out the top menu bar (not part of the rebuild), so their coordinates are offset.
 
 | File | Size | What it shows |
 | --- | --- | --- |
@@ -12,6 +12,7 @@ Only `fullscreen.png` is a full 1920x1080 capture, in the same coordinate space 
 | `general.png` | 1915x968 | General tree, no points allocated. Red mutagen with 2 connections, green with 1. Key legend at the bottom: mouse and keyboard keys, and the upgrade action's "[Hold]" prefix in a different color. |
 | `signs.png` | 1920x969 | Signs tree after a points reset (a clean tree). Hover on Delusion. Note the extra border around the selected skill: in game it pulses, its opacity cycling 100% to 0% and back. |
 | `mutagens.png` | 1915x952 | Mutagens tab. Only partly relevant, see below. |
+| `reset_modal_fullscreen.png` | 1920x1080 | The Reset abilities confirmation popup over the masked screen. Reference for the message popup. |
 
 ## Notes on the mutagens tab
 

@@ -1,5 +1,5 @@
 /* Layout: the Character screen (tree panel and slots at their game positions, key legend under
-   them), then cards with the selected skill, slot rules and sharing. Stacks on phones. */
+   them), then the points summary, archetypes and sharing. Stacks on phones. */
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "D-DIN Condensed"; src: url("assets/fonts/d-din/D-DINCondensed-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 :root {
@@ -16,11 +16,10 @@
   --alchemy: #62ad4d;
   --general: #cf9a3c;
   --mark: #f3ecdc;
-  --warn: #e0a24a;
   --bad: #e2675d;
   --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
   --font-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
-  /* In-game Character screen text (docs/game-assets.md). Used by the asset demo for now. */
+  /* In-game Character screen text (docs/game-assets.md). */
   --font-game: "D-DIN Condensed", var(--font-display);
   --game-bg: #040404;
   /* Game content edge: the tree panel starts at x 103.65 on the 1920px screen (screen.json
@@ -56,7 +55,6 @@ body { background: var(--game-bg); color: var(--fg); font-family: var(--font-bod
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: .02em; margin: 0; text-wrap: balance; }
 h1 { font-size: 30px; text-transform: uppercase; letter-spacing: .06em; }
 h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
-.lede { color: var(--muted); margin: 4px 0 0; max-width: 70ch; }
 .topbar { display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
 .pagenav { display: flex; gap: 6px; }
 .pagenav a { border: 1px solid var(--line); padding: 4px 12px; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-size: 14px; color: var(--muted); text-decoration: none; }
@@ -196,9 +194,6 @@ button { cursor: pointer; }
 #shareMsg:empty { display: none; }
 .ok-msg { color: var(--alchemy); }
 .bad-msg { color: var(--bad); }
-.fine { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 90ch; }
-.fine p { margin: 0; }
-.fine b { color: var(--fg); font-weight: 500; }
 .legal { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 4px; }
 .legal p { margin: 0; }
 
