@@ -93,11 +93,15 @@ button { cursor: pointer; }
 .gbuild-rail { display: flex; flex-direction: column; }
 /* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px. */
 .screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(8 * var(--gpx)); }
+/* The legend and the share tools' wrapper: no box of its own here, so each keeps its grid area. Phones make it
+   the bar pinned to the window's bottom (below). */
+.screen-dock { display: contents; }
 /* The fan content notice (ui/pageInfo.js), faint like the menu's notice. Outside the screen, so it takes
    no room from it: pinned to the window's bottom right corner (absolute to the page, which fits the window),
-   clear of the centred legend. Phones scroll, so there it follows the screen in the flow. Sizes are
+   clear of the centred legend. Phones show the bottom bar's copy instead (.dock-notice, below). Sizes are
    game px times --u, fitted to the window's shorter side like the menu. */
 .page-notice { --u: max(.6px, min(100vw / 1920, 100vh / 1080)); position: absolute; right: calc(8 * var(--u)); bottom: calc(8 * var(--u)); margin: 0; color: #6b5d56; font-family: var(--font-game); font-size: max(10px, calc(15 * var(--u))); line-height: 1; white-space: nowrap; }
+.dock-notice { display: none; margin: 0; color: #6b5d56; font-family: var(--font-game); font-size: 11px; line-height: 1.2; text-align: center; }
 .screen-tip { position: absolute; z-index: 3; pointer-events: none; --u: max(.6px, var(--gpx)); }
 .screen-error { grid-column: 1 / -1; margin: 0; }
 
@@ -179,22 +183,27 @@ button { cursor: pointer; }
 /* Stacked: phones, and portrait screens (tablets), where side by side the screen would fill only the top third
    with tiny pieces. Capped so a tablet's tree still fits its height; centred. Keep in step with the side panels'. */
 @media (max-width: 800px), (max-aspect-ratio: 4/5) {
-  .screen { --gpx: calc(100cqw / 616.35); width: min(100%, 640px); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "rail" "legend"; }
-  .page-notice { position: static; padding: 0 0 8px; text-align: right; white-space: normal; }
+  .screen { --gpx: calc(100cqw / 616.35); width: min(100%, 640px); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "dock"; }
+  .page-notice { display: none; }
   /* The slots at the tree's scale, so a slotted skill is as big as in the tree: the 971.35 px wide view is
      drawn 971.35 / 616.35 times the area's width and cropped to the tree's 616.35 px, centred on the mutagen
      grid's divider (screen x 1311.2, so from x 1003.025, 158.025 px into the view). The bonus labels reach
      past that and are cut at the edges. */
   .screen-slots { overflow: clip; }
   .screen-slots > .gsvg { width: calc(971.35 / 616.35 * 100%); max-width: none; margin-left: calc(-158.025 / 616.35 * 100%); }
-  /* No margin to spare: a row under the slots, clear of the Archetypes toggle on the slots' bottom edge. */
-  .screen-rail { grid-area: rail; position: static; padding-top: calc(16 * var(--gpx)); }
-  .gbuild-rail { flex-direction: row; }
-  /* The legend stays on the window's bottom edge while the screen scrolls under it. Sticky, it keeps its row:
-     at the page's end it is back in its place, so it covers nothing there. Its tooltip fill runs the window's
-     full width (the shadow, cut to its height). Under the side panels' toggles and the tooltip. */
-  .screen-legend { position: sticky; bottom: 0; z-index: 2; padding-block: calc(14 * var(--gpx));
+  /* The legend, with the share tools in a row below it, stays on the window's bottom edge while the screen
+     scrolls under it. Sticky, it keeps its row: at the page's end it is back in its place, so it covers nothing
+     there. Its tooltip fill runs the window's full width (the shadow, cut to its height). Under the side panels'
+     toggles and the tooltip. */
+  .screen-dock { grid-area: dock; display: block; position: sticky; bottom: 0; z-index: 2;
     background: var(--game-tooltip); box-shadow: 0 0 0 100vmax var(--game-tooltip); clip-path: inset(0 -100vmax); }
+  .screen-legend { padding-block: calc(14 * var(--gpx)) calc(4 * var(--gpx)); }
+  .screen-rail { position: static; padding-bottom: calc(4 * var(--gpx)); }
+  .gbuild-rail { flex-direction: row; }
+  .dock-notice { display: block; padding: 0 0 calc(10 * var(--gpx)); }
+  /* Apply mode hides the legend: here it leaves the bar, which shrinks to the share tools, evenly padded. */
+  .page.applying .screen-legend { display: none; }
+  .page.applying .screen-rail { padding-top: calc(4 * var(--gpx)); }
 }
 /* Short windows (phones on their side): the screen fills the height and the legend, kept readable, is wide, so
    pinned to the corner the notice would sit on the legend. It follows the screen instead. */

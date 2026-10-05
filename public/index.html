@@ -77,15 +77,20 @@
     <div class="screen-lift" id="applyLift" aria-hidden="true" hidden></div>
     <div class="screen-points" id="points" data-panel data-masked></div>
     <div class="screen-slots" id="slotsPanel" data-panel></div>
-    <!-- The build's share tools in the right margin (ui/buildRail.js). -->
-    <div class="screen-rail" id="buildRail" data-panel data-masked></div>
-    <div class="screen-legend" id="legend" data-masked></div>
+    <!-- The legend and the build's share tools (ui/buildRail.js): on wide screens each in its own place
+         (the tools in the right margin), on phones together in the bar pinned to the window's bottom,
+         with the fan content notice (ui/pageInfo.js) under them. -->
+    <div class="screen-dock">
+      <div class="screen-legend" id="legend" data-masked></div>
+      <div class="screen-rail" id="buildRail" data-panel data-masked></div>
+      <p class="dock-notice" data-fan-notice data-masked></p>
+    </div>
     <div class="screen-tip" id="tooltip" hidden></div>
   </section>
   <!-- The skill or mutagen being dragged to a slot (ui/drag.js), following the pointer. -->
   <div class="drag-ghost" id="dragGhost" aria-hidden="true" hidden></div>
-  <!-- The fan content notice in the window's bottom right corner (ui/pageInfo.js). -->
-  <p class="page-notice" id="fanNotice"></p>
+  <!-- The fan content notice in the window's bottom right corner (ui/pageInfo.js); on phones the bottom bar's. -->
+  <p class="page-notice" data-fan-notice></p>
 
   </main>
 </div>
