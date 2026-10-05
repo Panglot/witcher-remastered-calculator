@@ -178,8 +178,14 @@ button { cursor: pointer; }
 @media (max-width: 800px), (max-aspect-ratio: 4/5) {
   .screen { --gpx: calc(100cqw / 616.35); width: min(100%, 640px); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "rail" "legend"; }
   .page-notice { position: static; padding: 0 0 8px; text-align: right; white-space: normal; }
-  /* No margin to spare: a row under the slots. */
-  .screen-rail { grid-area: rail; position: static; }
+  /* The slots at the tree's scale, so a slotted skill is as big as in the tree: the 971.35 px wide view is
+     drawn 971.35 / 616.35 times the area's width and cropped to the tree's 616.35 px, centred on the mutagen
+     grid's divider (screen x 1311.2, so from x 1003.025, 158.025 px into the view). The bonus labels reach
+     past that and are cut at the edges. */
+  .screen-slots { overflow: clip; }
+  .screen-slots > .gsvg { width: calc(971.35 / 616.35 * 100%); max-width: none; margin-left: calc(-158.025 / 616.35 * 100%); }
+  /* No margin to spare: a row under the slots, clear of the Archetypes toggle on the slots' bottom edge. */
+  .screen-rail { grid-area: rail; position: static; padding-top: calc(16 * var(--gpx)); }
   .gbuild-rail { flex-direction: row; }
 }
 /* Short windows (phones on their side): the screen fills the height and the legend, kept readable, is wide, so
@@ -468,7 +474,8 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    bottom at 900). The slots' sits on the Archetypes card's copy of that line, level with the tree's, which is
    also under the mutagen grid's lower divider line (dividerBottom: screen x 1311.2, ending at y 888.75):
    466.2 px in from the slots area's left at 845, a margin in % of the area's 971.35 px width. Phones stack
-   the areas, so there it goes back to the slots area's bottom (63.5 px over it, at 970).
+   the areas and centre the slots on that divider, so there it sits mid-width on the slots area's bottom edge
+   (970), clear of the divider's end, and on the card's (with its line) when Archetypes is open.
    Its fill and dark rim are the legend's lit mouse button (legend/mouse-*.png). The arrow turns from up
    (closed) to down (open). Its tooltip is the screen's (data-hint). */
 .gside-toggle-wrap { --u1: max(.6px, var(--gpx)); position: relative; z-index: 2; align-self: end; justify-self: center; translate: 0 50%; }
@@ -476,9 +483,12 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gside-toggle-wrap.gside-slots { justify-self: start; margin-left: calc(466.2 / 971.35 * 100%); translate: -50% calc(50% + 6.5 * var(--gpx)); }
 @media (max-width: 800px), (max-aspect-ratio: 4/5) {
   .gside-slots { grid-area: slots; }
-  .gside.gside-slots { justify-self: stretch; width: auto; margin-left: 0; }
-  .gside.gside-slots::after { display: none; }
-  .gside-toggle-wrap.gside-slots { margin-bottom: calc(63.5 / 971.35 * 100%); translate: -50% 50%; }
+  /* At least as tall as the tree panel (770 px): the slots area alone is too short for the list, so the row
+     grows while the card is open. */
+  .gside.gside-slots { justify-self: stretch; width: auto; margin-left: 0; min-height: calc(770 * var(--u1)); }
+  /* Its separator (3 px) centred on the card's bottom edge, under the toggle like the tree's. */
+  .gside.gside-slots::after { bottom: calc(-1.5 * var(--gpx)); }
+  .gside-toggle-wrap.gside-slots { margin-left: 50%; translate: -50% 50%; }
 }
 /* The circle, its rim and the arrow are one SVG (ui/sidePanel.js, toggleArt), so they are drawn at the same
    sub-pixel spot. A CSS background and border get snapped to whole pixels while the SVG arrow does not,

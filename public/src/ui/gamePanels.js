@@ -135,11 +135,14 @@ export function createPanels(art, pieces) {
   function pointsRow(n) {
     const S = art.layout("screen"), L = S.txfAvailablePoints.text, V = S.txfPointsValue;
     const [, , x1] = V.text.box, [, , , , tx, ty] = V.matrix;
-    // Flash text fields have a 2px gutter inside their box (gamePieces.text).
-    const text = `<text x="${fmt(tx + x1 - 2)}" y="${fmt(ty)}" dominant-baseline="text-before-edge" font-size="${V.text.size}" text-anchor="end">`
-      + `<tspan fill="${L.color}" font-size="${L.size}">${esc(pointsLabel(n))}</tspan>`
+    // Flash text fields have a 2px gutter inside their box (gamePieces.text). Each tspan names its
+    // baseline too: Safari doesn't pass dominant-baseline down from the <text>, so the row would sit
+    // a line higher there, on the separator.
+    const hang = `dominant-baseline="text-before-edge"`;
+    const text = `<text x="${fmt(tx + x1 - 2)}" y="${fmt(ty)}" ${hang} font-size="${V.text.size}" text-anchor="end">`
+      + `<tspan ${hang} fill="${L.color}" font-size="${L.size}">${esc(pointsLabel(n))}</tspan>`
       // Overspent, the number turns red (styles.css, .gpoints-value.over).
-      + `<tspan dx="${POINTS_GAP}" fill="${V.text.color}" class="gpoints-value${n < 0 ? " over" : ""}">${Math.abs(n)}</tspan></text>`;
+      + `<tspan ${hang} dx="${POINTS_GAP}" fill="${V.text.color}" class="gpoints-value${n < 0 ? " over" : ""}">${Math.abs(n)}</tspan></text>`;
     return placed(S.mcPointsBorder, pieces.img("tree/separator.png", 0, 0, 0.5))
       // The row sits lower than in the game, clear of the side panel toggle on the separator.
       + `<g transform="translate(0 ${POINTS_DROP})"><g class="gpoints-row">` + text
