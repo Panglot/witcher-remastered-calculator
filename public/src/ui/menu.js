@@ -25,13 +25,14 @@ import { createTipHost } from "./tipHost.js";
 import { hintTip } from "./tooltip.js";
 import { clearSavedState } from "../state.js";
 import { OPTIONS, clearSavedSettings } from "../settings.js";
-import { FAN_NOTICE, REPO_URL } from "./pageInfo.js";
+import { FAN_NOTICE, REPO_URL, CONTACT_DISCORD } from "./pageInfo.js";
 
 // The game version the planner follows, shown under the logo.
 const GAME_VERSION = "5.0.0c";
 const ABOUT = [
   "A build planner for The Witcher 3: Wild Hunt (Remastered): spend skill points, slot skills and mutagens, and share the build as a code or a file.",
   "The screen is drawn with the game's own interface art and layout, read from the game files. Skill descriptions and numbers come from the game files too.",
+  "Feedback, bug reports and ideas are welcome: on Discord at @" + CONTACT_DISCORD + ", or as an issue on the source code page.",
   "The Witcher and all related names, icons and assets are property of CD PROJEKT RED. " + FAN_NOTICE + " Free and non-commercial, made for the community."
 ];
 // Keys the menu takes besides Esc: E picks the focused item (Enter and Space press a focused
@@ -56,7 +57,8 @@ export function mountMenu(app) {
       { label: "Reset all data", run: resetAllData }
     ] },
     about: { title: "About", body: ABOUT, ownNotice: true, items: [
-      { label: "Source code", run: () => window.open(REPO_URL, "_blank", "noopener") }
+      { label: "Source code", run: () => window.open(REPO_URL, "_blank", "noopener") },
+      { label: "Copy Discord name", run: copyDiscord }
     ] }
   };
 
@@ -220,6 +222,15 @@ export function mountMenu(app) {
     if (!app.layers.isOpen(layer)) return;
     app.layers.close(layer);
     root.remove();
+  }
+
+  async function copyDiscord() {
+    try {
+      await navigator.clipboard.writeText(CONTACT_DISCORD);
+      app.toast.show(`Copied ${CONTACT_DISCORD}. Add it as a friend on Discord.`);
+    } catch (e) {
+      app.toast.show(`Couldn't reach the clipboard. The Discord name is ${CONTACT_DISCORD}.`, { tone: "bad" });
+    }
   }
 
   // Everything this page keeps in the browser: the build and the settings. Resetting only the build
