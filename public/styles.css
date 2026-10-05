@@ -190,6 +190,11 @@ button { cursor: pointer; }
   /* No margin to spare: a row under the slots, clear of the Archetypes toggle on the slots' bottom edge. */
   .screen-rail { grid-area: rail; position: static; padding-top: calc(16 * var(--gpx)); }
   .gbuild-rail { flex-direction: row; }
+  /* The legend stays on the window's bottom edge while the screen scrolls under it. Sticky, it keeps its row:
+     at the page's end it is back in its place, so it covers nothing there. Its tooltip fill runs the window's
+     full width (the shadow, cut to its height). Under the side panels' toggles and the tooltip. */
+  .screen-legend { position: sticky; bottom: 0; z-index: 2; padding-block: calc(14 * var(--gpx));
+    background: var(--game-tooltip); box-shadow: 0 0 0 100vmax var(--game-tooltip); clip-path: inset(0 -100vmax); }
 }
 /* Short windows (phones on their side): the screen fills the height and the legend, kept readable, is wide, so
    pinned to the corner the notice would sit on the legend. It follows the screen instead. */
@@ -583,4 +588,7 @@ button { touch-action: manipulation; }
   .gmenu { padding-bottom: var(--gmenu-pad); }
   button.gbtn, .gpopup-btn { position: relative; }
   button.gbtn::after, .gpopup-btn::after, .gopt-slider::after { content: ""; position: absolute; inset: -8px -6px; }
+  /* The side panels' toggles are about 17 px on a phone: a 14 px ring around them takes taps too. */
+  .gside-toggle { position: relative; }
+  .gside-toggle::after { content: ""; position: absolute; inset: -14px; border-radius: 50%; }
 }

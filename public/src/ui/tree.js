@@ -6,7 +6,7 @@
 // a double-click on a learned skill equips it through apply mode (ui/applyMode.js). With a skill
 // focused, Enter selects and + / - change rank. On touch screens, arrow buttons on a skill's sides
 // take a point out (left, down) or put one in (right, up); styles.css shows them only there.
-import { $, esc, keyTarget, isLongPress } from "./dom.js";
+import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
 import { createHold } from "./hold.js";
 import { skillIcon, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
@@ -73,9 +73,11 @@ export function mountTree(app) {
   function render() {
     if (!app.game) return;
     const view = content().panel();
-    el.innerHTML = app.game.panels.svg(VIEWS.tree,
+    // In place (dom.js, patchHtml), so a focused skill isn't removed: iOS keeps focus on the last
+    // skill tapped while other parts are tapped, and scrolls the page when the focused element goes.
+    patchHtml(el, app.game.panels.svg(VIEWS.tree,
       app.game.panels.treePanel({ ...view, tabs: catalog.tabs.map(tabView) }),
-      ` role="group" aria-label="${esc(view.title)}"`);
+      ` role="group" aria-label="${esc(view.title)}"`));
   }
 
   return {

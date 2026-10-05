@@ -8,7 +8,7 @@
 // (ui/applyMode.js): there a click picks a holder of the kind being equipped and a double-click
 // fills it, or they are dragged in (ui/drag.js), which finds the holder under the pointer with
 // holderAt. A hovered skill or mutagen lights the holders it could go into (ui/dropTargets.js).
-import { $, esc, keyTarget, isLongPress } from "./dom.js";
+import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
 import { createHold } from "./hold.js";
 import { skillIcon, MUTAGEN_ART, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
@@ -165,8 +165,9 @@ export function mountSlots(app) {
     if (!app.game) return;
     const lit = app.dropTargets.targets();
     const groups = Array.from({ length: slots.groups }, (_, g) => groupView(g, lit));
-    el.innerHTML = app.game.panels.svg(VIEWS.slots, app.game.panels.mutagenPanel({ groups }),
-      ` role="group" aria-label="Skill slots and mutagens"`);
+    // In place, like the tree (ui/tree.js, render), so a focused holder stays.
+    patchHtml(el, app.game.panels.svg(VIEWS.slots, app.game.panels.mutagenPanel({ groups }),
+      ` role="group" aria-label="Skill slots and mutagens"`));
   }
 
   // Mutagen colours must have game art; a new one in data/mutagens.js needs MUTAGEN_ART first.
