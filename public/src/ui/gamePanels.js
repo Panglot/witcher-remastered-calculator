@@ -129,7 +129,7 @@ export function createPanels(art, pieces) {
       `<g class="${classes("gnode", n.selected && "selected", n.cls)}" transform="translate(${fmt(pos[i].x)} ${fmt(pos[i].y)})"${n.attrs || ""}>`
       + SOCKET_HIT + pieces.treeNode({ ...n, color, selected: true }) + (n.marked ? MARK : "") + `</g>`).join("");
     const steps = nodes.map((n, i) => STEP_SIDES.map(([step, dx, out]) => n.steps && n.steps[step] != null
-      ? `<g transform="translate(${fmt(pos[i].x + dx)} ${fmt(pos[i].y + SOCKET / 2)})">${pieces.stepButton(step, color, out, n.steps[step])}</g>` : "").join("")).join("");
+      ? `<g transform="translate(${fmt(pos[i].x + dx)} ${fmt(pos[i].y + SOCKET / 2)})">${pieces.stepButton(step, color, n.state, out, n.steps[step])}</g>` : "").join("")).join("");
     return lines + cells + steps;
   }
 

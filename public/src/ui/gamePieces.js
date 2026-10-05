@@ -52,6 +52,12 @@ const GLOW_ID = { skill: "gglow-skill", item: "gglow-item" };
 // the skill out to `out` px beyond its edge, half the 46 px gap to a skill beside it (gameArt.js,
 // GAP_X), so neighbours' areas don't overlap.
 const STEP = { size: 24, hit: { in: 16, out: 23, half: SOCKET / 2 }, ink: "#f8f8f8", rim: "#100808" };
+// A step button on an open (unlearned) skill looks like that skill: both rings in the grey border's
+// tone (node/border-grey.png), brightened from its #929092 (mean of its brighter half): the rings are
+// far thinner than that border, and smoothed into the dark around them they read darker. And the fill darkened as the skill's
+// is, by the vignette (OPEN_VIGNETTE times its mean cover, 0.66 of node/equipped-overlay.png) and the
+// shade (OPEN_SHADE) over each other.
+const STEP_OPEN = { rim: "#d4d2d4", shade: 1 - (1 - OPEN_VIGNETTE * 0.66) * (1 - OPEN_SHADE) };
 const STEP_ARROW_ID = "gstep-arrow";
 const STEP_TURN = { add: 180, remove: 0 };
 
@@ -280,19 +286,24 @@ export function createPieces(art) {
 
   /**
    * A touch button centred on (0, 0), a skill's edge, on the skill's background colour (SKILL_FILL):
-   * an up arrow adds a point, a down arrow removes one. Class "gstep": styles.css shows it only on
-   * touch screens. Its arrow needs stepDefs on the page.
+   * an up arrow adds a point, a down arrow removes one. On an open skill it takes that skill's look
+   * (STEP_OPEN). Class "gstep": styles.css shows it only on touch screens. Its arrow needs stepDefs
+   * on the page.
    * @param {"add" | "remove"} step
    * @param {string} color tree colour
+   * @param {"open" | "learned"} state the skill's state (treeNode)
    * @param {-1 | 1} out the side the skill's edge faces: -1 left, 1 right
    */
-  function stepButton(step, color, out, attrs = "") {
+  function stepButton(step, color, state, out, attrs = "") {
     const { in: inside, out: outside, half } = STEP.hit;
     const x0 = out > 0 ? -inside : -outside;
+    const open = state === "open", rim = open ? STEP_OPEN.rim : STEP.rim;
     return `<g class="gstep"${attrs}><rect x="${x0}" y="${-half}" width="${inside + outside}" height="${2 * half}" fill="transparent"/>`
       + `<g transform="scale(${fmt(STEP.size / 28)})">`
-      + `<circle class="gstep-disc" r="13.5" fill="${SKILL_FILL[color]}" stroke="${STEP.rim}" stroke-width="1"/>`
-      + `<circle r="11.25" fill="none" stroke="${STEP.rim}" stroke-width="1.5"/>`
+      + `<circle class="gstep-disc" r="13.5" fill="${SKILL_FILL[color]}"/>`
+      + (open ? `<circle r="13.5" fill="#000" opacity="${fmt(STEP_OPEN.shade)}"/>` : "")
+      + `<circle r="13.5" fill="none" stroke="${rim}" stroke-width="1"/>`
+      + `<circle r="11.25" fill="none" stroke="${rim}" stroke-width="1.5"/>`
       + `<g fill="${STEP.ink}" transform="rotate(${STEP_TURN[step]})">${dropdownArrow(STEP_ARROW_ID)}</g></g></g>`;
   }
 
