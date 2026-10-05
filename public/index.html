@@ -3,11 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Witcher 3 Remastered Build planner</title>
+<title>Witcher 3 Remastered Build Planner and Skill Calculator</title>
+<!-- Search and link previews. social-card.png and favicon.png are made by tools/build_social_card.py. -->
+<meta name="description" content="Free build planner for The Witcher 3: Wild Hunt Remastered (the next-gen update). Plan Combat, Signs, Alchemy and General skills, slot abilities and mutagens, and share your build.">
+<meta name="keywords" content="Witcher 3 Remastered build planner, Witcher 3 skill calculator, Witcher 3 builder, Witcher 3 next-gen build, Wild Hunt talent tree, skill tree, abilities, mutagens, Geralt build, character builder">
+<link rel="canonical" href="https://panglot.github.io/witcher-remastered-calculator/">
+<meta name="theme-color" content="#0b0b0d">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Witcher 3 Remastered Build Planner">
+<meta property="og:title" content="Witcher 3 Remastered Build Planner and Skill Calculator">
+<meta property="og:description" content="Plan Geralt's skills, abilities and mutagens with the in-game Character screen layout, then share the build as a link or code.">
+<meta property="og:url" content="https://panglot.github.io/witcher-remastered-calculator/">
+<meta property="og:image" content="https://panglot.github.io/witcher-remastered-calculator/social-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Witcher 3 Build Planner: skill calculator for The Witcher 3: Wild Hunt Remastered">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Witcher 3 Remastered Build Planner",
+  "alternateName": ["Witcher 3 Build Planner", "Witcher 3 Skill Calculator", "Witcher 3 Next-Gen Build Calculator"],
+  "url": "https://panglot.github.io/witcher-remastered-calculator/",
+  "image": "https://panglot.github.io/witcher-remastered-calculator/social-card.png",
+  "description": "Free fan-made build planner and skill calculator for The Witcher 3: Wild Hunt Remastered (next-gen): Combat, Signs, Alchemy and General skill trees, ability slots, mutagens and shareable builds.",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any (web browser)",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "about": { "@type": "VideoGame", "name": "The Witcher 3: Wild Hunt" }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
-<link rel="icon" href="data:,">
+<link rel="icon" type="image/png" href="favicon.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,8 +47,13 @@
 <!-- Shared SVG filters, filled by src/main.js. Rendered (not display: none) so every browser applies them. -->
 <svg class="svg-defs" id="gameDefs" aria-hidden="true" width="0" height="0"></svg>
 <div class="wrap">
-  <!-- No visible title: the browser tab is the page title. -->
-  <h1 class="visually-hidden">Witcher 3 Remastered Build planner</h1>
+  <!-- No visible title: the browser tab is the page title. The intro is for screen readers and search
+       engines, which can't read the game screen's SVG. Keep it a plain, true description. -->
+  <h1 class="visually-hidden">Witcher 3 Remastered Build Planner</h1>
+  <p class="visually-hidden">A free skill calculator for The Witcher 3: Wild Hunt Remastered, the next-gen edition.
+    Spend skill points in the Combat, Signs, Alchemy and General trees, equip skills in the ability slots,
+    add mutagens for their bonuses, and share the build as a link, a code or a file.</p>
+  <noscript><p>This Witcher 3 build planner needs JavaScript to draw the skill trees.</p></noscript>
 
   <main class="page" id="pagePlanner">
   <!-- The Character screen: each panel at its game position, drawn by ui/tree.js, points.js,

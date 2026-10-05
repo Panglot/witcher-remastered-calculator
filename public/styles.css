@@ -92,7 +92,7 @@ button { cursor: pointer; }
 .screen-rail { grid-area: slots; position: absolute; right: calc(-16 * var(--gpx)); top: 0; bottom: 0; display: grid; place-items: center; --u: max(.6px, var(--gpx)); }
 .gbuild-rail { display: flex; flex-direction: column; }
 /* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px. */
-.screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(4 * var(--gpx)); }
+.screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(8 * var(--gpx)); }
 /* The fan content notice (ui/pageInfo.js), faint like the menu's notice. Outside the screen, so it takes
    no room from it: pinned to the window's bottom right corner (absolute to the page, which fits the window),
    clear of the centred legend. Phones scroll, so there it follows the screen in the flow. Sizes are
