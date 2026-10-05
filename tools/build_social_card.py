@@ -2,7 +2,8 @@
 
 The preview is what chats and social sites show when someone posts the planner's link: a game
 panorama, the page name and three mutagens, at the 1200x630 size those sites expect. The favicon
-is a greater red mutagen. Both come from public/assets/, so no game install is needed.
+is the red claw-mark "III" cut out of the game logo. Both come from public/assets/, so no game
+install is needed.
 
 Needs Python 3 with Pillow and fontTools (with brotli, to read the woff2 font).
 
@@ -20,7 +21,12 @@ ASSETS = ROOT / "public" / "assets"
 SIZE = (1200, 630)
 PANORAMA = ASSETS / "ui" / "backdrop" / "panorama-kaer-morhen.jpg"
 MUTAGENS = ["red", "green", "blue"]
-FAVICON = ASSETS / "ui" / "mutagens" / "item-red-greater.png"
+LOGO = ASSETS / "ui" / "menu" / "logo.png"
+# Where the claw mark sits in the logo, and the smallest red shape that belongs to it. Smaller red
+# shapes are the red-tinted edges of the letters around it.
+CLAW_BOX = (460, 180, 575, 375)
+CLAW_MIN_PIXELS = 200
+FAVICON_SIZE = 96  # Search engines ask for a multiple of 48 px.
 
 TITLE = "WITCHER 3 BUILD PLANNER"
 SUBTITLE = "Skill calculator for The Witcher 3: Wild Hunt Remastered"
@@ -67,12 +73,65 @@ def card():
     return img
 
 
+def is_red(pixel):
+    r, g, b, a = pixel
+    return a > 20 and r > 2 * g + 30 and r > 2 * b + 30
+
+
+def red_shapes(img):
+    """The 8-connected groups of strongly red pixels in img, as lists of (x, y)."""
+    w, h = img.size
+    px = img.load()
+    seen = set()
+    shapes = []
+    for y in range(h):
+        for x in range(w):
+            if (x, y) in seen or not is_red(px[x, y]):
+                continue
+            seen.add((x, y))
+            stack, shape = [(x, y)], []
+            while stack:
+                cx, cy = stack.pop()
+                shape.append((cx, cy))
+                for nx in (cx - 1, cx, cx + 1):
+                    for ny in (cy - 1, cy, cy + 1):
+                        if 0 <= nx < w and 0 <= ny < h and (nx, ny) not in seen and is_red(px[nx, ny]):
+                            seen.add((nx, ny))
+                            stack.append((nx, ny))
+            shapes.append(shape)
+    return shapes
+
+
+def favicon():
+    """The logo's claw mark on a transparent square."""
+    logo = Image.open(LOGO).convert("RGBA").crop(CLAW_BOX)
+    px = logo.load()
+    claw = Image.new("RGBA", logo.size)
+    out = claw.load()
+    w, h = logo.size
+    for shape in red_shapes(logo):
+        if len(shape) < CLAW_MIN_PIXELS:
+            continue
+        # Also keep the reddish anti-aliased pixels just outside each shape, for a soft edge.
+        for x, y in shape:
+            for nx in range(max(0, x - 2), min(w, x + 3)):
+                for ny in range(max(0, y - 2), min(h, y + 3)):
+                    r, g, b, _ = px[nx, ny]
+                    if r > g and r > b:
+                        out[nx, ny] = px[nx, ny]
+    claw = claw.crop(claw.getbbox())
+    side = max(claw.size) + 6
+    square = Image.new("RGBA", (side, side))
+    square.paste(claw, ((side - claw.width) // 2, (side - claw.height) // 2))
+    return square.resize((FAVICON_SIZE, FAVICON_SIZE), Image.LANCZOS)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", default=str(ROOT / "public"), help="folder for social-card.png and favicon.png")
     out = Path(parser.parse_args().out)
     card().save(out / "social-card.png", optimize=True)
-    Image.open(FAVICON).save(out / "favicon.png", optimize=True)
+    favicon().save(out / "favicon.png", optimize=True)
     print(f"Wrote {out / 'social-card.png'} and {out / 'favicon.png'}")
 
 
