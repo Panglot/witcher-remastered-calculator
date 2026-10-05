@@ -9,6 +9,12 @@ export function syncInput(el, value) {
   if (document.activeElement !== el) el.value = value;
 }
 
+// A contextmenu event from a touch or pen long-press, not the right mouse button. It is never a
+// right-click: the long press is the hold (ui/hold.js), and depending on the system it fires
+// mid-hold (Android) or on release, after the hold has acted (Windows). Touch has the legend's
+// buttons instead (ui/legend.js).
+export const isLongPress = e => e.pointerType === "touch" || e.pointerType === "pen";
+
 // Native controls keep their own key behaviour (Space and Enter press a button or follow a link).
 const NATIVE_CONTROLS = "a[href], button, summary";
 const onNativeControl = e => !!(e.target.closest && e.target.closest(NATIVE_CONTROLS));

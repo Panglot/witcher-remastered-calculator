@@ -8,7 +8,7 @@
 // (ui/applyMode.js): there a click picks a holder of the kind being equipped and a double-click
 // fills it, or they are dragged in (ui/drag.js), which finds the holder under the pointer with
 // holderAt. A hovered skill or mutagen lights the holders it could go into (ui/dropTargets.js).
-import { $, esc, keyTarget } from "./dom.js";
+import { $, esc, keyTarget, isLongPress } from "./dom.js";
 import { createHold } from "./hold.js";
 import { skillIcon, MUTAGEN_ART, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
@@ -80,8 +80,8 @@ export function mountSlots(app) {
   el.addEventListener("contextmenu", e => {
     const h = holderOf(e); if (!h) return;
     e.preventDefault();
-    // A touch long-press fires contextmenu; it must not take the skill out mid-hold.
-    if (!app.apply && !hold.active() && itemOf(h)) unequip(h);
+    // A long press is the hold, not a right-click; nor does the right button take the skill out mid-hold.
+    if (!app.apply && !isLongPress(e) && !hold.active() && itemOf(h)) unequip(h);
   });
   el.addEventListener("keydown", e => {
     const h = holderOf(e); if (!h) return;

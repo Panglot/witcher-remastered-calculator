@@ -15,6 +15,7 @@
 //   Esc closes it.
 // Layers draw themselves (mask, frame, content). One appended to the page later sits above the
 // earlier ones at the same z-index, so open order is also drawing order.
+import { isLongPress } from "./dom.js";
 
 /**
  * The stack on its own, with the page effects passed in (tests use fakes).
@@ -95,7 +96,7 @@ export function createPageLayers() {
   document.addEventListener("contextmenu", e => {
     if (!layers.blocking()) return;
     e.preventDefault();
-    if (e.pointerType !== "touch") layers.back();
+    if (!isLongPress(e)) layers.back();
   });
   return layers;
 }

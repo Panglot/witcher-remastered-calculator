@@ -173,12 +173,19 @@ button { cursor: pointer; }
 .treetag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .1em; font-size: 13px; color: var(--tc); }
 .bad-msg { color: var(--bad); }
 
-@media (max-width: 800px) {
-  .screen { --gpx: calc(100cqw / 616.35); width: auto; justify-self: stretch; grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "rail" "legend"; }
+/* Stacked: phones, and portrait screens (tablets), where side by side the screen would fill only the top third
+   with tiny pieces. Capped so a tablet's tree still fits its height; centred. Keep in step with the side panels'. */
+@media (max-width: 800px), (max-aspect-ratio: 4/5) {
+  .screen { --gpx: calc(100cqw / 616.35); width: min(100%, 640px); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "rail" "legend"; }
   .page-notice { position: static; padding: 0 0 8px; text-align: right; white-space: normal; }
   /* No margin to spare: a row under the slots. */
   .screen-rail { grid-area: rail; position: static; }
   .gbuild-rail { flex-direction: row; }
+}
+/* Short windows (phones on their side): the screen fills the height and the legend, kept readable, is wide, so
+   pinned to the corner the notice would sit on the legend. It follows the screen instead. */
+@media (max-height: 500px) {
+  .page-notice { position: static; padding: 0 0 8px; text-align: right; white-space: normal; }
 }
 
 /* Game key legend: centred buttons 15px apart, key cap recoloured from #675943 to #191919 through a mask.
@@ -317,6 +324,28 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gopt-slider:hover .gopt-thumb, .gopt-slider.dragging .gopt-thumb { background: #b7b5b3; }
 .gopt.toggle .gopt-slider:hover .gopt-thumb, .gopt.toggle .gopt-slider.dragging .gopt-thumb { background: #bdbbb9; }
 @media (prefers-reduced-motion: reduce) { .gmenu-item:focus::before, .gopt:focus::before, .gbuild-tool:focus::before { animation: none; } }
+/* Windows narrower than the 1920 x 1080 screen at the smallest --u (.6px), phones and tablets: the options layout
+   would run off both sides. The menu fits the window's width instead (the column at most 560 game px, or the
+   window less 16px each side), stays centred on an options page with the rows inline above the items, and
+   scrolls when it is taller than the window. Each row puts its slider under its name and value. The key hints
+   go under the column, clear of the fan notice. */
+@media (max-width: 1151px) {
+  .gmenu-layer { --u: max(.6px, min(100vw / 560, 100vh / 1080)); --gmenu-w: min(calc(100vw - 32px), calc(560 * var(--u))); }
+  .gmenu { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding-bottom: calc(var(--gmenu-pad) + 48 * var(--u)); }
+  .gmenu-body { min-height: calc(160 * var(--u)); }
+  .gmenu-layer.has-options .gmenu { translate: none; }
+  .gmenu-layer.has-options .gmenu-sheet { translate: -50% -50%; }
+  .gopts { position: static; flex: none; width: 100%; max-height: none; margin-top: calc(24 * var(--u)); overflow: visible; }
+  .gopt { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; row-gap: calc(8 * var(--u)); height: auto;
+    padding: calc(14 * var(--u)) calc(20 * var(--u)) calc(14 * var(--u)) calc(31 * var(--u)); line-height: 1.2; white-space: normal; }
+  .gopt-label, .gopt-value { position: static; }
+  .gopt-slider { position: relative; grid-column: 1 / -1; justify-self: end; left: auto; top: auto; }
+  .gmenu-legend { right: 50%; translate: 50% 0; bottom: calc(10 * var(--u)); }
+}
+/* Short windows: a smaller logo leaves room for the page under it. */
+@media (max-height: 560px) {
+  .gmenu-logo { width: calc(240 * var(--u)); height: calc(118 * var(--u)); }
+}
 
 /* The menu's tooltip (ui/tipHost.js), in the menu's units. */
 .gmenu-tip { position: absolute; z-index: 1; pointer-events: none; text-align: left; }
@@ -445,7 +474,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gside-toggle-wrap { --u1: max(.6px, var(--gpx)); position: relative; z-index: 2; align-self: end; justify-self: center; translate: 0 50%; }
 .gside-toggle-wrap.gside-tree { justify-self: start; width: calc(606 * var(--u1)); max-width: 100%; display: flex; justify-content: center; pointer-events: none; translate: 0 calc(50% + 6.5 * var(--gpx)); }
 .gside-toggle-wrap.gside-slots { justify-self: start; margin-left: calc(466.2 / 971.35 * 100%); translate: -50% calc(50% + 6.5 * var(--gpx)); }
-@media (max-width: 800px) {
+@media (max-width: 800px), (max-aspect-ratio: 4/5) {
   .gside-slots { grid-area: slots; }
   .gside.gside-slots { justify-self: stretch; width: auto; margin-left: 0; }
   .gside.gside-slots::after { display: none; }
@@ -525,3 +554,15 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gtoast.leaving { opacity: 0; translate: 0 calc(8 * var(--u)); transition: opacity .2s ease-in, translate .2s ease-in; }
 @keyframes gtoast-in { from { opacity: 0; translate: 0 calc(8 * var(--u)); } }
 @media (prefers-reduced-motion: reduce) { .gtoast { animation: none; } .gtoast.leaving { transition: none; } }
+
+/* Touch screens: no keys or mouse buttons, so the legend and popups show only what to tap, without key caps
+   or mouse icons, and the Esc menu's key hints (its Back and Resume items do the same) are left out. Small
+   buttons get a larger hit area around them that takes no room. Taps act at once (no double-tap zoom wait). */
+button { touch-action: manipulation; }
+@media (hover: none) and (pointer: coarse) {
+  .glegend .gkey, .glegend .gmouse, .glegend .gor, .gpopup-key { display: none; }
+  .gmenu-legend { display: none; }
+  .gmenu { padding-bottom: var(--gmenu-pad); }
+  button.gbtn, .gpopup-btn { position: relative; }
+  button.gbtn::after, .gpopup-btn::after, .gopt-slider::after { content: ""; position: absolute; inset: -8px -6px; }
+}

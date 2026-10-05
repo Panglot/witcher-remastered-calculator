@@ -2,7 +2,7 @@
 // grid, each unlimited. Click selects; Space (on the focused or selected one) or a double-click
 // equips it through apply mode (ui/applyMode.js), like a skill; right-click or Delete takes it out
 // of every group. Selection and diamonds follow the shared slot rules (core/slotKinds.js).
-import { esc, keyTarget } from "./dom.js";
+import { esc, keyTarget, isLongPress } from "./dom.js";
 import { mutagenIcon } from "./gameArt.js";
 
 // The game's 5th tab (GAME_TABS) lists mutagens; its art is named after Mutations.
@@ -48,7 +48,8 @@ export function createMutagenList(app, el) {
     dblclick(e) { const id = idOf(e); if (id) equip(id); },
     contextmenu(e) {
       const id = idOf(e); if (!id) return;
-      e.preventDefault(); act(id, planner.unequipMutagen);
+      e.preventDefault();
+      if (!isLongPress(e)) act(id, planner.unequipMutagen);
     },
     keydown(e) {
       const id = idOf(e); if (!id) return;

@@ -3,7 +3,8 @@
 // frames the selection, then the general controls in a group of their own. "Reset abilities" is a button and the R key, both asking first in the
 // game's message popup (ui/popup.js). "Menu" opens the Esc menu (ui/menu.js), like Esc; "Statistics"
 // toggles the Statistics panel (ui/statistics.js), like C; "Archetypes" the Archetypes panel
-// (ui/archetypes.js), like A. Apply mode
+// (ui/archetypes.js), like A. Remove point, Equip and Unequip are buttons for the selection, like
+// their mouse buttons and keys. Apply mode
 // hides the legend while its popup is up.
 import { $ } from "./dom.js";
 import { confirmPopup } from "./popup.js";
@@ -18,16 +19,20 @@ const ARCH = { key: "A", label: "Archetypes", action: "archetypes" };
 // Left button or E, held (ui/tree.js, ui/slots.js).
 const ACQUIRE = { mouse: "left", key: "E", prefix: "[Hold]", label: "Acquire ability" };
 // One mouse and one key per item at most: other ways in (drag, double-click to unequip) work unlisted.
-const UNEQUIP = { mouse: "right", key: "Space", label: "Unequip" };
-const EQUIP = { mouse: "left", clicks: 2, key: "Space", label: "Equip" };
+// The selection's actions are buttons too, acting on the selection: touch screens have no right
+// button or keys, and a long press is the hold.
+const UNEQUIP = { mouse: "right", key: "Space", label: "Unequip", action: "unequip" };
+const EQUIP = { mouse: "left", clicks: 2, key: "Space", label: "Equip", action: "equip" };
+const REMOVE = { mouse: "right", label: "Remove point", action: "remove" };
+const UNEQUIP_MUTAGEN = { mouse: "right", label: "Unequip", action: "unequipMutagen" };
 // Two groups: the selection's skill controls (Reset abilities always last), then the general ones (Menu last).
 const GENERAL = [STATS, ARCH, MENU];
 const skillGroup = (...items) => [[...items, RESET], GENERAL];
 const ITEMS = {
   unlearned: skillGroup(ACQUIRE),
-  learned: skillGroup(ACQUIRE, { mouse: "right", label: "Remove point" }, EQUIP),
+  learned: skillGroup(ACQUIRE, REMOVE, EQUIP),
   socket: skillGroup(ACQUIRE, UNEQUIP),
-  mutagens: skillGroup(EQUIP, { mouse: "right", label: "Unequip" }),
+  mutagens: skillGroup(EQUIP, UNEQUIP_MUTAGEN),
   diamond: skillGroup(UNEQUIP)
 };
 
@@ -55,13 +60,32 @@ export function mountLegend(app) {
     app.msg = ""; app.render();
   }
 
+  // The slot kind the open tab shows (skills in a tree tab, mutagens in the Mutagens tab).
+  const shownKind = () => state.tab === MUTAGEN_TAB ? "mutagen" : "skill";
+  function done(r) { app.msg = r.msg; app.render(); }
+  // Selection actions read the selection when pressed; each does nothing without one.
+  const ACTIONS = {
+    reset,
+    menu: () => app.views.menu.open(),
+    stats: () => app.views.stats.toggle(),
+    archetypes: () => app.views.archetypes.toggle(),
+    remove() { if (state.sel) done(planner.removePoint(state, state.sel)); },
+    equip() {
+      const name = shownKind(), id = kinds[name].selected(state);
+      if (id) app.views.apply.start(name, id);
+    },
+    unequip() {
+      const kind = kinds[shownKind()], i = kind.heldAt(state);
+      if (i != null) done(kind.clear(state, i));
+    },
+    unequipMutagen() {
+      const id = kinds.mutagen.selected(state);
+      if (id) done(planner.unequipMutagen(state, id));
+    }
+  };
   el.addEventListener("click", e => {
     const b = e.target.closest("[data-action]");
-    if (!b) return;
-    if (b.dataset.action === "reset") reset();
-    else if (b.dataset.action === "menu") app.views.menu.open();
-    else if (b.dataset.action === "stats") app.views.stats.toggle();
-    else if (b.dataset.action === "archetypes") app.views.archetypes.toggle();
+    if (b && ACTIONS[b.dataset.action]) ACTIONS[b.dataset.action]();
   });
   app.hotkeys.add(e => {
     if (e.repeat || e.key.toLowerCase() !== "r") return false;

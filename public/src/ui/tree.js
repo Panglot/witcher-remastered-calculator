@@ -5,7 +5,7 @@
 // point, as the game's "[Hold] Acquire Ability" does (ui/hold.js); right-click removes one. Space or
 // a double-click on a learned skill equips it through apply mode (ui/applyMode.js). With a skill
 // focused, Enter selects and + / - change rank.
-import { $, esc, keyTarget } from "./dom.js";
+import { $, esc, keyTarget, isLongPress } from "./dom.js";
 import { createHold } from "./hold.js";
 import { skillIcon, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
@@ -165,8 +165,8 @@ function createSkillTree(app, el) {
     contextmenu(e) {
       const id = skillOf(e); if (!id) return;
       e.preventDefault();
-      // A touch long-press fires contextmenu; it must not remove a point mid-hold.
-      if (!hold.active()) act(id, planner.removePoint);
+      // A long press is the hold, not a right-click; nor does the right button remove a point mid-hold.
+      if (!isLongPress(e) && !hold.active()) act(id, planner.removePoint);
     },
     hotkey(e) {
       const key = e.key.toLowerCase();
