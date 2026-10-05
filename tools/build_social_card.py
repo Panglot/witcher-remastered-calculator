@@ -30,7 +30,7 @@ FAVICON_SIZE = 96  # Search engines ask for a multiple of 48 px.
 
 TITLE = "WITCHER 3 BUILD PLANNER"
 SUBTITLE = "Skill calculator for The Witcher 3: Wild Hunt Remastered"
-DETAILS = "Combat  ·  Signs  ·  Alchemy  ·  General  ·  Mutagens  ·  Shareable builds"
+DETAILS = "Character screen  ·  Skill sets  ·  Statistics  ·  Shareable builds"
 GOLD = (222, 196, 140)
 LIGHT = (232, 226, 214)
 GREY = (170, 164, 152)
