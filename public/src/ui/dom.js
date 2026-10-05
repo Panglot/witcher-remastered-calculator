@@ -15,6 +15,35 @@ export function syncInput(el, value) {
 // buttons instead (ui/legend.js).
 export const isLongPress = e => e.pointerType === "touch" || e.pointerType === "pen";
 
+// A touch screen as the main input: the same query as the touch rules in styles.css.
+export const isTouchScreen = () => window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
+// Brings el's children in line with `html` in place: a node of the same kind as the new one is kept
+// and given its attributes and text, any other is replaced. Unlike innerHTML, what didn't change
+// stays the same element, so a redraw keeps focus, scroll and the element just tapped (a removed
+// one can move the page on phones).
+export function patchHtml(el, html) {
+  const t = document.createElement("template");
+  t.innerHTML = html;
+  patchChildren(el, t.content);
+}
+function patchChildren(el, next) {
+  const want = [...next.childNodes];
+  want.forEach((n, i) => {
+    const have = el.childNodes[i];
+    if (!have) el.append(n);
+    else if (have.nodeType === n.nodeType && have.nodeName === n.nodeName) patchNode(have, n);
+    else el.replaceChild(n, have);
+  });
+  while (el.childNodes.length > want.length) el.lastChild.remove();
+}
+function patchNode(have, n) {
+  if (n.nodeType !== Node.ELEMENT_NODE) { if (have.nodeValue !== n.nodeValue) have.nodeValue = n.nodeValue; return; }
+  for (const a of [...have.attributes]) if (!n.hasAttributeNS(a.namespaceURI, a.localName)) have.removeAttributeNS(a.namespaceURI, a.localName);
+  for (const a of n.attributes) if (have.getAttributeNS(a.namespaceURI, a.localName) !== a.value) have.setAttributeNS(a.namespaceURI, a.name, a.value);
+  patchChildren(have, n);
+}
+
 // Native controls keep their own key behaviour (Space and Enter press a button or follow a link).
 const NATIVE_CONTROLS = "a[href], button, summary";
 const onNativeControl = e => !!(e.target.closest && e.target.closest(NATIVE_CONTROLS));

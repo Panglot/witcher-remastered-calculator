@@ -28,13 +28,10 @@ export function mountArchetypes(app) {
       body.addEventListener("click", e => {
         const b = e.target.closest("[data-arch]");
         if (!b) return;
-        const id = b.dataset.arch, hadFocus = document.activeElement === b;
+        const id = b.dataset.arch;
         state.arch = state.arch.includes(id) ? state.arch.filter(x => x !== id) : state.arch.concat(id);
+        // The redraw updates the row in place (sidePanel.js), so it keeps focus.
         app.render();
-        // The redraw replaced the row; keep focus on it for the keyboard. A tap gives it no focus
-        // (iOS), and focusing it then can still scroll the page there, so it is left alone.
-        const again = hadFocus && body.querySelector(`[data-arch="${id}"]`);
-        if (again) again.focus({ preventScroll: true });
       });
     },
     markup() {

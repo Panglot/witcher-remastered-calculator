@@ -1,7 +1,7 @@
 // Game-style tooltip over the planner screen (ui/tipHost.js follows the part and places it).
 // Every render rebuilds it, so it follows rank changes and redraws of the part under it. Hidden
 // while an item is dragged (ui/drag.js).
-import { $ } from "./dom.js";
+import { $, isTouchScreen } from "./dom.js";
 import { createTipHost } from "./tipHost.js";
 import { rankText, allRanksParts } from "../core/skillText.js";
 import { SKILL_TEXT_MODERN } from "../settings.js";
@@ -64,10 +64,11 @@ export function mountTooltip(app) {
 
   // Tooltip kinds by data attribute: data-tip is a skill id, data-mutagen a mutagen id (with
   // data-group when it sits in a group), data-hint plain text under the optional data-hint-title.
+  // On a touch screen apply mode shows none: each tap to pick a holder would cover the slots with one.
   return createTipHost({
     area: $("screen"), el: $("tooltip"),
     kinds: { tip: part => skillTip(part.dataset.tip), mutagen: mutagenTip, hint: part => hintTip(app, part) },
     places: ["group", "slot"],
-    shown: () => !!app.game && !app.drag
+    shown: () => !!app.game && !app.drag && !(app.apply && isTouchScreen())
   });
 }

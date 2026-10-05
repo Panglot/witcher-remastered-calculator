@@ -5,7 +5,9 @@
 //
 // Selection, like the game: one thing is framed at a time. Each kind keeps a selected item and the
 // holder it was picked from (null when picked in its panel), and the open tab decides which kind
-// is shown. A holder that no longer has the selected item hands the frame back to the panel.
+// is shown. Picking from a holder keeps the open tab when it shows the kind (another skill tree);
+// only from a tab of the other kind does it open the item's. A holder that no longer has the
+// selected item hands the frame back to the panel.
 //
 // Equipping, like the game's apply mode (ui/applyMode.js): the item goes into the holder picked,
 // over what was there. A skill leaves the socket it was in (one copy); a mutagen is not moved, so
@@ -24,7 +26,8 @@ import { MUTAGEN_TAB } from "./catalog.js";
  * @typedef {object} SlotKind
  * @property {(s: object) => (string|null)} selected  selected item id
  * @property {(s: object) => (number|null)} heldAt  holder the selection was picked from, if it still holds it
- * @property {(s: object, id: string, at?: number|null) => void} select  selects and opens the item's tab
+ * @property {(s: object, id: string, at?: number|null) => void} select  selects; opens the item's tab when
+ *   picked in its panel, or from holder `at` while the open tab doesn't show the kind
  * @property {(s: object) => boolean} shown  its tab is open, so its selection is the one framed
  * @property {(s: object) => void} open  opens the tab that lists the kind
  * @property {boolean} emptyOpensTab  a click on an empty holder, with the kind's tab closed, opens it
@@ -79,7 +82,10 @@ function slotKind(d) {
   const shown = s => d.onTab(s.tab);
   return {
     selected, heldAt, shown, itemAt, emptyOpensTab: d.emptyOpensTab,
-    select(s, id, at = null) { s[d.idKey] = id; s[d.atKey] = at; s.tab = d.tabOf(id); },
+    select(s, id, at = null) {
+      s[d.idKey] = id; s[d.atKey] = at;
+      if (at == null || !shown(s)) s.tab = d.tabOf(id);
+    },
     open(s) { s.tab = d.homeTab(s); },
     framedAt: (s, i) => shown(s) && heldAt(s) === i,
     framedInPanel: (s, id) => selected(s) === id && heldAt(s) == null,

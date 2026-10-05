@@ -42,6 +42,14 @@ for (const { name, kind, list, item, tab, other } of CASES) {
     assert.equal(kind.framedInPanel(s, item), true);
   });
 
+  test(`${name}: a holder picked under a tab showing its kind keeps that tab`, () => {
+    const s = state();
+    s[list][1] = item; s.tab = tab === MUTAGEN_TAB ? tab : "u";
+    kind.select(s, item, 1);
+    assert.equal(s.tab, tab === MUTAGEN_TAB ? tab : "u");
+    assert.equal(kind.framedAt(s, 1), true);
+  });
+
   test(`${name}: an emptied holder hands the frame back to the panel`, () => {
     const s = state();
     s[list][0] = item;

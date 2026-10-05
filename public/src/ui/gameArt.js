@@ -77,6 +77,9 @@ export const LINE_COLORS = { open: "#ffffff", closed: "#333333", red: "#c60000",
 // Unavailable skills draw node/border-grey.png at this alpha, so its light tone lands near the
 // dark line colour on the panel (by eye from the in-game reference).
 export const LOCKED_BORDER_ALPHA = 0.3;
+// A learned skill's background colour per tree colour: the mean of node/equipped-<color>.png's
+// opaque pixels (planner-only, for the touch +/- buttons, gamePieces.stepButton).
+export const SKILL_FILL = { red: "#990514", blue: "#064d99", green: "#499104", yellow: "#995e05" };
 
 // Per mutagen colour: diamond fill (SlotSkillMutagen_background, alpha 0.4), bonus stat glyph and label.
 export const MUTAGEN_ART = {

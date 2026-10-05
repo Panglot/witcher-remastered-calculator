@@ -61,6 +61,16 @@ test("canAddPoint matches what addPoint accepts", () => {
   assert.equal(planner.canAddPoint(b, "b"), false);
 });
 
+test("canRemovePoint matches what removePoint accepts", () => {
+  const b = build({ r: 1, a: 2, b: 1 });
+  assert.equal(planner.canRemovePoint(b, "r"), false);
+  assert.equal(planner.canRemovePoint(b, "a"), true);
+  assert.equal(planner.canRemovePoint(b, "b"), true);
+  assert.equal(planner.canRemovePoint(b, "c"), false);
+  b.pts.a = 1;
+  assert.equal(planner.canRemovePoint(b, "a"), false);
+});
+
 test("can't remove a last point that strands other skills", () => {
   const b = build({ r: 1, a: 1, b: 1 });
   const r = planner.removePoint(b, "a");

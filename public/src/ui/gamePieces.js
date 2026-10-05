@@ -5,7 +5,7 @@
 // Stacking order and offsets follow docs/game-assets.md. Values marked "by eye" are not in the
 // game files we read; they were matched to the screenshots in docs/reference/.
 import { esc } from "./dom.js";
-import { artUrl, mutagenIcon, BACKDROP_FILL, DIVIDER, DROP_TARGET, INVENTORY, LOCKED_BORDER_ALPHA, MUTAGEN_ART, OVER_GLOW, SCREEN, SOCKET } from "./gameArt.js";
+import { artUrl, mutagenIcon, BACKDROP_FILL, DIVIDER, DROP_TARGET, INVENTORY, LOCKED_BORDER_ALPHA, MUTAGEN_ART, OVER_GLOW, SCREEN, SKILL_FILL, SOCKET } from "./gameArt.js";
 
 export const fmt = n => +n.toFixed(2);
 export const matrix = m => `matrix(${m.map(fmt).join(" ")})`;
@@ -45,6 +45,11 @@ const GAME_FONT_CAP_HEIGHT = 0.69;
 
 // Hover glow filters by piece kind, referenced by id from every game SVG.
 const GLOW_ID = { skill: "gglow-skill", item: "gglow-item" };
+// Touch +/- buttons on a skill's sides (planner-only, stepButton): the side panels' toggle drawn
+// 22 px wide (ui/sidePanel.js, toggleArt: a 28 u disc with a 1 u dark edge, then a 1.5 u dark ring)
+// with a 10 x 2.5 u bar, or a cross of two, in the toggle's arrow colour. The tap area is a 40 px
+// circle around it, so it stays easy to hit on a phone, where the tree is drawn at about 0.6 px a unit.
+const STEP = { size: 22, hit: 20, bar: [10, 2.5], ink: "#f8f8f8", rim: "#100808" };
 
 /**
  * The hover glow filters, to put once in an always-rendered <svg> on the page. Each draws only the
@@ -266,5 +271,20 @@ export function createPieces(art) {
     return `<text x="${fmt(x)}" ${y} font-size="${size}" fill="${color}" text-anchor="${anchor}"${attrs}>${esc(str)}</text>`;
   }
 
-  return { box, img, imgAt, piece, treeNode, socket, diamond, item, divider, connector, tab, backdrop, text };
+  /**
+   * A touch +/- button centred on (0, 0), on the skill's background colour (SKILL_FILL). Class
+   * "gstep": styles.css shows it only on touch screens.
+   * @param {"add" | "remove"} step
+   * @param {string} color tree colour
+   */
+  function stepButton(step, color, attrs = "") {
+    const [w, h] = STEP.bar, bar = (bw, bh) => `<rect x="${-bw / 2}" y="${-bh / 2}" width="${bw}" height="${bh}"/>`;
+    return `<g class="gstep"${attrs}><circle r="${STEP.hit}" fill="transparent"/>`
+      + `<g transform="scale(${fmt(STEP.size / 28)})">`
+      + `<circle class="gstep-disc" r="13.5" fill="${SKILL_FILL[color]}" stroke="${STEP.rim}" stroke-width="1"/>`
+      + `<circle r="11.25" fill="none" stroke="${STEP.rim}" stroke-width="1.5"/>`
+      + `<g fill="${STEP.ink}">${bar(w, h)}${step === "add" ? bar(h, w) : ""}</g></g></g>`;
+  }
+
+  return { box, img, imgAt, piece, treeNode, stepButton, socket, diamond, item, divider, connector, tab, backdrop, text };
 }

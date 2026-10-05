@@ -27,14 +27,18 @@ const LINE_STROKE = { open: LINE_COLORS.open, closed: LINE_COLORS.closed };
 // Inventory grid lines: 1px, warm and faint (by eye from docs/reference/mutagens.png).
 const GRID_LINE = ` stroke="#45362d" stroke-opacity="0.12" stroke-width="1" fill="none"`;
 const classes = (...names) => names.filter(Boolean).join(" ");
+// The touch +/- buttons, centred on a skill's left and right edge.
+const STEP_SIDES = [["remove", 0], ["add", SOCKET]];
 
 /**
  * View models. `cls` adds classes and `attrs` adds attributes to the part's group.
  * @typedef {{ id: string, open: boolean, count?: number, attrs?: string }} TabView  id: a GAME_TABS id.
  * @typedef {{ col: number, row: number, icon: string, state: "locked" | "open" | "learned",
- *   rank?: number, selected?: boolean, marked?: boolean, mid?: boolean, cls?: string, attrs?: string }} NodeView
+ *   rank?: number, selected?: boolean, marked?: boolean, mid?: boolean, cls?: string, attrs?: string,
+ *   steps?: { remove?: string, add?: string } }} NodeView
  *   col/row in game grid units; mid: lines end at the node's vertical middle; marked: framed as part
- *   of a highlighted archetype.
+ *   of a highlighted archetype; steps: the touch - and + buttons on its left and right side, each
+ *   drawn when given, with its attrs.
  * @typedef {{ a: number, b: number, state: "lit" | "open" | "closed" }} LinkView  a, b: node indexes.
  * @typedef {{ icon?: string, color?: string, rank?: number, selected?: boolean, cls?: string, attrs?: string }} SocketView
  *   No icon = empty socket.
@@ -109,7 +113,8 @@ export function createPanels(art, pieces) {
   /**
    * Skills and their lines in mcSkillModule units (CharacterSkillsGridModule). Lit lines take the
    * tree colour. Every node carries its selection frame; CSS shows it on `.gnode.selected`, so a
-   * caller can move the selection without a redraw.
+   * caller can move the selection without a redraw. The +/- buttons come last, over the nodes, and
+   * outside them, so pressing one doesn't press the skill.
    */
   function skillGrid({ color, nodes, links }) {
     const pos = nodes.map(n => gridPos(n.col, n.row));
@@ -122,7 +127,9 @@ export function createPanels(art, pieces) {
     const cells = nodes.map((n, i) =>
       `<g class="${classes("gnode", n.selected && "selected", n.cls)}" transform="translate(${fmt(pos[i].x)} ${fmt(pos[i].y)})"${n.attrs || ""}>`
       + SOCKET_HIT + pieces.treeNode({ ...n, color, selected: true }) + (n.marked ? MARK : "") + `</g>`).join("");
-    return lines + cells;
+    const steps = nodes.map((n, i) => STEP_SIDES.map(([step, dx]) => n.steps && n.steps[step] != null
+      ? `<g transform="translate(${fmt(pos[i].x + dx)} ${fmt(pos[i].y + SOCKET / 2)})">${pieces.stepButton(step, color, n.steps[step])}</g>` : "").join("")).join("");
+    return lines + cells + steps;
   }
 
   /**

@@ -107,6 +107,9 @@ button { cursor: pointer; }
 .gtab, [tabindex].gnode, [tabindex].gsock, [tabindex].gdiamond, [tabindex].gitem { cursor: pointer; outline: none; }
 /* Skills and holders are pressed and held (ui/hold.js): no text selection or touch callout. */
 [tabindex].gnode, [tabindex].gsock, [tabindex].gitem { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+/* A skill's +/- buttons (gamePieces.stepButton) are for touch screens only (shown below); a press lights them. */
+.gstep { display: none; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.gstep:active .gstep-disc { filter: brightness(1.4); }
 /* Drag sources (ui/drag.js): a touch on one drags instead of scrolling the page. */
 [data-drag] { touch-action: none; }
 .gtab .hov, .gtab:hover .ico { display: none; }
@@ -572,6 +575,7 @@ button { touch-action: manipulation; }
 @media (hover: none) and (pointer: coarse) {
   .glegend .gkey, .glegend .gmouse, .glegend .gor, .gpopup-key { display: none; }
   .gmenu-legend { display: none; }
+  .gstep { display: inline; }
   .gmenu { padding-bottom: var(--gmenu-pad); }
   button.gbtn, .gpopup-btn { position: relative; }
   button.gbtn::after, .gpopup-btn::after, .gopt-slider::after { content: ""; position: absolute; inset: -8px -6px; }

@@ -36,6 +36,8 @@ export function createPlanner(catalog) {
 
   // A point can go in (the game starts its hold fill only then).
   const canAddPoint = (b, id) => rank(b, id) < maxRank && isOpen(b, id);
+  // A point can come out: the skill has one, and taking its last leaves no skill cut off.
+  const canRemovePoint = (b, id) => rank(b, id) > 1 || (rank(b, id) === 1 && !strandedIfRemoved(b, id).length);
 
   function addPoint(b, id) {
     if (rank(b, id) >= maxRank) return refuse(`${nodes[id].name} is already at rank ${maxRank}.`);
@@ -134,7 +136,7 @@ export function createPlanner(catalog) {
   }
 
   return {
-    rank, isOpen, canAddPoint, isSlotted, spentIn, spentAll, strandedIfRemoved,
+    rank, isOpen, canAddPoint, canRemovePoint, isSlotted, spentIn, spentAll, strandedIfRemoved,
     addPoint, removePoint, toggleSlot, canEquipSkill, equipSkill, clearSlot, clearTree, clearAll,
     canEquipMutagen, equipMutagen, clearMutagen, unequipMutagen, groupSlots, groupBonus, passiveValue
   };

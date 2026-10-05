@@ -11,7 +11,7 @@
 //
 // Switching follows the game's screen change: the covered part fades out while the card rises the
 // last fifth of its height into place and fades in; closing plays it the other way round.
-import { esc } from "./dom.js";
+import { esc, patchHtml } from "./dom.js";
 import { artUrl, STAT_GLYPHS, STAT_ICON } from "./gameArt.js";
 
 // The dropdown arrow of the game's category lists (IconDropDownListItem.mcOpenedState, the alchemy
@@ -196,12 +196,13 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
   });
   if (mount) mount(body);
 
-  // Redraws the sections only when they changed, so focus and scroll stay put.
+  // Redraws the sections only when they changed, and in place (dom.js, patchHtml), so focus,
+  // scroll and a tapped row stay put.
   function render() {
     if (!isOpen()) return;
     const html = markup();
     if (html === drawn) return;
-    live.innerHTML = html;
+    patchHtml(live, html);
     drawn = html;
   }
 
