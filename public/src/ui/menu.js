@@ -33,6 +33,7 @@ const ABOUT = [
   "A build planner for The Witcher 3: Wild Hunt (Remastered): spend skill points, slot skills and mutagens, and share the build as a code or a file.",
   "The screen is drawn with the game's own interface art and layout, read from the game files. Skill descriptions and numbers come from the game files too.",
   "Feedback, bug reports and ideas are welcome: on Discord at @" + CONTACT_DISCORD + ", or as an issue on the source code page.",
+  "Visits are counted with GoatCounter, without cookies or personal data.",
   "The Witcher and all related names, icons and assets are property of CD PROJEKT RED. " + FAN_NOTICE + " Free and non-commercial, made for the community."
 ];
 // Keys the menu takes besides Esc: E picks the focused item (Enter and Space press a focused
