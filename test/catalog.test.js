@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import data from "../public/data/index.js";
 import { createCatalog } from "../public/src/core/catalog.js";
 
-test("game data has no problems (unknown links, duplicate ids, bad archetypes)", () => {
+test("game data has no problems (unknown links, duplicate ids, bad skill sets)", () => {
   assert.deepEqual(createCatalog(data).problems, []);
 });
 
@@ -42,7 +42,7 @@ test("catalog reports data mistakes instead of throwing", () => {
   const cat = createCatalog({
     rules: { ...data.rules, treeOrder: ["a", "missing"] },
     trees: { a: { skills: [{ id: "x", name: "X" }, { id: "x", name: "X again" }], links: ["x-nope"] } },
-    archetypes: [{ id: "arch", ids: ["ghost"] }]
+    skillSets: [{ id: "set", ids: ["ghost"] }]
   });
   assert.equal(cat.problems.length, 4);
   assert.deepEqual(cat.order, ["a"]);

@@ -14,7 +14,7 @@ const key = k => ({ key: k, repeat: false });
 
 test("Esc closes the top layer only, newest first", () => {
   const { layers } = setup();
-  const left = { name: "stats", modal: false }, right = { name: "archetypes", modal: false };
+  const left = { name: "stats", modal: false }, right = { name: "skillSets", modal: false };
   layers.open(left); layers.open(right);
   assert.equal(layers.escape(), true);
   assert.equal(layers.isOpen(right), false);
@@ -93,17 +93,17 @@ test("keys go to the top layer first, then down to the first modal one", () => {
   const make = (name, modal, takes) => ({ name, modal, keys: e => { got.push(name); return takes.includes(e.key); } });
   layers.open(make("popup", true, ["e"]));
   layers.open(make("stats", false, []));
-  layers.open(make("archetypes", false, ["h"]));
+  layers.open(make("skillSets", false, ["h"]));
 
   assert.equal(layers.key(key("h")), true);
-  assert.deepEqual(got, ["archetypes"]);
+  assert.deepEqual(got, ["skillSets"]);
   got.length = 0;
   assert.equal(layers.key(key("e")), true);
-  assert.deepEqual(got, ["archetypes", "stats", "popup"]);
+  assert.deepEqual(got, ["skillSets", "stats", "popup"]);
   got.length = 0;
   // Nobody takes it; the modal popup keeps it from anything under it.
   assert.equal(layers.key(key("x")), false);
-  assert.deepEqual(got, ["archetypes", "stats", "popup"]);
+  assert.deepEqual(got, ["skillSets", "stats", "popup"]);
   assert.equal(layers.blocking(), true);
 });
 
@@ -139,7 +139,7 @@ test("a layer closed from under the top one leaves focus alone", () => {
   const { layers, page } = setup();
   const skill = el("skill");
   page.focused = skill;
-  const left = { name: "stats", modal: false }, right = { name: "archetypes", modal: false };
+  const left = { name: "stats", modal: false }, right = { name: "skillSets", modal: false };
   layers.open(left); layers.open(right);
   layers.close(left);
   assert.equal(skill.focused, undefined);

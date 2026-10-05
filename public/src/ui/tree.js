@@ -149,10 +149,10 @@ function createSkillTree(app, el) {
     };
   }
 
-  // Skills of the highlighted archetypes (ui/archetypes.js).
+  // Skills of the highlighted skill sets (ui/skillSets.js).
   function highlighted() {
     const ids = new Set();
-    state.arch.forEach(a => { const A = catalog.archetypes.find(x => x.id === a); if (A) A.ids.forEach(i => ids.add(i)); });
+    state.skillSets.forEach(s => { const S = catalog.skillSets.find(x => x.id === s); if (S) S.ids.forEach(i => ids.add(i)); });
     return ids;
   }
 

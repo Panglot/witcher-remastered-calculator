@@ -1,4 +1,5 @@
-// Archetype highlights. ids can come from any tree; tree sets the chip colour.
+// Skill sets: the skills related to one aspect of combat, highlighted together. A build usually
+// combines several. ids can come from any tree; tree sets the chip colour.
 export default [
   { id: "fast", name: "Fast attack / crit", tree: "combat", ids: ["c_mm", "c_ts", "c_rf", "c_wh", "c_cs", "g_cat", "g_bf"] },
   { id: "strong", name: "Strong attack / armor break", tree: "combat", ids: ["c_st", "c_crb", "c_sa", "c_rend", "c_dp", "g_bear"] },

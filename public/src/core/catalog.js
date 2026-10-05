@@ -40,11 +40,11 @@
 export const MUTAGEN_TAB = "mutagens";
 
 /**
- * @param {{ rules: object, trees: Record<string, object>, archetypes: object[], mutagens?: object,
+ * @param {{ rules: object, trees: Record<string, object>, skillSets: object[], mutagens?: object,
  *   skillText?: Record<string, object> }} data  skillText: extracted text by game id (data/skillText.js).
  */
 export function createCatalog(data) {
-  const { rules, trees, archetypes } = data;
+  const { rules, trees, skillSets } = data;
   const mutagenData = Object.assign({ stats: {}, items: [], aliases: {}, item: {} }, data.mutagens);
   const problems = [];
   /** @type {Record<string, Skill>} */
@@ -83,8 +83,8 @@ export function createCatalog(data) {
     nodes[a].to.push(b); nodes[b].from.push(a);
   }));
 
-  archetypes.forEach(a => a.ids.forEach(id => {
-    if (!nodes[id]) problems.push(`Archetype "${a.id}" lists unknown skill "${id}".`);
+  skillSets.forEach(a => a.ids.forEach(id => {
+    if (!nodes[id]) problems.push(`Skill set "${a.id}" lists unknown skill "${id}".`);
   }));
 
   /** @type {Record<string, Mutagen>} */
@@ -102,7 +102,7 @@ export function createCatalog(data) {
   const slots = { groups: rules.slotGroups, perGroup: rules.slotsPerGroup, total: rules.slotGroups * rules.slotsPerGroup };
 
   return {
-    rules, trees, archetypes, order, nodes, edges, slots, problems,
+    rules, trees, skillSets, order, nodes, edges, slots, problems,
     maxRank: rules.maxRank,
     mutagens, mutagenId,
     // Planner tabs: the trees, then the mutagen inventory.

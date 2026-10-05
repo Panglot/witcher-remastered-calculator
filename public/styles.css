@@ -71,16 +71,27 @@ button { cursor: pointer; }
 /* Planner screen (ui/tree.js, points.js, slots.js, legend.js, tooltip.js): the Character screen's
    panels side by side at their game positions. Column widths are the panels' widths in game px
    (VIEWS in ui/gamePanels.js): tree 616.35, gap 125, slots 971.35, adding up to the 1712.7 between
-   the game's content edges. So one game px is --gpx wide in every panel. Phones stack the panels. */
+   the game's content edges. So one game px is --gpx wide in every panel. Phones stack the panels.
+   The gap is a length (--gap): the game's 125 px when the window is 16:9 or wider. Narrower windows
+   (the screen capped by the width) take it out of the gap first: it shrinks by --gap-take of the
+   width missing for the full screen (--short), down to --gap-min, so the panels keep more of their size. */
 .screen {
-  --gpx: calc(100cqw / 1712.7);
+  --fit-h: (100dvh - var(--wrap-top));
+  --gap-take: .15; --gap-min: 24px;
+  --short: max(0px, var(--fit-h) * 1712.7 / var(--screen-h) - (100vw - 2 * var(--game-edge)));
+  --gap: max(var(--gap-min), var(--fit-h) * 125 / var(--screen-h) - var(--gap-take) * var(--short));
+  --gpx: calc((100cqw - var(--gap)) / 1587.7);
   container-type: inline-size; position: relative; display: grid; align-items: start;
-  grid-template-columns: minmax(0, 616.35fr) minmax(0, 125fr) minmax(0, 971.35fr);
-  grid-template-areas: "tree . slots" "points . slots" "legend legend legend";
-  /* Fit the viewport height too: the screen is about 916 game px tall (panels y 130 to 970, then the
-     legend row with its padding), so it is never wider than that height allows. Centred when capped. */
-  --screen-h: 916;
-  width: min(100%, (100dvh - var(--wrap-top)) * 1712.7 / var(--screen-h)); justify-self: center;
+  grid-template-columns: minmax(0, 616.35fr) var(--gap) minmax(0, 971.35fr);
+  grid-template-areas: ". . ." "tree . slots" "points . slots" ". . ." "legend legend legend";
+  /* Fit the viewport height too: the screen is about 932 game px tall (panels y 130 to 970, then the
+     legend row with its padding), so it is never wider than that height allows. Centred when capped.
+     Capped by the width instead (windows narrower than the game's 16:9 to the 4:5 that stacks), it still
+     fills the window's height: the panels are centred in the room above the legend, which stays on the
+     window's bottom edge, like the game letterboxed on a 4:3 or 16:10 monitor. */
+  --screen-h: 932;
+  width: min(100%, var(--fit-h) * 1587.7 / var(--screen-h) + var(--gap)); justify-self: center;
+  min-height: calc(100dvh - var(--wrap-top)); grid-template-rows: 1fr auto auto 1fr auto;
 }
 .screen-tree { grid-area: tree; }
 .screen-points { grid-area: points; }
@@ -91,8 +102,9 @@ button { cursor: pointer; }
    reaches 16 px past that edge. Absolutely placed in the slots area, so it takes no room. */
 .screen-rail { grid-area: slots; position: absolute; right: calc(-16 * var(--gpx)); top: 0; bottom: 0; display: grid; place-items: center; --u: max(.6px, var(--gpx)); }
 .gbuild-rail { display: flex; flex-direction: column; }
-/* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px. */
-.screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(8 * var(--gpx)); }
+/* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px.
+   24px under it keeps it off the window's bottom edge (counted in --screen-h). */
+.screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(24 * var(--gpx)); }
 /* The legend and the share tools' wrapper: no box of its own here, so each keeps its grid area. Phones make it
    the bar pinned to the window's bottom (below). */
 .screen-dock { display: contents; }
@@ -183,7 +195,7 @@ button { cursor: pointer; }
 /* Stacked: phones, and portrait screens (tablets), where side by side the screen would fill only the top third
    with tiny pieces. Capped so a tablet's tree still fits its height; centred. Keep in step with the side panels'. */
 @media (max-width: 800px), (max-aspect-ratio: 4/5) {
-  .screen { --gpx: calc(100cqw / 616.35); width: min(100%, 640px); grid-template-columns: minmax(0, 1fr); grid-template-areas: "tree" "points" "slots" "dock"; }
+  .screen { --gpx: calc(100cqw / 616.35); width: min(100%, 640px); min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "tree" "points" "slots" "dock"; }
   .page-notice { display: none; }
   /* The slots at the tree's scale, so a slotted skill is as big as in the tree: the 971.35 px wide view is
      drawn 971.35 / 616.35 times the area's width and cropped to the tree's 616.35 px, centred on the mutagen
@@ -193,9 +205,11 @@ button { cursor: pointer; }
   .screen-slots > .gsvg { width: calc(971.35 / 616.35 * 100%); max-width: none; margin-left: calc(-158.025 / 616.35 * 100%); }
   /* The legend, with the share tools in a row below it, stays on the window's bottom edge while the screen
      scrolls under it. Sticky, it keeps its row: at the page's end it is back in its place, so it covers nothing
-     there. Its tooltip fill runs the window's full width (the shadow, cut to its height). Under the side panels'
-     toggles and the tooltip. */
-  .screen-dock { grid-area: dock; display: block; position: sticky; bottom: 0; z-index: 2;
+     there. Its tooltip fill runs the window's full width (the shadow, cut to its height). Over the side panels'
+     toggles (z-index 2), which scroll under it like the rest of the screen; under the tooltip (same z-index,
+     later in the page). The slots' toggle hangs half its 28 px under the slots area: the margin keeps that
+     half clear of the bar at the page's end. */
+  .screen-dock { grid-area: dock; display: block; position: sticky; bottom: 0; z-index: 3; margin-top: calc(14 * max(.6px, var(--gpx)));
     background: var(--game-tooltip); box-shadow: 0 0 0 100vmax var(--game-tooltip); clip-path: inset(0 -100vmax); }
   .screen-legend { padding-block: calc(14 * var(--gpx)) calc(4 * var(--gpx)); }
   .screen-rail { position: static; padding-bottom: calc(4 * var(--gpx)); }
@@ -402,7 +416,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
   -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
 
 /* Side panels (ui/sidePanel.js): a card over one grid area of the screen (Statistics over the tree panel and
-   its tabs, Archetypes over the slots), leaving POINTS AVAILABLE and the legend in view. contain: size keeps a
+   its tabs, Skill sets over the slots), leaving POINTS AVAILABLE and the legend in view. contain: size keeps a
    long body from growing the row; the body scrolls instead. The frame is the tree panel's (tree/frame.png at
    half size, 9-sliced so its fading sides stay at the bottom); the fill is translucent like the game's panels,
    since the covered part fades out under it. The header is the message popup's band. Sizes are game px times --u. */
@@ -413,7 +427,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
   font-family: var(--font-game); color: #c9b48c; font-size: calc(23 * var(--u1)); line-height: 1.25; }
 .gside:focus { outline: none; }
 .gside-tree { grid-area: tree; }
-/* Archetypes sits over the slots area but its card takes only the tree's row, so both cards end at the
+/* Skill sets sits over the slots area but its card takes only the tree's row, so both cards end at the
    same height. It is as wide as Statistics, centred on the mutagen grid's divider (screen x 1311.2, like its
    toggle), which covers the slots (diamond tips at about 1018 and 1580). Under it, the separator the tree has
    above POINTS AVAILABLE (screen y 905, 3 px tall), stretched to the card inside its frame's sides; its toggle
@@ -477,7 +491,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gstat { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: baseline; }
 .gstat-value { color: #efe6d2; white-space: nowrap; }
 .gstat-label { color: #c9b48c; }
-/* Rows that are buttons (archetypes): placeholders until they get their own design. */
+/* Rows that are buttons (skill sets): placeholders until they get their own design. */
 .gstat-btn { margin: 0; padding: calc(2 * var(--u1)) calc(6 * var(--u1)); border: 0; border-left: calc(3 * var(--u1)) solid transparent; background: none; font: inherit; text-align: left; cursor: pointer; }
 .gstat-btn:hover .gstat-label { color: #ffffff; }
 .gstat-btn[aria-pressed="true"] { border-left-color: var(--bar, #c9b48c); background: rgba(255, 255, 255, .06); }
@@ -488,11 +502,11 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gside-link:hover { color: #ffffff; }
 /* The toggle: a round button with the arrow, centred on the covered part's bottom edge. The tree's sits on the
    line above POINTS AVAILABLE (tree/separator.png at screen y 905, 3 px tall: 6.5 px under the tree area's
-   bottom at 900). The slots' sits on the Archetypes card's copy of that line, level with the tree's, which is
+   bottom at 900). The slots' sits on the Skill sets card's copy of that line, level with the tree's, which is
    also under the mutagen grid's lower divider line (dividerBottom: screen x 1311.2, ending at y 888.75):
    466.2 px in from the slots area's left at 845, a margin in % of the area's 971.35 px width. Phones stack
    the areas and centre the slots on that divider, so there it sits mid-width on the slots area's bottom edge
-   (970), clear of the divider's end, and on the card's (with its line) when Archetypes is open.
+   (970), clear of the divider's end, and on the card's (with its line) when Skill sets is open.
    Its fill and dark rim are the legend's lit mouse button (legend/mouse-*.png). The arrow turns from up
    (closed) to down (open). Its tooltip is the screen's (data-hint). */
 .gside-toggle-wrap { --u1: max(.6px, var(--gpx)); position: relative; z-index: 2; align-self: end; justify-self: center; translate: 0 50%; }

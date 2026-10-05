@@ -9,7 +9,7 @@ export function defaultState(catalog) {
     pts: {}, slots: Array(slots.total).fill(null), mut: Array(slots.groups).fill(""), budget: 4, name: "",
     // View. sel / selMut: selected skill / mutagen; selSlot / selGroup: the socket / diamond it was
     // picked from, null when picked in its panel (core/slotKinds.js).
-    tab: order[0], sel: null, selSlot: null, selMut: null, selGroup: null, arch: []
+    tab: order[0], sel: null, selSlot: null, selMut: null, selGroup: null, skillSets: []
   };
 }
 

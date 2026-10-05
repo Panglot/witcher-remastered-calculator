@@ -23,7 +23,7 @@ const cat = createCatalog({
       links: []
     }
   },
-  archetypes: []
+  skillSets: []
 });
 const stats = createStats(cat, createPlanner(cat));
 const build = o => ({ pts: {}, slots: [null, null, null, null], mut: ["", ""], budget: 4, ...o });

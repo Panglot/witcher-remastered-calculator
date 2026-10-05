@@ -38,7 +38,7 @@ const STEP_SIDES = [["remove", 0, -1], ["add", SOCKET, 1]];
  *   rank?: number, selected?: boolean, marked?: boolean, mid?: boolean, cls?: string, attrs?: string,
  *   steps?: { remove?: string, add?: string } }} NodeView
  *   col/row in game grid units; mid: lines end at the node's vertical middle; marked: framed as part
- *   of a highlighted archetype; steps: the touch buttons on its left (remove, a down arrow) and
+ *   of a highlighted skill set; steps: the touch buttons on its left (remove, a down arrow) and
  *   right (add, an up arrow) side, each drawn when given, with its attrs.
  * @typedef {{ a: number, b: number, state: "lit" | "open" | "closed" }} LinkView  a, b: node indexes.
  * @typedef {{ icon?: string, color?: string, rank?: number, selected?: boolean, cls?: string, attrs?: string }} SocketView

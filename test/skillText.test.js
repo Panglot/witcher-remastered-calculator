@@ -38,7 +38,7 @@ test("catalog reports skills the extracted text doesn't match", () => {
   const cat = createCatalog({
     rules: { ...data.rules, treeOrder: ["a"] },
     trees: { a: { skills: [{ id: "x", name: "X", game: "g1" }, { id: "y", name: "Y", game: "g2" }], links: [] } },
-    archetypes: [],
+    skillSets: [],
     skillText: { g1: { name: "Not X", maxRank: data.rules.maxRank, text: "t" } }
   });
   assert.equal(cat.problems.length, 2);

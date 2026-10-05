@@ -19,7 +19,7 @@ const cat = createCatalog({
       links: ["r-a", "a-b", "r-c"]
     }
   },
-  archetypes: []
+  skillSets: []
 });
 const planner = createPlanner(cat);
 const build = (pts = {}) => ({ pts, slots: [null, null], mut: ["red-x"] });

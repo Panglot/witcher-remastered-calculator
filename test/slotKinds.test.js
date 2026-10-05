@@ -15,7 +15,7 @@ const cat = createCatalog({
       links: ["r-a"]
     }
   },
-  archetypes: []
+  skillSets: []
 });
 const kinds = createSlotKinds(cat, createPlanner(cat));
 const state = () => ({ pts: { r: 1, a: 1 }, slots: [null, null], mut: ["", ""], tab: "t", sel: null, selSlot: null, selMut: null, selGroup: null });

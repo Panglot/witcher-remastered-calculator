@@ -5,7 +5,7 @@ import { defaultState, loadState, saveState, clearSavedState } from "../public/s
 
 const cat = createCatalog({
   rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 2, treeOrder: ["t"] },
-  mutagens: { stats: {}, items: [] }, archetypes: [],
+  mutagens: { stats: {}, items: [] }, skillSets: [],
   trees: { t: { skills: [{ id: "r", name: "Root", root: true, col: 0, row: 0 }], links: [] } }
 });
 

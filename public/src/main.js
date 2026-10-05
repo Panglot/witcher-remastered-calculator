@@ -23,7 +23,7 @@ import { createDropTargets } from "./ui/dropTargets.js";
 import { createPageLayers } from "./ui/layers.js";
 import { mountDrag } from "./ui/drag.js";
 import { mountStatistics } from "./ui/statistics.js";
-import { mountArchetypes } from "./ui/archetypes.js";
+import { mountSkillSets } from "./ui/skillSets.js";
 import { createBuildShare } from "./ui/share.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountBuildRail } from "./ui/buildRail.js";
@@ -100,7 +100,7 @@ app.views = {
   legend: mountLegend(app),
   // Side panels (C, H) over the tree and the slots.
   stats: mountStatistics(app),
-  archetypes: mountArchetypes(app),
+  skillSets: mountSkillSets(app),
   tooltip: mountTooltip(app),
   // The Esc menu; Esc with nothing open opens it.
   menu: mountMenu(app)

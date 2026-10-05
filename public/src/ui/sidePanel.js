@@ -1,5 +1,5 @@
 // Side panels: a card that slides over one part of the Character screen
-// (Statistics over the tree panel and its tabs, Archetypes over the slots) while the rest stays
+// (Statistics over the tree panel and its tabs, Skill sets over the slots) while the rest stays
 // usable. Each is a non-modal layer (ui/layers.js): Esc closes the one opened last, and both can be
 // open at once. A key and an arrow button on the covered part's bottom edge toggle it.
 //
