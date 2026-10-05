@@ -21,6 +21,20 @@ const VECTORS = [
 
 export const artUrl = file => `${BASE}/${file}`;
 
+// The dropdown arrow of the game's category lists (IconDropDownListItem.mcOpenedState, the alchemy
+// panel's DropDownArrows): game art cut to a one-colour glyph (tools/asset-recipe.json,
+// icons/dropdown-arrow.png, 18 x 14 px), pointing down. Drawn 11 u wide with its centroid (9, 4.68
+// px) at (0, 0), so on a disc centred there it is centred and turns on that. It is a rect in the
+// fill colour masked by the art (an SVG mask, so it is tinted and drawn in the same pass). Used by
+// the side panels' toggles (ui/sidePanel.js) and a skill's touch buttons (gamePieces.stepButton).
+const ARROW_W = 11, ARROW_H = ARROW_W * 14 / 18, ARROW_TOP = -ARROW_W * 4.68 / 18;
+const arrowBox = `x="${-ARROW_W / 2}" y="${ARROW_TOP}" width="${ARROW_W}" height="${ARROW_H}"`;
+/** The arrow's art as an SVG mask with id `id`, for dropdownArrow. */
+export const dropdownArrowMask = id =>
+  `<mask id="${id}"><image href="${artUrl("icons/dropdown-arrow.png")}" ${arrowBox} preserveAspectRatio="none"/></mask>`;
+/** The arrow, masked by the dropdownArrowMask with id `maskId`, filled with the current fill. */
+export const dropdownArrow = maskId => `<rect ${arrowBox} mask="url(#${maskId})"/>`;
+
 // Game colour label, skill icon folder and stat icon (STAT_GLYPHS) per planner tree. The stat icons
 // are the ones the character stats popup (CharacterStatsPopup.ws) gives its categories of that
 // colour: steel attack (red), sign intensity (blue), toxicity (green), additional (brown).
@@ -78,7 +92,7 @@ export const LINE_COLORS = { open: "#ffffff", closed: "#333333", red: "#c60000",
 // dark line colour on the panel (by eye from the in-game reference).
 export const LOCKED_BORDER_ALPHA = 0.3;
 // A learned skill's background colour per tree colour: the mean of node/equipped-<color>.png's
-// opaque pixels (planner-only, for the touch +/- buttons, gamePieces.stepButton).
+// opaque pixels (planner-only, for the touch buttons, gamePieces.stepButton).
 export const SKILL_FILL = { red: "#990514", blue: "#064d99", green: "#499104", yellow: "#995e05" };
 
 // Per mutagen colour: diamond fill (SlotSkillMutagen_background, alpha 0.4), bonus stat glyph and label.

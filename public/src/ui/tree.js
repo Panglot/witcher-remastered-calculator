@@ -4,8 +4,8 @@
 // Skills: pressing selects; holding the left button or E (on the focused or selected skill) adds a
 // point, as the game's "[Hold] Acquire Ability" does (ui/hold.js); right-click removes one. Space or
 // a double-click on a learned skill equips it through apply mode (ui/applyMode.js). With a skill
-// focused, Enter selects and + / - change rank. On touch screens, - and + buttons on a skill's sides
-// take a point out or put one in (styles.css shows them only there).
+// focused, Enter selects and + / - change rank. On touch screens, arrow buttons on a skill's sides
+// take a point out (left, down) or put one in (right, up); styles.css shows them only there.
 import { $, esc, keyTarget, isLongPress } from "./dom.js";
 import { createHold } from "./hold.js";
 import { skillIcon, TREE_ART } from "./gameArt.js";
@@ -127,7 +127,7 @@ function createSkillTree(app, el) {
   // Equipping goes through apply mode; the game ignores it on a skill without points.
   const equip = id => app.views.apply.start("skill", id);
 
-  // The touch buttons a skill gets: - while a point can come out, + while one can go in.
+  // The touch buttons a skill gets: remove while a point can come out, add while one can go in.
   function steps(id) {
     const label = what => ` data-step="${what}" data-step-id="${id}" role="button" aria-label="${what === "add" ? "Add a point to" : "Remove a point from"} ${esc(nodes[id].name)}"`;
     return {
@@ -172,7 +172,7 @@ function createSkillTree(app, el) {
       const id = g.dataset.id;
       if (planner.canAddPoint(state, id)) hold.press(e, g, () => acquire(id));
     },
-    // A +/- button selects its skill and changes its rank. Focus stays put, so the tooltip doesn't
+    // A touch button selects its skill and changes its rank. Focus stays put, so the tooltip doesn't
     // open over the buttons around it.
     click(e) {
       const b = e.target.closest("[data-step]"); if (!b) return;

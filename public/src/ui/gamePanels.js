@@ -27,8 +27,9 @@ const LINE_STROKE = { open: LINE_COLORS.open, closed: LINE_COLORS.closed };
 // Inventory grid lines: 1px, warm and faint (by eye from docs/reference/mutagens.png).
 const GRID_LINE = ` stroke="#45362d" stroke-opacity="0.12" stroke-width="1" fill="none"`;
 const classes = (...names) => names.filter(Boolean).join(" ");
-// The touch +/- buttons, centred on a skill's left and right edge.
-const STEP_SIDES = [["remove", 0], ["add", SOCKET]];
+// The touch buttons, centred on a skill's left (point out) and right (point in) edge: name, x, and
+// the side the edge faces.
+const STEP_SIDES = [["remove", 0, -1], ["add", SOCKET, 1]];
 
 /**
  * View models. `cls` adds classes and `attrs` adds attributes to the part's group.
@@ -37,8 +38,8 @@ const STEP_SIDES = [["remove", 0], ["add", SOCKET]];
  *   rank?: number, selected?: boolean, marked?: boolean, mid?: boolean, cls?: string, attrs?: string,
  *   steps?: { remove?: string, add?: string } }} NodeView
  *   col/row in game grid units; mid: lines end at the node's vertical middle; marked: framed as part
- *   of a highlighted archetype; steps: the touch - and + buttons on its left and right side, each
- *   drawn when given, with its attrs.
+ *   of a highlighted archetype; steps: the touch buttons on its left (remove, a down arrow) and
+ *   right (add, an up arrow) side, each drawn when given, with its attrs.
  * @typedef {{ a: number, b: number, state: "lit" | "open" | "closed" }} LinkView  a, b: node indexes.
  * @typedef {{ icon?: string, color?: string, rank?: number, selected?: boolean, cls?: string, attrs?: string }} SocketView
  *   No icon = empty socket.
@@ -113,7 +114,7 @@ export function createPanels(art, pieces) {
   /**
    * Skills and their lines in mcSkillModule units (CharacterSkillsGridModule). Lit lines take the
    * tree colour. Every node carries its selection frame; CSS shows it on `.gnode.selected`, so a
-   * caller can move the selection without a redraw. The +/- buttons come last, over the nodes, and
+   * caller can move the selection without a redraw. The touch buttons come last, over the nodes, and
    * outside them, so pressing one doesn't press the skill.
    */
   function skillGrid({ color, nodes, links }) {
@@ -127,8 +128,8 @@ export function createPanels(art, pieces) {
     const cells = nodes.map((n, i) =>
       `<g class="${classes("gnode", n.selected && "selected", n.cls)}" transform="translate(${fmt(pos[i].x)} ${fmt(pos[i].y)})"${n.attrs || ""}>`
       + SOCKET_HIT + pieces.treeNode({ ...n, color, selected: true }) + (n.marked ? MARK : "") + `</g>`).join("");
-    const steps = nodes.map((n, i) => STEP_SIDES.map(([step, dx]) => n.steps && n.steps[step] != null
-      ? `<g transform="translate(${fmt(pos[i].x + dx)} ${fmt(pos[i].y + SOCKET / 2)})">${pieces.stepButton(step, color, n.steps[step])}</g>` : "").join("")).join("");
+    const steps = nodes.map((n, i) => STEP_SIDES.map(([step, dx, out]) => n.steps && n.steps[step] != null
+      ? `<g transform="translate(${fmt(pos[i].x + dx)} ${fmt(pos[i].y + SOCKET / 2)})">${pieces.stepButton(step, color, out, n.steps[step])}</g>` : "").join("")).join("");
     return lines + cells + steps;
   }
 

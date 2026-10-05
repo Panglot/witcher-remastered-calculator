@@ -11,7 +11,7 @@ import { loadState, saveState } from "./state.js";
 import { loadSettings, saveSettings } from "./settings.js";
 import { $, esc, blockKeyDefaults, createHotkeys, PLANNER_KEYS } from "./ui/dom.js";
 import { loadArt } from "./ui/gameArt.js";
-import { createPieces, glowFilters } from "./ui/gamePieces.js";
+import { createPieces, glowFilters, stepDefs } from "./ui/gamePieces.js";
 import { createPanels } from "./ui/gamePanels.js";
 import { mountTree } from "./ui/tree.js";
 import { mountPoints } from "./ui/points.js";
@@ -115,7 +115,7 @@ blockKeyDefaults(PLANNER_KEYS);
 app.render();
 
 // Filters every game SVG references by id (the hover glow, the stat icons' shield).
-$("gameDefs").innerHTML = glowFilters() + statIconFilters();
+$("gameDefs").innerHTML = glowFilters() + statIconFilters() + stepDefs();
 
 loadArt().then(art => {
   const pieces = createPieces(art);

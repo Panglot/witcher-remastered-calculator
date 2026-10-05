@@ -12,23 +12,20 @@
 // Switching follows the game's screen change: the covered part fades out while the card rises the
 // last fifth of its height into place and fades in; closing plays it the other way round.
 import { esc, patchHtml } from "./dom.js";
-import { artUrl, STAT_GLYPHS, STAT_ICON } from "./gameArt.js";
+import { artUrl, dropdownArrow, dropdownArrowMask, STAT_GLYPHS, STAT_ICON } from "./gameArt.js";
 
 // The dropdown arrow of the game's category lists (IconDropDownListItem.mcOpenedState, the alchemy
 // panel's DropDownArrows): game art cut to a one-colour glyph (tools/asset-recipe.json,
 // icons/dropdown-arrow.png), pointing down; open sections turn it up (styles.css, .garrow).
 const ARROW = `<span class="garrow" aria-hidden="true"></span>`;
 // The toggle (28 u): the disc with the legend buttons' double rim (a 1 u dark edge, 1 u of the fill,
-// then a 1.5 u dark ring) and the dropdown arrow 11 u wide, in one SVG so the browser draws them all
-// at the same sub-pixel position (styles.css, .gtoggle). The arrow is a rect in the text colour
-// masked by the art (an SVG mask, so it is tinted and drawn in the same pass); `maskId` keeps the
-// mask's id unique per toggle. The art's centroid (9, 4.68 of its 18 x 14 px) is at (0, 0), the
-// disc's centre, so it is centred and turns on that.
-const ARROW_W = 11, ARROW_H = ARROW_W * 14 / 18, ARROW_TOP = -ARROW_W * 4.68 / 18;
+// then a 1.5 u dark ring) and the dropdown arrow (gameArt.js, dropdownArrow) in the text colour, in
+// one SVG so the browser draws them all at the same sub-pixel position (styles.css, .gtoggle).
+// `maskId` keeps the arrow mask's id unique per toggle.
 const toggleArt = maskId => `<svg class="gtoggle" viewBox="-14 -14 28 28" aria-hidden="true">`
-  + `<mask id="${maskId}"><image href="${artUrl("icons/dropdown-arrow.png")}" x="${-ARROW_W / 2}" y="${ARROW_TOP}" width="${ARROW_W}" height="${ARROW_H}" preserveAspectRatio="none"/></mask>`
+  + dropdownArrowMask(maskId)
   + `<circle class="gtoggle-disc" r="13.5"/><circle class="gtoggle-ring" r="11.25"/>`
-  + `<g class="gtoggle-arrow"><rect x="${-ARROW_W / 2}" y="${ARROW_TOP}" width="${ARROW_W}" height="${ARROW_H}" mask="url(#${maskId})"/></g></svg>`;
+  + `<g class="gtoggle-arrow">${dropdownArrow(maskId)}</g></svg>`;
 
 const SHIELD_FILTER_ID = "gstat-shield";
 
