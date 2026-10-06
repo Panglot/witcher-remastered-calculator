@@ -6,32 +6,20 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 
 | # | Item | Left |
 | --- | --- | --- |
-| 1 | Statistics, second pass | Total points research, effects and summed stats |
-| 2 | Skill sets, second pass | Recap and research, toggle tooltip, panel text |
-| 3 | Level and slot unlocks (optional) | Everything |
-| 4 | Blood and Wine mutations (later) | Everything |
+| 1 | Skill sets, second pass | Recap and research, toggle tooltip, panel text |
+| 2 | Level and slot unlocks (optional) | Everything |
+| 3 | Blood and Wine mutations (later) | Everything |
 
-## 1. Statistics panel, second pass
+## 1. Skill sets panel, second pass
 
-**Left:**
-- Research how many skill points the game gives in total, with a breakdown: points from levels and points from places of power. Show it in the no-header section.
-- Active effects (each slotted skill at its rank) and summed stats (e.g. total sign intensity), from `values` in `data/skillText.js` (`core/skillText.js`, `rankValues`). Skill numbers show only here and in the tooltip, nowhere else.
-- Mutagen bonuses stay hand-written data, not extracted.
-
-## 2. Skill sets panel, second pass
-
-**Now:** `data/skillSets.js` has 16 hand-picked skill sets (combat 4, signs 5, alchemy 5, general 2), each a name, a tree for the chip color and a list of skill ids. The panel (`ui/skillSets.js`, toggled with S) lists them per tree; pressing one frames its skills in the tree. The toggle hint is "Highlight the skills of a skill set in the tree." The intro note reads "Pick a skill set to frame its skills in the tree. The count shows its skills with points." and, once any are picked, "N highlighted. Their skills are framed in the tree." with a "Clear highlight" link.
+**Now:** `data/skillSets.js` has 16 hand-picked skill sets (combat 4, signs 5, alchemy 5, general 2), each a name, a tree for the chip color and a list of skill ids. The panel (`ui/skillSets.js`, toggled with S) lists them per tree; pressing one frames its skills in the tree.
 
 **Left:**
+
 - **Recap and research:** check that the current skill sets are all we need. Compare against the play styles the community actually builds (and the Remastered patch changes), look for missing ones, overlaps (e.g. Evasion and Adrenaline economy share skills) and wrong skill picks. Confirm each skill list against the skill text (`data/skillText.js`), not wikis.
-- **Toggle tooltip:** rewrite the hint on the toggle so it says what the panel does in plain words.
-- **Panel text:** rewrite the intro note for both states (nothing picked, some picked), and decide how it changes when a skill set is selected: a plain count as now, the picked names, or a short description of the selected skill set (would need a description field in `data/skillSets.js`).
-
-**Decided:** the name is "Skill sets" (was "Archetypes"): each one marks the skills of one aspect of combat, not a whole build, and a build usually combines 3 or 4.
-
 **To decide:** whether skill sets get a one-line description each.
 
-## 3. Character level and slot unlocks (optional)
+## 2. Character level and slot unlocks (optional)
 
 **Now:** every socket and diamond is open. The lock art (`slots/lock.svg`) and the apply-mode rule that locked holders can't be picked are documented in [game-assets.md](game-assets.md) but not used.
 
@@ -44,15 +32,15 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
   - level mode: `slotLevel > level`,
   - build mode: never locked, and required level = highest `slotLevel` among the used slots.
 - Put that check in the planner core (`slotKinds.js`), which already decides where an item can go. Apply mode, drag and drop targets then respect locks with no changes of their own.
-- Store the level (or "no level") in the build, as a new optional field in the build data (`l`). Old codes without it load in build-first mode.
-- Show it in the Statistics panel's no-header section, or next to POINTS AVAILABLE if it needs to be on screen.
+- The level is stored in the build already (progress `g.l`, core/build.js); build-first or level-first would be one more optional field. Old codes load in build-first mode.
+- Show it in the Statistics panel's Points section, or next to POINTS AVAILABLE if it needs to be on screen.
 - Take the unlock levels from the game files, not wikis. The Remastered patch may have changed them.
 
 **To decide:**
-- Should the level also set the point budget? Points come from levels and from places of power, so the level only gives a starting point (ties in with the Statistics points research).
+- The Statistics panel's Level field (progress, part of the build) already exists: decide whether level mode reads it, or gets its own.
 - Where the mode switch and the level field go: Statistics panel or main screen.
 
-## 4. Blood and Wine mutations (later)
+## 3. Blood and Wine mutations (later)
 
 **Goal:** the Mutations system from the Blood and Wine expansion: research mutations, equip one, and get the extra skill slots that researched mutations unlock.
 

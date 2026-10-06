@@ -1,6 +1,7 @@
 // Turns the raw game data (data/index.js) into lookups the planner and UI use.
 // Pure: no DOM, no storage. Data mistakes are collected in `problems` instead of thrown,
 // so the page still loads and tests can assert the list is empty.
+import { createBudget } from "./budget.js";
 
 /**
  * @typedef {Object} Skill
@@ -41,7 +42,8 @@ export const MUTAGEN_TAB = "mutagens";
 
 /**
  * @param {{ rules: object, trees: Record<string, object>, skillSets: object[], mutagens?: object,
- *   skillText?: Record<string, object> }} data  skillText: extracted text by game id (data/skillText.js).
+ *   skillText?: Record<string, object>, totals?: object }} data  skillText: extracted text by game id
+ *   (data/skillText.js). totals: what adds up to the build-wide totals (data/totals.js).
  */
 export function createCatalog(data) {
   const { rules, trees, skillSets } = data;
@@ -99,12 +101,33 @@ export function createCatalog(data) {
   const mutagenId = x => Object.hasOwn(mutagens, x) ? x
     : Object.hasOwn(aliases, x) && Object.hasOwn(mutagens, aliases[x]) ? aliases[x] : "";
 
+  const totals = Object.assign({ synergy: null, stats: [] }, data.totals);
+  /** A skill number a total reads: the skill exists and has that number. */
+  const checkSkillNumber = (src, where) => {
+    if (!nodes[src.skill]) problems.push(`${where} reads unknown skill "${src.skill}".`);
+    else if (!Object.hasOwn(nodes[src.skill].values, src.value)) problems.push(`${where} reads "${src.value}", which skill "${src.skill}" has no number for.`);
+  };
+  if (totals.synergy) checkSkillNumber(totals.synergy, "Totals synergy");
+  totals.stats.forEach(st => st.sources.forEach(src => {
+    const where = `Total "${st.id}"`;
+    if (src.skill) {
+      checkSkillNumber(src, where);
+      // Armor is a condition: it counts only towards the "up to".
+      if (src.armor && !src.when) problems.push(`${where} reads "${src.skill}", which needs armor but has no "when".`);
+    }
+    else if (src.mutagen) { if (!Object.hasOwn(mutagenData.stats, src.mutagen)) problems.push(`${where} reads unknown mutagen colour "${src.mutagen}".`); }
+    else if (src.passive) { if (!order.includes(src.passive)) problems.push(`${where} reads the passive of unknown tree "${src.passive}".`); }
+    else problems.push(`${where} has a source with no skill, mutagen or passive.`);
+  }));
+
   const slots = { groups: rules.slotGroups, perGroup: rules.slotsPerGroup, total: rules.slotGroups * rules.slotsPerGroup };
 
   return {
     rules, trees, skillSets, order, nodes, edges, slots, problems,
     maxRank: rules.maxRank,
-    mutagens, mutagenId,
+    mutagens, mutagenId, totals,
+    // The points budget (core/budget.js). Test data without rules.points: level 1 and nothing else.
+    budget: createBudget(rules.points || { maxLevel: 1, placesOfPower: 0, items: [] }),
     // Planner tabs: the trees, then the mutagen inventory.
     tabs: order.concat(MUTAGEN_TAB),
     /** @param {string} tree */

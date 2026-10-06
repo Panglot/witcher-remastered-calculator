@@ -152,6 +152,8 @@
     "icons/share.png": {"from": "atlas", "movie": "photomode", "sub": 66, "mask": "alpha", "trim": true, "arrow": {"at": "corner", "cut": [66, 0, 80, 14], "width": 34, "gap": 4}, "canvas": 108, "note": "The floppy with an arrow out of its cut corner. The planner's Copy share link icon"},
     "icons/load.png": {"from": "atlas", "movie": "overlay", "sub": 173, "mask": {"dark": 70, "thicken": 1, "solid": 128}, "trim": true, "canvas": 69, "note": "The save indicator's parchment save card (IndicatorSave_3), solid, its two lines cut out a pixel thicker. The planner's Load code icon"},
     "icons/dropdown-arrow.png": {"from": "atlas", "movie": "alchemy", "sub": 73, "mask": "alpha", "note": "DropDownArrows_76 (IconDropDownListItem.mcOpenedState): 18 x 14, pointing down on frame closed (shape 74), flipped on opened (shape 75). Brown #4a3829 in the game; white here so the side panel tints it. The planner's section arrow"},
+    "icons/close.svg": {"from": "svg", "movie": "common", "shape": 385, "viewBox": true, "note": "btnCloseMenuX (sprite 389, the menu hub's close button) frame up: a 56 x 56 square, #45362d frame, #9b9078 X. The side panels' close button"},
+    "icons/close-over.svg": {"from": "svg", "movie": "common", "shape": 386, "viewBox": true, "note": "btnCloseMenuX frame over: the same square with a white X"},
     "points/diamond.png": {"from": "atlas", "movie": "character", "sub": 230, "note": "root.mcPointIcon"},
     "layout/screen.json": {"from": "placements", "movie": "character", "sprite": 0, "note": "Character screen root (1920x1080)"},
     "layout/tree-panel.json": {"from": "placements", "movie": "character", "sprite": 738},

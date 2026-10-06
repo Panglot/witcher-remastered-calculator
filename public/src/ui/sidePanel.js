@@ -4,10 +4,11 @@
 // open at once. A key and an arrow button on the covered part's bottom edge toggle it.
 //
 // The card has the tree panel's frame (tree/frame.png: a double line whose sides fade out), a
-// header like the message popup's, and a body that scrolls when it is taller than the card. The
-// body is a list of sections: one with no header first, then accordion sections whose header is a
-// bar in a tree's colour (like the game's stat categories) with the game's dropdown arrow. Which
-// sections are open is a viewer setting (settings.openSections), not part of the build.
+// header like the message popup's with a close button at its right end, and a body that scrolls when it is taller than the card. The
+// body is a list of sections: one with no header first, then bars in a tree's colour (like the
+// game's stat categories): accordion sections with the game's dropdown arrow, or flat bars with
+// nothing under them. Which sections are open is a viewer setting (settings.openSections), not part
+// of the build.
 //
 // Switching follows the game's screen change: the covered part fades out while the card rises the
 // last fifth of its height into place and fades in; closing plays it the other way round.
@@ -47,34 +48,73 @@ export function statIcon(glyph) {
     + `<image href="${artUrl(`stats/icon-${glyph}.png`)}" x="${gx + x}" y="${gy + y}" width="${w}" height="${h}" opacity="${STAT_ICON.alpha}"/></svg>`;
 }
 
+// A bar's aside: plain text, or a value and its label, coloured like a stat row's.
+const asideHtml = aside => typeof aside === "string" ? esc(aside)
+  : `<span class="gstat-value">${esc(aside.value)}</span> <span class="gstat-label">${esc(aside.label)}</span>`;
+
+// A bar's content: the stat icon, the title, its aside, the value at the right end. Each a sibling,
+// so bars in a list (barList) can line them up in columns.
+const barContent = ({ title, icon, aside, end }) => `${icon ? statIcon(icon) : ""}<span class="gside-bar-title">${esc(title)}</span>`
+  + `${aside ? ` <span class="gside-bar-aside">${asideHtml(aside)}</span>` : ""}`
+  + `${end ? `<span class="gside-bar-end" title="${esc(end.label)}"><span aria-hidden="true">${esc(end.text)}</span>`
+    + `<span class="visually-hidden">${esc(end.label)}</span></span>` : ""}`;
+
 /**
  * An accordion section (HTML): its header bar opens and closes the body. Native <details>, so the
  * keyboard and screen readers work without extra code.
- * @param {{ id: string, title: string, color: string, icon?: string, aside?: string,
+ * @param {{ id: string, title: string, color: string, icon?: string, aside?: string | { value: string, label: string },
  *   end?: { text: string, label: string }, open?: boolean, body: string }} o
  *   color: a game colour label ("red", "blue", "green", "yellow") for the header bar; icon: a
- *   STAT_GLYPHS key drawn before the title; aside: text after the title (not capitalised); end: a
+ *   STAT_GLYPHS key drawn before the title; aside: text after the title (not capitalised), or a
+ *   value and label in the stat rows' colours; end: a
  *   value at the bar's right end, before the arrow, with `label` saying what it is (tooltip and
  *   screen readers).
  */
 export function section({ id, title, color, icon, aside, end, open = false, body }) {
   return `<details class="gside-sec" data-section="${esc(id)}" data-color="${esc(color)}"${open ? " open" : ""}>
-    <summary class="gside-bar">${icon ? statIcon(icon) : ""}<span class="gside-bar-title">${esc(title)}`
-    + `${aside ? ` <span class="gside-bar-aside">${esc(aside)}</span>` : ""}</span>`
-    + `${end ? `<span class="gside-bar-end" title="${esc(end.label)}"><span aria-hidden="true">${esc(end.text)}</span>`
-      + `<span class="visually-hidden">${esc(end.label)}</span></span>` : ""}${ARROW}</summary>
+    <summary class="gside-bar">${barContent({ title, icon, aside, end })}${ARROW}</summary>
     <div class="gside-sec-body">${body}</div>
   </details>`;
 }
 
 /**
+ * A flat bar (HTML): a section's header bar with nothing to open, for a one-line summary.
+ * @param {{ title: string, color: string, icon?: string, aside?: string | { value: string, label: string }, end?: { text: string, label: string } }} o
+ *   as for `section`.
+ */
+export function bar({ title, color, icon, aside, end }) {
+  return `<div class="gside-bar gside-bar-flat" data-color="${esc(color)}">${barContent({ title, icon, aside, end })}</div>`;
+}
+
+/**
+ * Flat bars on one grid, like the game's stat lists: the titles, the aside values, the aside labels
+ * and the end values each in their own column. Every bar needs the same parts (an icon, and an aside
+ * given as a value and label), or its parts land in the wrong columns.
+ * @param {Parameters<typeof bar>[0][]} bars
+ */
+export const barList = bars => `<div class="gside-bars">${bars.map(bar).join("")}</div>`;
+
+/**
  * Value and label rows, like the game's stat lists: values in one column, labels aligned after it.
  * A row with `attrs` is a button (the caller wires it); `pressed` marks a toggled one.
- * @param {{ value: string, label: string, attrs?: string, pressed?: boolean }[]} rows
+ * `aside` is a muted note after the label ("up to +95%"); `details` are value and label lines under
+ * it, on the same columns, for what makes up the value. `color` (a game colour label) puts a band
+ * behind the value and label line, like the slot groups' bonus labels.
+ * @param {{ value: string, label: string, aside?: string, details?: { value: string, label: string }[], color?: string,
+ *   attrs?: string, pressed?: boolean }[]} rows
  */
 export function statRows(rows) {
   return `<div class="gstats">${rows.map(r => {
-    const cells = `<span class="gstat-value">${esc(r.value)}</span><span class="gstat-label">${esc(r.label)}</span>`;
+    const aside = r.aside ? ` <span class="gstat-aside">${esc(r.aside)}</span>` : "";
+    // Each detail fills the next line of the row's subgrid: its value under the values, its label under the labels.
+    const details = (r.details || []).map(d => `<span class="gstat-value gstat-detail">${esc(d.value)}</span>`
+      + `<span class="gstat-label gstat-detail">${esc(d.label)}</span>`).join("");
+    if (r.color) {
+      // The band is a grid item on the first line, so it grows with the line when the label wraps.
+      return `<div class="gstat gstat-band" data-color="${esc(r.color)}"><span class="gstat-band-art" aria-hidden="true"></span>`
+        + `<span class="gstat-value">${esc(r.value)}</span><span class="gstat-label">${esc(r.label)}${aside}</span>${details}</div>`;
+    }
+    const cells = `<span class="gstat-value">${esc(r.value)}</span><span class="gstat-label">${esc(r.label)}${aside}</span>${details}`;
     return r.attrs
       ? `<button type="button" class="gstat gstat-btn"${r.pressed != null ? ` aria-pressed="${!!r.pressed}"` : ""}${r.attrs}>${cells}</button>`
       : `<div class="gstat">${cells}</div>`;
@@ -84,7 +124,7 @@ export function statRows(rows) {
 /** A sub-heading inside a section, white capitals like the game's sign names. */
 export const subhead = text => `<p class="gside-sub">${esc(text)}</p>`;
 
-/** A muted line: an empty list or a placeholder for what isn't in yet. */
+/** A line of text: an intro, an empty list or a placeholder for what isn't in yet. In the text colour. */
 export const note = text => `<p class="gside-note">${esc(text)}</p>`;
 
 /**
@@ -108,6 +148,7 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
   root.tabIndex = -1;
   root.setAttribute("aria-label", title);
   root.innerHTML = `<h2 class="gside-title">${esc(title)}</h2>
+    <button type="button" class="gside-close" aria-label="Close ${esc(title)}"></button>
     <div class="gside-body"><div class="gside-head">${head}</div><div class="gside-live"></div></div>`;
   const body = root.querySelector(".gside-body"), live = root.querySelector(".gside-live");
 
@@ -165,6 +206,8 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
 
   function close() {
     if (!isOpen()) return;
+    // Focus in the card (its close button) would be lost when it hides: it moves to the toggle.
+    if (root.contains(document.activeElement)) toggleBtn.focus({ preventScroll: true });
     cover.inert = false;
     app.layers.close(layer);
     toggleBtn.setAttribute("aria-expanded", "false");
@@ -186,6 +229,7 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
     app.saveSettings();
   }, true);
   toggleBtn.addEventListener("click", toggle);
+  root.querySelector(".gside-close").addEventListener("click", close);
   app.hotkeys.add(e => {
     if (e.repeat || e.key.toLowerCase() !== key) return false;
     toggle();

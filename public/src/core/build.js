@@ -1,5 +1,7 @@
 // Build format: what gets packed into share codes and export files.
-// Build data: { p: { skillId: rank }, s: slot ids (null = empty), m: mutagen id per group ("" = none), b: point budget, n?: name }
+// Build data: { p: { skillId: rank }, s: slot ids (null = empty), m: mutagen id per group ("" = none), b: point budget,
+//   g?: progress { l: level, w: places of power, o: other points, ng?: 1 in NG+, c?: 1 for a custom total }, n?: name }
+// Codes without g were made when the budget was only typed in: they load as a custom total (core/budget.js).
 // A code is CODE_PREFIX + base64(UTF-8 JSON). Codes made before names were added are plain ASCII
 // JSON, so they decode the same way. A share link is the page's address with the code in the
 // SHARE_PARAM query parameter; anything that takes a code also takes a link.
@@ -20,7 +22,11 @@ export function isEmptyBuild(state) {
 }
 
 export function toBuildData(state) {
-  const d = { p: state.pts, s: state.slots, m: state.mut, b: state.budget };
+  const { level, places, other, ngPlus, custom } = state.progress;
+  const g = { l: level, w: places, o: other };
+  if (ngPlus) g.ng = 1;
+  if (custom) g.c = 1;
+  const d = { p: state.pts, s: state.slots, m: state.mut, b: state.budget, g };
   if (state.name) d.n = state.name;
   return d;
 }
@@ -35,7 +41,10 @@ export function applyBuildData(catalog, state, d) {
   state.pts = p;
   state.slots = Array.isArray(d.s) && d.s.length === slots.total ? d.s.map(x => (x && nodes[x] && p[x]) ? x : null) : Array(slots.total).fill(null);
   state.mut = Array.isArray(d.m) && d.m.length === slots.groups ? d.m.map(mutagenId) : Array(slots.groups).fill("");
-  if (typeof d.b === "number" && d.b >= 0) state.budget = Math.floor(d.b);
+  const typed = typeof d.b === "number" && d.b >= 0 ? Math.floor(d.b) : state.budget;
+  const g = d.g && typeof d.g === "object" ? d.g : null;
+  state.progress = catalog.budget.normalize(g && { level: g.l, places: g.w, other: g.o, ngPlus: !!g.ng, custom: !!g.c }, typed);
+  state.budget = catalog.budget.budgetOf(state.progress, typed);
   state.name = typeof d.n === "string" ? d.n.slice(0, MAX_NAME_LENGTH) : "";
   return true;
 }

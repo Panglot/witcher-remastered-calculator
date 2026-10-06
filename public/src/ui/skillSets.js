@@ -3,7 +3,7 @@
 // per tree lists its skill sets; pressing one toggles its highlight, which frames its skills in
 // the tree (ui/tree.js). The rows are placeholders until the buttons get their own design.
 import { $ } from "./dom.js";
-import { createSidePanel, section, statRows, note } from "./sidePanel.js";
+import { createSidePanel, section, statRows } from "./sidePanel.js";
 import { TREE_ART } from "./gameArt.js";
 
 export function mountSkillSets(app) {
@@ -35,11 +35,10 @@ export function mountSkillSets(app) {
       });
     },
     markup() {
+      // How many sets are selected, and a button that clears them (disabled with none).
       const picked = state.skillSets.length;
-      const intro = picked
-        ? `<div class="gside-overview">${note(`${picked} highlighted. Their skills are framed in the tree.`)}
-           <button type="button" class="gside-link" data-skill-set-clear>Clear highlight</button></div>`
-        : `<div class="gside-overview">${note("Pick a skill set to frame its skills in the tree. The count shows its skills with points.")}</div>`;
+      const intro = `<div class="gside-overview gside-status">${statRows([{ value: String(picked), label: "Sets selected" }])}
+        <button type="button" class="gpopup-btn gside-action" data-skill-set-clear${picked ? "" : " disabled"}>Clear</button></div>`;
       return intro + catalog.order.map(treeSection).join("");
     }
   });

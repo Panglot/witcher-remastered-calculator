@@ -1447,6 +1447,20 @@
    ],
    "note": "DropDownArrows_76 (IconDropDownListItem.mcOpenedState): 18 x 14, pointing down on frame closed (shape 74), flipped on opened (shape 75). Brown #4a3829 in the game; white here so the side panel tints it. The planner's section arrow"
   },
+  "icons/close.svg": {
+   "from": "svg",
+   "movie": "panel_common.redswf",
+   "shape": 385,
+   "viewBox": true,
+   "note": "btnCloseMenuX (sprite 389, the menu hub's close button) frame up: a 56 x 56 square, #45362d frame, #9b9078 X. The side panels' close button"
+  },
+  "icons/close-over.svg": {
+   "from": "svg",
+   "movie": "panel_common.redswf",
+   "shape": 386,
+   "viewBox": true,
+   "note": "btnCloseMenuX frame over: the same square with a white X"
+  },
   "points/diamond.png": {
    "from": "atlas",
    "movie": "panel_character_dupe.redswf",

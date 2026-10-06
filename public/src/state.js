@@ -3,10 +3,11 @@
 const STORE_KEY = "w3r-skill-planner-v1";
 
 export function defaultState(catalog) {
-  const { slots, order } = catalog;
+  const { slots, order, budget } = catalog;
+  const progress = budget.defaults();
   return {
-    // Build (see core/build.js)
-    pts: {}, slots: Array(slots.total).fill(null), mut: Array(slots.groups).fill(""), budget: 4, name: "",
+    // Build (see core/build.js). budget: the points the build has, from progress (core/budget.js).
+    pts: {}, slots: Array(slots.total).fill(null), mut: Array(slots.groups).fill(""), budget: budget.totalOf(progress), progress, name: "",
     // View. sel / selMut: selected skill / mutagen; selSlot / selGroup: the socket / diamond it was
     // picked from, null when picked in its panel (core/slotKinds.js).
     tab: order[0], sel: null, selSlot: null, selMut: null, selGroup: null, skillSets: []
@@ -15,11 +16,15 @@ export function defaultState(catalog) {
 
 export function loadState(catalog) {
   const state = defaultState(catalog);
+  let saved = null;
   try {
-    const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     // Copy only known keys, so fields from older versions don't linger.
     if (saved && saved.pts) Object.keys(state).forEach(k => { if (k in saved) state[k] = saved[k]; });
   } catch (e) {}
+  // Saved before progress was kept: the budget was typed in, so it stays a custom total.
+  state.progress = catalog.budget.normalize(saved && saved.pts ? saved.progress : state.progress, state.budget);
+  state.budget = catalog.budget.budgetOf(state.progress, state.budget);
   if (!catalog.tabs.includes(state.tab)) state.tab = catalog.order[0];
   if (state.sel && !catalog.nodes[state.sel]) state.sel = null;
   if (state.selMut && !catalog.mutagenId(state.selMut)) state.selMut = null;

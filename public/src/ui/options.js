@@ -4,6 +4,8 @@
 // one (SubMenuSlider). Sizes are the game's, in px of the 1920x1080 screen (docs/game-assets.md).
 //
 // Options are settings.js OPTIONS; `store` reads and writes their values ({ get(key), set(key, value) }).
+// A two-choice option with `sides` names its choices on either side of the slider instead (the
+// Statistics panel's New Game / New Game+), the picked one marked; its label is only for screen readers.
 // Pointer: pressing or dragging on a slider picks the nearest choice (CLIK's trackPress and drag);
 // a click on a toggle row flips it (activate). Keys: the caller routes them to step().
 import { esc } from "./dom.js";
@@ -45,25 +47,30 @@ function indexAt(option, box, clientX) {
 export function optionRowsHtml(options) {
   return options.map(o => {
     const s = sliderOf(o), toggle = s === SLIDERS.toggle;
-    return `<div class="gopt${toggle ? " toggle" : ""}" data-key="${esc(o.key)}" tabindex="0" role="slider"
+    const slider = `<span class="gopt-slider" style="--x:${trackLeft(s).toFixed(2)};--w:${s.width};--tw:${s.thumbWidth}"><span class="gopt-thumb"></span></span>`;
+    const side = i => `<span class="gopt-side" aria-hidden="true">${esc(o.choices[i].label)}</span>`;
+    return `<div class="gopt${toggle ? " toggle" : ""}${o.sides ? " gopt-sides" : ""}" data-key="${esc(o.key)}" tabindex="0" role="slider"
         aria-label="${esc(o.label)}" aria-valuemin="0" aria-valuemax="${o.choices.length - 1}">
-      <span class="gopt-label">${esc(o.label)}</span>
+      ${o.sides ? side(0) + slider + side(1) : `<span class="gopt-label">${esc(o.label)}</span>
       <span class="gopt-value"></span>
-      <span class="gopt-slider" style="--x:${trackLeft(s).toFixed(2)};--w:${s.width};--tw:${s.thumbWidth}"><span class="gopt-thumb"></span></span>
+      ${slider}`}
     </div>`;
   }).join("");
 }
 
 /**
  * Draws the rows' values and wires the pointer. Returns step(row, by, wrap) for keys: moves the
- * row's choice by `by`, stopping at the ends (CLIK's left / right) or wrapping round (its A button).
+ * row's choice by `by`, stopping at the ends (CLIK's left / right) or wrapping round (its A button);
+ * and redraw(), for when the values changed elsewhere.
  */
 export function bindOptionRows(root, options, store) {
   const byKey = Object.fromEntries(options.map(o => [o.key, o]));
 
   function draw(row) {
     const o = byKey[row.dataset.key], i = indexOf(o, store.get(o.key));
-    row.querySelector(".gopt-value").textContent = o.choices[i].label;
+    const value = row.querySelector(".gopt-value");
+    if (value) value.textContent = o.choices[i].label;
+    row.querySelectorAll(".gopt-side").forEach((el, j) => el.classList.toggle("on", j === i));
     // An on/off option (offFirst) shows its first choice, off, in grey, as the game does.
     row.classList.toggle("off", !!o.offFirst && i === 0);
     row.querySelector(".gopt-thumb").style.setProperty("--at", thumbX(o, i).toFixed(2));
@@ -110,6 +117,7 @@ export function bindOptionRows(root, options, store) {
     if (row && !e.target.closest(".gopt-slider")) step(row, 1, true);
   });
 
-  root.querySelectorAll(".gopt[data-key]").forEach(draw);
-  return { step };
+  const redraw = () => root.querySelectorAll(".gopt[data-key]").forEach(draw);
+  redraw();
+  return { step, redraw };
 }

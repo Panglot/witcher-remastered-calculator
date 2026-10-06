@@ -30,6 +30,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -239,7 +240,9 @@ class CacheSource:
 
 
 class SvgSource:
-    """Vector art via FFDec. prepare() batches every svg source so FFDec runs once per movie and kind."""
+    """Vector art via FFDec. prepare() batches every svg source so FFDec runs once per movie and kind.
+    FFDec writes width and height but no viewBox, so the art draws at its own size, clipped, in a box of
+    another size. "viewBox": true adds one (0 0 width height) so it scales to whatever size the page gives it."""
 
     def __init__(self):
         self.requests = {}
@@ -268,7 +271,15 @@ class SvgSource:
         path = next((p for p in paths if os.path.exists(p)), None)
         if not path:
             raise FileNotFoundError(f'FFDec produced no svg for {src}')
-        shutil.copyfile(path, dest)
+        if src.get('viewBox'):
+            with open(path, encoding='utf-8') as f:
+                svg = f.read()
+            w, h = (float(re.search(r'<svg[^>]*\s' + a + r'="([\d.]+)', svg).group(1)) for a in ('width', 'height'))
+            svg = svg.replace('<svg ', f'<svg viewBox="0 0 {w:g} {h:g}" ', 1)
+            with open(dest, 'w', encoding='utf-8', newline='') as f:
+                f.write(svg)
+        else:
+            shutil.copyfile(path, dest)
         return {}
 
 

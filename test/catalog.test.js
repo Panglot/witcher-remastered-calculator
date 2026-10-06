@@ -47,3 +47,17 @@ test("catalog reports data mistakes instead of throwing", () => {
   assert.equal(cat.problems.length, 4);
   assert.deepEqual(cat.order, ["a"]);
 });
+
+test("catalog reports totals that read unknown skills, numbers, colours or trees, or armor with no condition", () => {
+  const cat = createCatalog({
+    rules: { ...data.rules, treeOrder: ["a"] },
+    mutagens: { stats: { red: { label: "Attack power", unit: "%" } }, items: [] },
+    trees: { a: { skills: [{ id: "x", name: "X" }], links: [] } },
+    skillSets: [],
+    totals: {
+      synergy: { skill: "ghost", value: "v" },
+      stats: [{ id: "s", sources: [{ skill: "x", value: "nope", armor: "heavy" }, { mutagen: "teal" }, { passive: "b" }, { mutagen: "red" }, {}] }]
+    }
+  });
+  assert.equal(cat.problems.length, 6);
+});

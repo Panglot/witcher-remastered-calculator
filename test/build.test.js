@@ -5,14 +5,15 @@ import { createCatalog } from "../public/src/core/catalog.js";
 import { encodeBuildCode, decodeBuildCode, applyBuildData, exportFile, exportFileName, shareLink, readShareLink, isEmptyBuild } from "../public/src/core/build.js";
 
 const cat = createCatalog(data);
-const blank = () => ({ pts: {}, slots: Array(cat.slots.total).fill(null), mut: Array(cat.slots.groups).fill(""), budget: 4, name: "" });
+// A custom total of 4, as builds were before progress was kept.
+const blank = () => ({ pts: {}, slots: Array(cat.slots.total).fill(null), mut: Array(cat.slots.groups).fill(""), budget: 4, progress: cat.budget.normalize(null, 4), name: "" });
 const sample = () => {
   const s = blank();
   s.pts = { c_mm: 2, c_st: 1 }; s.slots[0] = "c_mm"; s.mut[1] = "red-greater"; s.budget = 12; s.name = "Crossbow and bombs";
   return s;
 };
 const loaded = text => { const s = blank(); assert.ok(applyBuildData(cat, s, decodeBuildCode(text))); return s; };
-const buildOf = s => [s.pts, s.slots, s.mut, s.budget, s.name];
+const buildOf = s => [s.pts, s.slots, s.mut, s.budget, s.progress, s.name];
 
 test("build code round-trips, including the name", () => {
   const a = sample();
@@ -31,6 +32,16 @@ test("codes made before names were added still load", () => {
   assert.equal(s.name, "");
   // Mutagens were stored as a bare colour then.
   assert.deepEqual(s.mut, ["green-normal", "", "", ""]);
+});
+
+test("a calculated budget round-trips its progress; codes without one load as a custom total", () => {
+  const a = sample();
+  cat.budget.setNgPlus(a, true);
+  cat.budget.setField(a, "level", 60);
+  const s = loaded(encodeBuildCode(a));
+  assert.deepEqual([s.progress, s.budget], [{ ngPlus: true, level: 60, places: 60, other: 6, custom: false }, 59 + 66]);
+  const old = loaded("W3R1." + btoa(JSON.stringify({ p: {}, s: Array(12).fill(null), m: ["", "", "", ""], b: 40 })));
+  assert.deepEqual([old.progress.custom, old.budget], [true, 40]);
 });
 
 test("codes are found inside surrounding text and across line breaks", () => {
