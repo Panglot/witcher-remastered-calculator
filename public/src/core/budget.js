@@ -71,12 +71,23 @@ export function createBudget(rules) {
     state.budget = clamp(value, limits(state.progress.ngPlus).total);
   }
 
-  /** New Game or NG+: back to calculated (a custom total is dropped), every field at that playthrough's max. */
+  /**
+   * New Game or NG+: the points stay as they were, only clamped to what the playthrough can reach
+   * (leaving NG+ can lower them). setMax() fills them up.
+   */
   function setNgPlus(state, ngPlus) {
+    const p = state.progress, l = limits(ngPlus);
+    p.ngPlus = ngPlus;
+    SOURCE_FIELDS.forEach(k => { p[k] = clamp(p[k], l[k]); });
+    state.budget = p.custom ? clamp(state.budget, l.total) : totalOf(p);
+  }
+
+  /** Back to calculated (a custom total is dropped), every field at the playthrough's max. */
+  function setMax(state) {
     const p = state.progress;
-    Object.assign(p, { ngPlus, custom: false }, maxed(ngPlus));
+    Object.assign(p, { custom: false }, maxed(p.ngPlus));
     state.budget = totalOf(p);
   }
 
-  return { limits, totalOf, defaults, normalize, budgetOf, setField, setTotal, setNgPlus };
+  return { limits, totalOf, defaults, normalize, budgetOf, setField, setTotal, setNgPlus, setMax };
 }

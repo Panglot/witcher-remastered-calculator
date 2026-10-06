@@ -84,6 +84,7 @@ export default {
     {
       id: "stamina-regen", label: "Stamina regeneration", unit: "/s", color: "blue",
       sources: [
+        { passive: "signs" },
         { skill: "g_grif", value: "staminaRegen", times: ARMOR_PIECES, when: "4 Medium Armor pieces", armor: "medium" },
         { skill: "g_ss", value: "staminaRegen_tooltip", when: "at night, in combat" }
       ]

@@ -1,6 +1,5 @@
 // The layer manager: one stack of everything open over the planner, so Esc, keys, focus and what
-// stays usable work the same way for each. The newest layer is on top,
-// whatever its kind.
+// stays usable work the same way for each. The newest layer is on top, whatever its kind.
 //
 // A layer is { name, modal, live?, keys?, escape? }:
 // - modal: popups and the Esc menu. While one is the top modal layer, everything but its live()

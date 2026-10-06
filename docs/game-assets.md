@@ -50,6 +50,7 @@ To add or change an asset, edit [tools/asset-recipe.json](../tools/asset-recipe.
 | `wscript.py` | Library: a small WitcherScript interpreter that runs the game's own UI text functions. |
 | `map_ui_atlas.py` | Research aid: crops every slice and writes `catalog.json` (slice, atlas rect, export name, users such as `SlotSkillSocketRef[SC_Red].mcEdgeGlow`). |
 | `extract_gfx_movies.py` | Research aid: `.redswf` to plain `.swf` for FFDec. |
+| `build_social_card.py` | The link preview image (`social-card.png`) and `favicon.png`, from the committed art in `public/assets/`. No game install needed. |
 
 ### Decompiling with JPEXS FFDec
 
@@ -523,7 +524,8 @@ How the game builds a skill tooltip (checked in the 5.0 files, 2026-10-05):
 | Path | Contents |
 | --- | --- |
 | `research/tools/ffdec/` | JPEXS FFDec 26.3.0 portable. Needed by `build_ui_assets.py` for the SVGs. |
-| `research/decompiled/<movie>/scripts/` | FFDec ActionScript export (`panel_character`, `panel_character_dupe`, `panel_common`, `componentslib` `TooltipSkill` only). The reference for node states, tooltip and animation logic. |
+| `research/decompiled/<movie>/scripts/` | FFDec ActionScript export (`panel_character`, `panel_character_dupe`, `panel_common`, `panel_ingamemenu`, `popup_message`, `componentslib` `TooltipSkill` only). The reference for node states, tooltip, menu, popup and animation logic. |
+| `research/menu/` | FFDec sprite exports of the Esc menu (list module, items, selection frame) and its sheet, used while rebuilding the menu. |
 | `research/xml/` | `geralt_skills.xml`, `geralt_skills_plus.xml`, `def_item_alchemy_mutagens.xml` |
 
 Generated on demand with the commands above, not kept: `research/swf/` (plain `.swf` movies, needed before running the FFDec commands), `research/atlas-map/<movie>/` (atlas slice crops and `catalog.json`) and `research/compare/`. All scripts live in `tools/`, which is committed: they contain no game data.

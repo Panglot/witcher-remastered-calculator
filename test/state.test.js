@@ -5,7 +5,7 @@ import { defaultState, loadState, saveState, clearSavedState } from "../public/s
 
 const cat = createCatalog({
   rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 2, treeOrder: ["t"] },
-  mutagens: { stats: {}, items: [] }, skillSets: [],
+  mutagens: { stats: {}, items: [] }, skillSets: [{ tree: "t", sets: [{ id: "kept", ids: ["r"] }] }],
   trees: { t: { skills: [{ id: "r", name: "Root", root: true, col: 0, row: 0 }], links: [] } }
 });
 
@@ -31,5 +31,14 @@ test("reset saved data deletes the stored build and resets the same state object
     assert.equal(store.size, 0);
     assert.deepEqual(state, defaultState(cat));
     assert.deepEqual(loadState(cat), defaultState(cat));
+  });
+});
+
+test("highlighted skill sets that no longer exist are dropped on load", () => {
+  withStorage(() => {
+    const state = defaultState(cat);
+    state.skillSets = ["spell", "kept", "blast"];
+    saveState(state);
+    assert.deepEqual(loadState(cat).skillSets, ["kept"]);
   });
 });

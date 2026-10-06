@@ -11,6 +11,7 @@ import { createHold } from "./hold.js";
 import { skillIcon, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
 import { MUTAGEN_TAB } from "../core/catalog.js";
+import { highlightedSkills } from "../core/skillSets.js";
 import { createMutagenList, MUTAGEN_ART_TAB } from "./mutagenList.js";
 
 /**
@@ -149,12 +150,8 @@ function createSkillTree(app, el) {
     };
   }
 
-  // Skills of the highlighted skill sets (ui/skillSets.js).
-  function highlighted() {
-    const ids = new Set();
-    state.skillSets.forEach(s => { const S = catalog.skillSets.find(x => x.id === s); if (S) S.ids.forEach(i => ids.add(i)); });
-    return ids;
-  }
+  // Skills of the highlighted skill sets (ui/skillSets.js): in any of them, or in all with the panel's switch.
+  const highlighted = () => highlightedSkills(catalog, state.skillSets, app.settings.skillSetsMatchAll);
 
   // Game line states (docs/game-assets.md, Line colors), from the required skill to the one it
   // opens: lit when both are learned, white when only the required one is, dark otherwise.

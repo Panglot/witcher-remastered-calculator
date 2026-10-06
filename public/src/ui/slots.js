@@ -1,13 +1,13 @@
 // The slot groups of the Character screen, drawn with the game art once it has loaded (app.game).
-// Skills with points but no slot are listed in the Statistics panel (ui/statistics.js).
 // Sockets (skills) and diamonds (mutagens) are holders and behave alike, by the rules in
 // core/slotKinds.js. Like the game: pressing a full one selects it (it is framed, not the panel
 // item); Space (on the focused or framed one), a double-click or right-click (or Delete) takes its
 // item out; holding the left button or E on a skill adds a point, as in the tree (ui/hold.js).
-// Clicking an empty diamond opens the mutagen tab (SlotKind.emptyOpensTab). Items go in through apply mode
-// (ui/applyMode.js): there a click picks a holder of the kind being equipped and a double-click
-// fills it, or they are dragged in (ui/drag.js), which finds the holder under the pointer with
-// holderAt. A hovered skill or mutagen lights the holders it could go into (ui/dropTargets.js).
+// Clicking an empty diamond opens the mutagen tab (SlotKind.emptyOpensTab). Items go in through
+// apply mode (ui/applyMode.js): there a click picks a holder of the kind being equipped and a
+// double-click fills it, or they are dragged in (ui/drag.js), which finds the holder under the
+// pointer with holderAt. A hovered skill or mutagen lights the holders it could go into
+// (ui/dropTargets.js).
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
 import { createHold } from "./hold.js";
 import { skillIcon, MUTAGEN_ART, TREE_ART } from "./gameArt.js";

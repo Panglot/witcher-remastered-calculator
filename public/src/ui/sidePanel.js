@@ -1,29 +1,28 @@
-// Side panels: a card that slides over one part of the Character screen
-// (Statistics over the tree panel and its tabs, Skill sets over the slots) while the rest stays
-// usable. Each is a non-modal layer (ui/layers.js): Esc closes the one opened last, and both can be
-// open at once. A key and an arrow button on the covered part's bottom edge toggle it.
+// Side panels: a card that slides over one part of the Character screen (Statistics over the tree
+// panel and its tabs, Skill sets over the slots) while the rest stays usable. Each is a non-modal
+// layer (ui/layers.js): Esc closes the one opened last, and both can be open at once. A key and an
+// arrow button on the covered part's bottom edge toggle it.
 //
 // The card has the tree panel's frame (tree/frame.png: a double line whose sides fade out), a
-// header like the message popup's with a close button at its right end, and a body that scrolls when it is taller than the card. The
-// body is a list of sections: one with no header first, then bars in a tree's colour (like the
-// game's stat categories): accordion sections with the game's dropdown arrow, or flat bars with
-// nothing under them. Which sections are open is a viewer setting (settings.openSections), not part
-// of the build.
+// header like the message popup's with a close button at its right end, and a body that scrolls
+// when it is taller than the card. The body is a list of sections: one with no header first, then
+// bars in a tree's colour (like the game's stat categories): accordion sections with the game's
+// dropdown arrow, or flat bars with nothing under them. Which sections are open is a viewer
+// setting (settings.openSections), not part of the build.
 //
 // Switching follows the game's screen change: the covered part fades out while the card rises the
 // last fifth of its height into place and fades in; closing plays it the other way round.
 import { esc, patchHtml } from "./dom.js";
 import { artUrl, dropdownArrow, dropdownArrowMask, STAT_GLYPHS, STAT_ICON } from "./gameArt.js";
+import { optionRowsHtml } from "./options.js";
 
-// The dropdown arrow of the game's category lists (IconDropDownListItem.mcOpenedState, the alchemy
-// panel's DropDownArrows): game art cut to a one-colour glyph (tools/asset-recipe.json,
-// icons/dropdown-arrow.png), pointing down; open sections turn it up (styles.css, .garrow).
+// The game's dropdown arrow (icons/dropdown-arrow.png, see gameArt.js), pointing down; open
+// sections turn it up (styles.css, .garrow).
 const ARROW = `<span class="garrow" aria-hidden="true"></span>`;
-// The toggle (28 u): a disc in the legend key's fill with a double rim like the close button's frame
-// (two 1 u brown circles)
-// and the dropdown arrow (gameArt.js, dropdownArrow) in the text colour, in
-// one SVG so the browser draws them all at the same sub-pixel position (styles.css, .gtoggle).
-// `maskId` keeps the arrow mask's id unique per toggle.
+// The toggle (28 u): a disc in the legend key's fill with a double rim like the close button's
+// frame (two 1 u brown circles) and the dropdown arrow in the text colour, in one SVG so the
+// browser draws them all at the same sub-pixel position (styles.css, .gtoggle). `maskId` keeps the
+// arrow mask's id unique per toggle.
 const toggleArt = maskId => `<svg class="gtoggle" viewBox="-14 -14 28 28" aria-hidden="true">`
   + dropdownArrowMask(maskId)
   + `<circle class="gtoggle-disc" r="13.5"/><circle class="gtoggle-ring" r="11.25"/>`
@@ -67,9 +66,8 @@ const barContent = ({ title, icon, aside, end }) => `${icon ? statIcon(icon) : "
  *   end?: { text: string, label: string }, open?: boolean, body: string }} o
  *   color: a game colour label ("red", "blue", "green", "yellow") for the header bar; icon: a
  *   STAT_GLYPHS key drawn before the title; aside: text after the title (not capitalised), or a
- *   value and label in the stat rows' colours; end: a
- *   value at the bar's right end, before the arrow, with `label` saying what it is (tooltip and
- *   screen readers).
+ *   value and label in the stat rows' colours; end: a value at the bar's right end, before the
+ *   arrow, with `label` saying what it is (tooltip and screen readers).
  */
 export function section({ id, title, color, icon, aside, end, open = false, body }) {
   return `<details class="gside-sec" data-section="${esc(id)}" data-color="${esc(color)}"${open ? " open" : ""}>
@@ -125,8 +123,15 @@ export function statRows(rows) {
 /** A sub-heading inside a section, white capitals like the game's sign names. */
 export const subhead = text => `<p class="gside-sub">${esc(text)}</p>`;
 
-/** A line of text: an intro, an empty list or a placeholder for what isn't in yet. In the text colour. */
+/** A line of text in the text colour, such as what an empty list would show. */
 export const note = text => `<p class="gside-note">${esc(text)}</p>`;
+
+/**
+ * Switch rows: the settings' option rows (ui/options.js) at the panel's size, one per line: the name
+ * on the left, the picked value and the slider at the right end. The caller wires them
+ * (bindOptionRows, bindOptionKeys on the returned block, class "gside-modes").
+ */
+export const switchRows = options => `<div class="gside-modes">${optionRowsHtml(options, "gopt-inline")}</div>`;
 
 /**
  * Mounts a side panel over `cover` (a grid area of the screen).
@@ -158,7 +163,7 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
   toggleWrap.className = `gside-toggle-wrap gside-${area}`;
   toggleWrap.dataset.panel = "";
   toggleWrap.innerHTML = `<button type="button" class="gside-toggle" aria-controls="${id}" aria-expanded="false"
-    aria-label="${esc(title)}" data-hint-title="${esc(title)}" data-hint="${esc(`${hint}`)}">${toggleArt(`${id}-arrow`)}</button>`;
+    aria-label="${esc(title)}" data-hint-title="${esc(title)}" data-hint="${esc(hint)}">${toggleArt(`${id}-arrow`)}</button>`;
   const toggleBtn = toggleWrap.querySelector("button");
   screen.append(root, toggleWrap);
 

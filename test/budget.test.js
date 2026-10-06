@@ -36,12 +36,24 @@ test("a custom total: clamped; typing a source field brings the fields back", ()
   assert.deepEqual([s.progress.custom, s.progress.level, s.progress.places, s.budget], [false, 40, 30, 39 + 30 + 1]);
 });
 
-test("NG+: the source fields go to its maxes; a custom total is dropped", () => {
+test("switching the playthrough keeps the points, clamped to what it can reach", () => {
   const s = fresh();
   budget.setNgPlus(s, true);
+  assert.deepEqual([s.progress.places, s.progress.other, s.budget], [30, 3, 132]);
+  budget.setMax(s);
   assert.deepEqual([s.progress.places, s.progress.other, s.budget], [60, 6, 165]);
-  budget.setTotal(s, 1);
   budget.setNgPlus(s, false);
+  assert.deepEqual([s.progress.places, s.progress.other, s.budget], [30, 3, 132]);
+  budget.setNgPlus(s, true);
+  budget.setTotal(s, 150);
+  budget.setNgPlus(s, false);
+  assert.deepEqual([s.progress.custom, s.budget], [true, 132]);
+});
+
+test("setMax: every field at the playthrough's max; a custom total is dropped", () => {
+  const s = fresh();
+  budget.setTotal(s, 1);
+  budget.setMax(s);
   assert.deepEqual([s.progress.custom, s.budget, s.progress.places], [false, 132, 30]);
 });
 

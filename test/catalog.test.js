@@ -42,9 +42,9 @@ test("catalog reports data mistakes instead of throwing", () => {
   const cat = createCatalog({
     rules: { ...data.rules, treeOrder: ["a", "missing"] },
     trees: { a: { skills: [{ id: "x", name: "X" }, { id: "x", name: "X again" }], links: ["x-nope"] } },
-    skillSets: [{ id: "set", ids: ["ghost"] }]
+    skillSets: [{ tree: "a", sets: [{ id: "set", ids: ["ghost"] }, { id: "set", roles: { r: ["x", "x"] } }] }, { tree: "nope", sets: [] }]
   });
-  assert.equal(cat.problems.length, 4);
+  assert.equal(cat.problems.length, 7);
   assert.deepEqual(cat.order, ["a"]);
 });
 

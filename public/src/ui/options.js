@@ -4,8 +4,8 @@
 // one (SubMenuSlider). Sizes are the game's, in px of the 1920x1080 screen (docs/game-assets.md).
 //
 // Options are settings.js OPTIONS; `store` reads and writes their values ({ get(key), set(key, value) }).
-// A two-choice option with `sides` names its choices on either side of the slider instead (the
-// Statistics panel's New Game / New Game+), the picked one marked; its label is only for screen readers.
+// An option's `hint` shows as a tooltip on its row, titled with its label; a line of it that starts
+// with a choice's name has the name marked (one line per choice: "All highlights ...").
 // Pointer: pressing or dragging on a slider picks the nearest choice (CLIK's trackPress and drag);
 // a click on a toggle row flips it (activate). Keys: the caller routes them to step().
 import { esc } from "./dom.js";
@@ -43,17 +43,19 @@ function indexAt(option, box, clientX) {
   return Math.max(0, Math.min(last, Math.round((x - s.offsetLeft) / travel(s) * last)));
 }
 
-/** One focusable row per option. */
-export function optionRowsHtml(options) {
+/** One focusable row per option; `variant` is an extra class for every row (side panels' "gopt-inline"). */
+export function optionRowsHtml(options, variant = "") {
   return options.map(o => {
     const s = sliderOf(o), toggle = s === SLIDERS.toggle;
     const slider = `<span class="gopt-slider" style="--x:${trackLeft(s).toFixed(2)};--w:${s.width};--tw:${s.thumbWidth}"><span class="gopt-thumb"></span></span>`;
-    const side = i => `<span class="gopt-side" aria-hidden="true">${esc(o.choices[i].label)}</span>`;
-    return `<div class="gopt${toggle ? " toggle" : ""}${o.sides ? " gopt-sides" : ""}" data-key="${esc(o.key)}" tabindex="0" role="slider"
-        aria-label="${esc(o.label)}" aria-valuemin="0" aria-valuemax="${o.choices.length - 1}">
-      ${o.sides ? side(0) + slider + side(1) : `<span class="gopt-label">${esc(o.label)}</span>
+    const hint = o.hint
+      ? ` data-hint-title="${esc(o.label)}" data-hint="${esc(o.hint)}" data-hint-terms="${esc(o.choices.map(c => c.label).join("|"))}"`
+      : "";
+    return `<div class="gopt${toggle ? " toggle" : ""}${variant ? ` ${variant}` : ""}" data-key="${esc(o.key)}" tabindex="0" role="slider"
+        aria-label="${esc(o.label)}" aria-valuemin="0" aria-valuemax="${o.choices.length - 1}"${hint}>
+      <span class="gopt-label">${esc(o.label)}</span>
       <span class="gopt-value"></span>
-      ${slider}`}
+      ${slider}
     </div>`;
   }).join("");
 }
@@ -69,8 +71,7 @@ export function bindOptionRows(root, options, store) {
   function draw(row) {
     const o = byKey[row.dataset.key], i = indexOf(o, store.get(o.key));
     const value = row.querySelector(".gopt-value");
-    if (value) value.textContent = o.choices[i].label;
-    row.querySelectorAll(".gopt-side").forEach((el, j) => el.classList.toggle("on", j === i));
+    value.textContent = o.choices[i].label;
     // An on/off option (offFirst) shows its first choice, off, in grey, as the game does.
     row.classList.toggle("off", !!o.offFirst && i === 0);
     row.querySelector(".gopt-thumb").style.setProperty("--at", thumbX(o, i).toFixed(2));
@@ -120,4 +121,20 @@ export function bindOptionRows(root, options, store) {
   const redraw = () => root.querySelectorAll(".gopt[data-key]").forEach(draw);
   redraw();
   return { step, redraw };
+}
+
+const ARROW_STEPS = { ArrowLeft: -1, ArrowRight: 1 };
+
+/**
+ * Keys for option rows outside the settings menu (side panels), as in the settings: left and right
+ * pick, Enter and Space flip. `rows` is what bindOptionRows returned for `root`.
+ */
+export function bindOptionKeys(root, rows) {
+  root.querySelectorAll(".gopt[data-key]").forEach(row => row.addEventListener("keydown", e => {
+    const by = ARROW_STEPS[e.key];
+    if (by) rows.step(row, by);
+    else if (e.key === "Enter" || e.key === " ") rows.step(row, 1, true);
+    else return;
+    e.preventDefault();
+  }));
 }

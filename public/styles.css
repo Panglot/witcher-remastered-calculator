@@ -74,7 +74,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: var(--cursor-pointer); }
 input[type="text"], textarea { cursor: text; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
-.num { font-variant-numeric: tabular-nums; }
 
 
 /* Planner screen (ui/tree.js, points.js, slots.js, legend.js, tooltip.js): the Character screen's
@@ -128,7 +127,7 @@ input[type="text"], textarea { cursor: text; }
 
 /* Game SVG parts (ui/gamePanels.js). */
 .gsvg { display: block; width: 100%; height: auto; overflow: visible; }
-.gsvg text, .gscreen text, .gbonus text { font-family: var(--font-game); }
+.gsvg text { font-family: var(--font-game); }
 .gtab, [tabindex].gnode, [tabindex].gsock, [tabindex].gdiamond, [tabindex].gitem { cursor: var(--cursor-pointer); outline: none; }
 /* Skills and holders are pressed and held (ui/hold.js): no text selection or touch callout. */
 [tabindex].gnode, [tabindex].gsock, [tabindex].gitem { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -197,8 +196,6 @@ input[type="text"], textarea { cursor: text; }
 /* POINTS AVAILABLE value (ui/points.js): display only, red when overspent. */
 .gpoints-value.over { fill: var(--bad); }
 
-/* Text */
-.treetag { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .1em; font-size: 13px; color: var(--tc); }
 .bad-msg { color: var(--bad); }
 
 /* Stacked: phones, and portrait screens (tablets), where side by side the screen would fill only the top third
@@ -481,27 +478,44 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .glead input::placeholder { color: #6b5d56; }
 .glead input:focus { outline: none; border-bottom-color: #c9b48c; }
 .glead input:not(:focus):not(:placeholder-shown) { color: var(--game-list-text); border-bottom-color: var(--game-list-text); }
-/* The Points section (Statistics): under its heading the playthrough switch on its own line, then two rows
-   of three value and label pairs (.gpoint) on one grid, so the columns line up: values cream, names tan,
-   like the game's stat lists. The lines are as far apart as the stat rows' (.gstats). Its fields sit in the
-   value column, sized to their digits (statistics.js, FIELDS). */
-.gpoints-mode { margin: 0 0 calc(6 * var(--u1)) calc(-8 * var(--u1)); }
-.gpoints { display: grid; grid-template-columns: repeat(3, max-content max-content); column-gap: calc(10 * var(--u1)); row-gap: calc(6 * var(--u1));
-  align-items: baseline; margin-bottom: calc(14 * var(--u1)); }
-.gpoint { display: grid; grid-column: span 2; grid-template-columns: subgrid; align-items: baseline; white-space: nowrap; }
-/* Room between the pairs of a row. */
-.gpoint:not(:nth-child(3n + 1)) .gstat-value { padding-left: calc(14 * var(--u1)); }
-/* The playthrough switch: the settings' toggle row (options.js, .gopt) without the row's background, each
-   choice named on its side of the slider (.gopt-sides), at the list's size: the picked one in the values'
-   colour, the other in the text colour. The thumb is in the text colour (the values' on hover), not the settings' grey. In the card's units; also overrides the narrow-window .gopt layout. */
-.gside .gopt-inline { --u: var(--u1); display: inline-grid; grid-template-columns: auto auto auto; align-items: center; column-gap: calc(14 * var(--u1)); row-gap: 0;
-  height: auto; margin: 0; padding: 0 calc(8 * var(--u1)); background: none; font-size: inherit; line-height: 1.25; white-space: nowrap; }
+/* The Points section (Statistics): under its heading (Set max at its end) the playthrough switch row, then two rows
+   of three value and label pairs (.gpoint) on one grid: values cream, names tan, like the game's stat lists.
+   The lines are as far apart as the stat rows' (.gstats). The three columns are as wide as their widest pair and
+   spread to the section's edges, so the grid ends where Set max and the switch do, with equal room between the
+   columns. Every value, field or not, sits in a slot as wide as the widest number (--gpoint-slot,
+   statistics.js FIELDS), centred, so the field lines are one length and the labels start at one offset. */
+/* Set max at the Points heading's right end, in the name field's column. */
+.glead-action { grid-column: 2; justify-self: end; align-self: center; }
+.gpoints { --gpoint-slot: calc(3ch + 2 * var(--u1)); display: grid; grid-template-columns: repeat(3, max-content); justify-content: space-between;
+  column-gap: calc(14 * var(--u1)); row-gap: calc(6 * var(--u1)); align-items: baseline; margin-bottom: calc(14 * var(--u1)); }
+.gpoint { display: grid; grid-template-columns: var(--gpoint-slot) max-content; column-gap: calc(10 * var(--u1)); align-items: baseline; white-space: nowrap; }
+.gpoint > .gstat-value { text-align: center; font-variant-numeric: tabular-nums; }
+/* A label that is one of two words (Available or Needed): both stacked in one cell, the other hidden, so the
+   column keeps the longer word's width and the grid doesn't shift when it changes. */
+.gpoint-swap { display: inline-grid; }
+.gpoint-swap > * { grid-area: 1 / 1; }
+.gpoint-swap > :last-child, .gpoint-swap.over > :first-child { visibility: hidden; }
+.gpoint-swap.over > :last-child { visibility: visible; }
+/* Side panels' switch rows (sidePanel.js, switchRows: Statistics' playthrough, Skill sets' modes): one row each,
+   like the settings' (options.js, .gopt) without the row's background, at the list's size: the name on the left
+   in the values' colour, then the picked value right-aligned in the text colour and the slider at the
+   row's end, so the sliders line up. The thumb is in the text colour (the values' on hover), not the settings'
+   grey. In the card's units; also overrides the narrow-window .gopt layout. The rows' padding gives the focus
+   frame room around the text and slider and stands in for the gap between the rows. It is pulled back
+   (the block's negative margins) so the text and sliders line up with the lines around them. 11 u sideways: the
+   frame is 3 u outside the row, so it ends at the edge of the body's 14 u right padding, which clips past it. */
+.gside-modes { display: grid; margin: calc(-6 * var(--u1)) calc(-11 * var(--u1)) calc(8 * var(--u1)); }
+/* Under a heading (Statistics' Points), the room goes above instead, between the heading and the rows. */
+.glead + .gside-modes { margin-top: calc(2 * var(--u1)); margin-bottom: 0; }
+.gside .gopt-inline { --u: var(--u1); display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; column-gap: calc(14 * var(--u1)); row-gap: 0;
+  height: auto; margin: 0; padding: calc(6 * var(--u1)) calc(11 * var(--u1)); background: none; font-size: inherit; line-height: 1.25; white-space: nowrap; }
+.gside .gopt-inline .gopt-label, .gside .gopt-inline .gopt-value { position: static; font-size: inherit; }
+.gside .gopt-inline .gopt-label { color: var(--game-list-value); overflow: hidden; text-overflow: ellipsis; }
+.gside .gopt-inline .gopt-value { color: var(--game-list-text); }
 .gside .gopt-inline .gopt-slider { position: relative; left: auto; top: auto; grid-column: auto; justify-self: start; }
 .gside .gopt-inline .gopt-thumb { background: var(--game-list-text); }
 .gside .gopt-inline .gopt-slider:hover .gopt-thumb, .gside .gopt-inline .gopt-slider.dragging .gopt-thumb { background: var(--game-list-value); }
-.gopt-side { color: var(--game-list-text); }
-.gopt-side.on { color: var(--game-list-value); }
-.gnum { width: calc(max(var(--digits, 3), 2) * 1ch + 2 * var(--u1)); padding: 0; border: 0; border-bottom: max(1px, var(--u1)) solid #4a403b;
+.gnum { box-sizing: border-box; width: 100%; padding: 0; text-align: inherit; border: 0; border-bottom: max(1px, var(--u1)) solid #4a403b;
   background: transparent; color: inherit; font: inherit; font-variant-numeric: tabular-nums; }
 .gnum::placeholder { color: #6b5d56; }
 /* A number field with a number (focused or not) has its line in the values' colour, like the number. The total has no
@@ -576,7 +590,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gstat-band > .gstat-value:not(.gstat-detail) { grid-row: 1; grid-column: 1; }
 /* On the band, the label in the values' colour so it reads on red or blue; its "up to" note stays in the text colour. */
 .gstat-band > .gstat-label:not(.gstat-detail) { grid-row: 1; grid-column: 2; color: var(--game-list-value); }
-/* Rows that are buttons (skill sets): placeholders until they get their own design. */
+/* Rows that are buttons (the Skill sets panel's sets). */
 .gstat-btn { position: relative; isolation: isolate; margin: 0; padding: calc(2 * var(--u1)) calc(6 * var(--u1)) calc(2 * var(--u1)) 0;
   border: 0; background: none; font: inherit; text-align: left; cursor: var(--cursor-pointer); }
 /* The pressed look sits behind the row and reaches 10 u past its left, like the totals' band (.gstat-band-art), so the
@@ -590,13 +604,14 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gstat-btn[aria-pressed="true"]::before { border-left-color: var(--bar, var(--game-list-text)); background: rgba(255, 255, 255, .06); }
 .gside-sub { margin: calc(16 * var(--u1)) 0 calc(6 * var(--u1)); color: #ffffff; text-transform: uppercase; }
 .gside-note { margin: calc(6 * var(--u1)) 0 0; color: var(--game-list-text); }
-/* A status line with an action at its right end (Skill sets' "N Highlighted" and Clear). */
+/* A status line with an action at its right end (Skill sets' "Sets selected" and Clear). */
 .gside-status { display: flex; align-items: center; justify-content: space-between; gap: calc(14 * var(--u1)); }
 /* An action in a side panel: the popup button (.gpopup-btn) with its padding and hover, as tall as its text,
    in the panel's text colour and size. */
 .gpopup-btn.gside-action { height: auto; color: var(--game-list-text); font-size: inherit; line-height: inherit; }
 .gpopup-btn.gside-action:disabled { background: #161515; color: #6b5d56; cursor: var(--cursor); }
 #side-skillSets { --gstat-value-min: 3ch; }
+.gside-head:has(> .gside-overview) + .gside-live > .gside-sec:first-child { margin-top: calc(16 * var(--u1)); }
 #side-skillSets .gstat-value { font-variant-numeric: tabular-nums; }
 /* The toggle: a round button with the arrow, centred on the covered part's bottom edge. The tree's sits on the
    line above POINTS AVAILABLE (tree/separator.png at screen y 905, 3 px tall: 6.5 px under the tree area's
@@ -650,13 +665,33 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* Game skill tooltip: gray header with its frame, translucent panel. Text positions and colours from
    layout/tooltip.json, label colours sampled from docs/reference. Sizes are game px times --u. */
 .gtip { --u1: var(--u, 1px); width: calc(500 * var(--u1)); background: var(--game-tooltip); box-shadow: 0 6px 18px #000; font-family: var(--font-game); color: var(--game-text); font-size: calc(24 * var(--u1)); line-height: 1.1; padding-bottom: calc(12 * var(--u1)); }
-.gtip-head { position: relative; height: calc(79 * var(--u1)); }
-.gtip-head img { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* A skill's header grows past its 79 when its sets wrap (.gtip-skill below). The background is a sideways
+   gradient, so it stretches; the frame (header-frame.png, 524 x 63, 8 px corners) is 9-sliced so its corners
+   keep the size they have at 79 tall (8 px drawn 500 / 524 wide, 79 / 63 tall). */
+.gtip-head { position: relative; min-height: calc(79 * var(--u1)); box-sizing: border-box; }
+.gtip-head img, .gtip-frame { position: absolute; inset: 0; width: 100%; height: 100%; }
+.gtip-frame { box-sizing: border-box; border: solid transparent; border-width: calc(10.03 * var(--u1)) calc(7.63 * var(--u1));
+  border-image: url("assets/ui/tooltip/header-frame.png") 8 / calc(10.03 * var(--u1)) calc(7.63 * var(--u1)); }
 .gtip-head span { position: absolute; white-space: nowrap; line-height: 1.2; }
 .gtip-name { left: calc(10 * var(--u1)); top: calc(11 * var(--u1)); }
 .gtip-type { right: calc(10 * var(--u1)); top: calc(12 * var(--u1)); color: var(--game-type); }
 .gtip-level { left: calc(10 * var(--u1)); top: calc(46 * var(--u1)); font-size: calc(25 * var(--u1)); color: var(--game-level); }
 .gtip-req { right: calc(10 * var(--u1)); top: calc(47 * var(--u1)); font-size: calc(23 * var(--u1)); color: var(--game-req); }
+/* A skill's header on a grid: the name top left and the level bottom left, where the game has them (the padding
+   and rows put them at the same spots: name at 11, level ending at 76), and the skill's sets (not the game's)
+   in a column on the right that spans the header's height. The sets sit at its bottom right, at most half the
+   header wide and never over the name; each set stays on one line, the list wraps between them, and a list
+   taller than the header makes it grow. In the [Hold] orange. */
+.gtip-skill .gtip-head { display: grid; grid-template-columns: max-content minmax(0, 1fr); grid-template-rows: auto 1fr auto;
+  column-gap: calc(16 * var(--u1)); padding: calc(11 * var(--u1)) calc(10 * var(--u1)) calc(3 * var(--u1)); }
+/* Positioned (not static), so they draw over the header art, which is absolutely positioned; without the
+   offsets they have as absolute spans, which would move them out of their grid cells. */
+.gtip-skill .gtip-head :is(.gtip-name, .gtip-level, .gtip-sets) { position: relative; inset: auto; }
+.gtip-skill .gtip-head .gtip-set { position: static; }
+.gtip-skill .gtip-name { grid-area: 1 / 1; }
+.gtip-skill .gtip-level { grid-area: 3 / 1; }
+.gtip-skill .gtip-head .gtip-sets { grid-column: 2; grid-row: 1 / -1; align-self: end; justify-self: end; max-width: calc(240 * var(--u1));
+  margin-bottom: calc(1.4 * var(--u1)); white-space: normal; text-align: right; font-size: calc(23 * var(--u1)); color: var(--game-hold); }
 .gtip-cur, .gtip-next { display: grid; margin: calc(8 * var(--u1)) calc(11 * var(--u1)) 0; }
 .gtip-next { font-size: calc(23 * var(--u1)); color: var(--game-next); margin-top: calc(12 * var(--u1)); }
 .gtip-cur .gtip-label { color: var(--game-current); }
@@ -679,7 +714,8 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gtip-rarity { color: #767372; font-size: calc(23 * var(--u1)); }
 /* Hint tooltip (an empty slot's): title only in the header, one line under it. */
 .gtip-hint .gtip-text { margin-top: calc(10 * var(--u1)); }
-@media (max-width: 900px) { .gpair { grid-template-columns: minmax(0, 1fr); } }
+/* A choice's name at the start of a hint line (a switch's), in the values' colour like the switch rows' names. */
+.gtip-term { color: var(--game-list-value); }
 
 /* Toasts (ui/toast.js): bottom centre, over the layers. Each is the message popup's frame (popup/frame.svg,
    its lines only) on the tooltip's fill, with the tooltip's text. Sizes are game px times --u. */

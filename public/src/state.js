@@ -28,6 +28,8 @@ export function loadState(catalog) {
   if (!catalog.tabs.includes(state.tab)) state.tab = catalog.order[0];
   if (state.sel && !catalog.nodes[state.sel]) state.sel = null;
   if (state.selMut && !catalog.mutagenId(state.selMut)) state.selMut = null;
+  // Highlighted skill sets that no longer exist (renamed or removed in data/skillSets.js) are dropped.
+  state.skillSets = Array.isArray(state.skillSets) ? state.skillSets.filter(id => catalog.skillSets.some(s => s.id === id)) : [];
   // Saved before mutagen sizes, `mut` held colours.
   state.mut = Array.isArray(state.mut) && state.mut.length === catalog.slots.groups
     ? state.mut.map(catalog.mutagenId) : Array(catalog.slots.groups).fill("");

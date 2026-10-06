@@ -1,25 +1,17 @@
 # Roadmap
 
-Only open work, in the order to do it. Finished work lives in the commits. Each item has what's **Left** and **To decide** (questions only the owner can answer). Recommendations are opinions, open to change. Code comments point at items by name, not number.
+Only open work, in the order to do it. Finished work lives in the commits. Each item has what's **Left** and **To decide** (questions only the owner can answer). Recommendations are opinions, open to change.
 
 ## Overview
 
 | # | Item | Left |
 | --- | --- | --- |
-| 1 | Skill sets, second pass | Recap and research, toggle tooltip, panel text |
-| 2 | Level and slot unlocks (optional) | Everything |
+| 1 | Level and slot unlocks (optional) | Everything |
+| 2 | Skill search (optional) | Everything |
 | 3 | Blood and Wine mutations (later) | Everything |
+| 4 | Builds (optional) | Everything |
 
-## 1. Skill sets panel, second pass
-
-**Now:** `data/skillSets.js` has 16 hand-picked skill sets (combat 4, signs 5, alchemy 5, general 2), each a name, a tree for the chip color and a list of skill ids. The panel (`ui/skillSets.js`, toggled with S) lists them per tree; pressing one frames its skills in the tree.
-
-**Left:**
-
-- **Recap and research:** check that the current skill sets are all we need. Compare against the play styles the community actually builds (and the Remastered patch changes), look for missing ones, overlaps (e.g. Evasion and Adrenaline economy share skills) and wrong skill picks. Confirm each skill list against the skill text (`data/skillText.js`), not wikis.
-**To decide:** whether skill sets get a one-line description each.
-
-## 2. Character level and slot unlocks (optional)
+## 1. Character level and slot unlocks (optional)
 
 **Now:** every socket and diamond is open. The lock art (`slots/lock.svg`) and the apply-mode rule that locked holders can't be picked are documented in [game-assets.md](game-assets.md) but not used.
 
@@ -39,6 +31,21 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 **To decide:**
 - The Statistics panel's Level field (progress, part of the build) already exists: decide whether level mode reads it, or gets its own.
 - Where the mode switch and the level field go: Statistics panel or main screen.
+
+## 2. Skill search (optional)
+
+**Goal:** Ctrl + F opens a search field that finds skills by name (and maybe by effect text), so a skill can be found without knowing its tree.
+
+**Now:** the hotkey handler (`createHotkeys` in `ui/dom.js`) skips every key with a modifier, so Ctrl + F still opens the browser's own find.
+
+**Recommendation:**
+- Catch Ctrl + F (Cmd + F on Mac) and prevent the browser default only while the planner is open, so the browser's find still works elsewhere.
+- Search the skill names and text in `data/skillText.js`. Picking a result switches to its tree and focuses the skill, the same way a skill set frames its skills.
+- Open it as a layer (`ui/layers.js`) so Escape closes it like the other panels.
+
+**To decide:**
+- Names only, or effect text too.
+- Whether matches are shown as a result list, or highlighted in place in the trees.
 
 ## 3. Blood and Wine mutations (later)
 
@@ -61,3 +68,9 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 **Recommendation:** don't start this before Level and slot unlocks. It reuses the skill text extraction tool, and it needs the variable slot count, so build that slot model (slots that can be locked) with Level and slot unlocks in a way mutations can extend.
 
 **To decide:** does the build track which mutations are researched (and their cost in points), or only the one equipped?
+
+## 4. Builds (optional)
+
+**Goal:** ready-made builds (presets) like Spellsword: a named build that loads its skills, slots and mutagens. Unlike skill sets, a build is a combination of themes, not one theme.
+
+**To decide:** where the presets come from (hand-picked, or community builds), and where they are picked (Esc menu, or the Skill sets panel).

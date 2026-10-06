@@ -37,6 +37,7 @@ test("codes made before names were added still load", () => {
 test("a calculated budget round-trips its progress; codes without one load as a custom total", () => {
   const a = sample();
   cat.budget.setNgPlus(a, true);
+  cat.budget.setMax(a);
   cat.budget.setField(a, "level", 60);
   const s = loaded(encodeBuildCode(a));
   assert.deepEqual([s.progress, s.budget], [{ ngPlus: true, level: 60, places: 60, other: 6, custom: false }, 59 + 66]);

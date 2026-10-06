@@ -1,7 +1,7 @@
 // Sharing the build: copy its code or a share link, export it as a file, load it from a code, a link
-// or a file. Used by the share tools (ui/buildTools.js) and by the page start
-// (a share link opened in the browser). It touches no page markup: every action reports what
-// happened as { ok, text } for the caller to show.
+// or a file. Used by the share tools (ui/buildTools.js) and by the page start (a share link opened
+// in the browser). It touches no page markup: every action reports what happened as { ok, text }
+// for the caller to show.
 import { confirmPopup } from "./popup.js";
 import { encodeBuildCode, decodeBuildCode, applyBuildData, exportFile, isEmptyBuild, shareLink, readShareLink, CODE_PREFIX } from "../core/build.js";
 
@@ -22,8 +22,8 @@ export function createBuildShare(app) {
     }
   }
 
-  // Loading over a build with something in it asks first. Without the
-  // game art there is no popup to ask with, so it loads.
+  // Loading over a build with something in it asks first. Without the game art there is no popup
+  // to ask with, so it loads.
   async function replaceAllowed(incoming) {
     if (isEmptyBuild(state) || !app.game) return true;
     const from = state.name ? `"${state.name}"` : "the current build";

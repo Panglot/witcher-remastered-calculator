@@ -5,6 +5,7 @@ import { $, isTouchScreen } from "./dom.js";
 import { createTipHost } from "./tipHost.js";
 import { rankText, allRanksParts } from "../core/skillText.js";
 import { SKILL_TEXT_MODERN } from "../settings.js";
+import { setLabels } from "../core/skillSets.js";
 
 // Rounds away float noise in passive bonus totals (0.1 + 0.2).
 const tidy = n => Math.round(n * 10) / 10;
@@ -20,10 +21,11 @@ const allRanksLine = (parts, rank) => parts.flatMap(p => typeof p === "string" ?
 
 /**
  * A part's data-hint as the game's hint tooltip (ui/gamePanels.js, hintTooltip): data-hint-title
- * over it, and data-hint-note under it, red with data-hint-note-bad.
+ * over it, and data-hint-note under it, red with data-hint-note-bad. data-hint-terms: names, split
+ * by "|", that are marked where a line starts with them (an option row's choices, ui/options.js).
  */
 export const hintTip = (app, part) => app.game.panels.hintTooltip({
-  title: part.dataset.hintTitle, text: part.dataset.hint,
+  title: part.dataset.hintTitle, text: part.dataset.hint, terms: part.dataset.hintTerms?.split("|"),
   note: part.dataset.hintNote, noteBad: "hintNoteBad" in part.dataset
 });
 
@@ -34,7 +36,9 @@ export function mountTooltip(app) {
   function skillTip(id) {
     const n = nodes[id], T = trees[n.tree], rank = planner.rank(state, id);
     const passive = r => `${T.passive.label}: +${tidy(T.passive.per * r)}${T.passive.unit}`;
-    const head = { name: n.name, level: `${rank}/${maxRank}`, note: id === state.sel ? app.msg : "" };
+    // The skill's sets (ui/skillSets.js): the selected ones, or every one with the panel's switch.
+    const sets = setLabels(catalog, id, state.skillSets, app.settings.skillSetsInTooltip);
+    const head = { name: n.name, level: `${rank}/${maxRank}`, sets, note: id === state.sel ? app.msg : "" };
     if (app.settings.skillText === SKILL_TEXT_MODERN) {
       const ranks = Array.from({ length: maxRank }, (_, i) => tidy(T.passive.per * (i + 1)));
       const passiveParts = [`${T.passive.label}: +`, { values: ranks }, T.passive.unit];

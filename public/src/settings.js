@@ -1,6 +1,6 @@
 // Viewer settings and their copy in localStorage, under their own key so loading or resetting a
-// build never changes them; only the menu's "Reset all data" clears them
-// with the build. The key is versioned like the build's.
+// build never changes them; only the menu's "Reset all data" clears them with the build. The key
+// is versioned like the build's.
 import { HOLD_MS } from "./ui/hold.js";
 import { REGIONS } from "./ui/gameArt.js";
 
@@ -25,7 +25,11 @@ export function defaultSettings() {
     // Page background (ui/backdrop.js): a REGIONS id, or BACKGROUND_RANDOM / BACKGROUND_CYCLE.
     background: BACKGROUND_RANDOM,
     // Skill descriptions: SKILL_TEXT_CLASSIC or SKILL_TEXT_MODERN.
-    skillText: SKILL_TEXT_CLASSIC
+    skillText: SKILL_TEXT_CLASSIC,
+    // Skill sets panel (ui/skillSets.js): highlight only the skills in every selected set, not in any;
+    // and name a skill's sets in its tooltip always, not only the selected ones.
+    skillSetsMatchAll: false,
+    skillSetsInTooltip: false
   };
 }
 

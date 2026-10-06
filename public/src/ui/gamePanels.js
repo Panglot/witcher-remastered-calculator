@@ -1,7 +1,7 @@
 // The Character screen's panels, built from the pieces in screen units (layout/screen.json): tree
 // panel (a skill tree or the mutagen inventory), points row, mutagen panel, key legend, tooltip and
-// message popup. Each takes a plain view model. Interactive parts
-// take the caller's `attrs` (data-*, tabindex, aria-*); the caller wires the events.
+// message popup. Each takes a plain view model. Interactive parts take the caller's `attrs`
+// (data-*, tabindex, aria-*); the caller wires the events.
 import { esc } from "./dom.js";
 import { artUrl, doubleLine, gridPos, lineEnds, BONUS_BAR, BONUS_GLYPH_AT, GAME_TABS, INVENTORY, LINE_COLORS, MUTAGEN_ART, SOCKET } from "./gameArt.js";
 import { fmt, placed } from "./gamePieces.js";
@@ -185,9 +185,9 @@ export function createPanels(art, pieces) {
   /**
    * The slot groups at their screen position: sockets, connectors, diamonds, bonus labels and the
    * centre ornament. Groups in order: left top, right top, left bottom, right bottom. A socket's
-   * connectors light when its skill colour matches the group's mutagen. Like tree
-   * nodes, sockets and diamonds carry their selection frame for CSS (`.gsock.selected`, `.gdiamond.selected`),
-   * and "full" when they hold something.
+   * connectors light when its skill colour matches the group's mutagen. Like tree nodes, sockets
+   * and diamonds carry their selection frame for CSS (`.gsock.selected`, `.gdiamond.selected`), and
+   * class "full" when they hold something.
    * @param {{ groups: GroupView[], bonusSockets?: boolean }} o  bonusSockets: the four locked
    *   Mutations sockets, which the game shows only with Blood and Wine mutations.
    */
@@ -239,8 +239,10 @@ export function createPanels(art, pieces) {
     return lines + pieces.imgAt("slots/divider-ornament.png", cx, cy, 0.5);
   }
 
-  /** Key legend (HTML), left to right. items: LegendItem[], or LegendItem[][] for groups set apart by a
-   *  wider gap, each kept together when the legend wraps. Sizes follow the CSS custom property --u (1 game px). */
+  /**
+   * Key legend (HTML), left to right. items: LegendItem[], or LegendItem[][] for groups set apart by
+   * a wider gap, each kept together when the legend wraps. Sizes follow --u (1 game px).
+   */
   function legend(items) {
     const groups = Array.isArray(items[0]) ? items : [items];
     return `<div class="glegend">${groups.map(g => `<div class="glegend-group">${g.map(legendItem).join("")}</div>`).join("")}</div>`;
@@ -264,7 +266,7 @@ export function createPanels(art, pieces) {
   const tipFrame = (head, body, note, cls = "", noteOk = false) => `<div class="gtip${cls}">
       <div class="gtip-head">
         <img src="${artUrl("tooltip/header.png")}" alt="">
-        <img src="${artUrl("tooltip/header-frame.png")}" alt="">
+        <div class="gtip-frame" aria-hidden="true"></div>
         ${head}
       </div>
       ${body}
@@ -283,17 +285,22 @@ export function createPanels(art, pieces) {
    * Skill tooltip (HTML, SkillTooltipRef): the gray header with the name, optional type and the
    * level string ("1/3"), then the current and next level blocks. Each block is a list of lines.
    * `all` replaces both with one unlabelled block (the "Modern" text for every rank, ui/tooltip.js).
-   * `req` is the red requirement text, `note` a red line under everything.
-   * @param {{ name: string, type?: string, level?: string, req?: string, current?: TipLine[],
+   * `req` is the red requirement text, `note` a red line under everything. `sets` (not the game's)
+   * are the skill's sets, in a column right of the name and level: each kept on one line, the list
+   * wrapping between them, and the header growing to fit (styles.css, .gtip-sets).
+   * @param {{ name: string, type?: string, level?: string, req?: string, sets?: string[], current?: TipLine[],
    *   next?: TipLine[], all?: TipLine[], note?: string }} o
    */
-  function tooltip({ name, type = "", level = "", req = "", current, next, all, note = "" }) {
+  function tooltip({ name, type = "", level = "", req = "", sets = [], current, next, all, note = "" }) {
     const block = (cls, label, lines) => lines && lines.length
       ? `<div class="${cls}">${label ? `<span class="gtip-label">${label}</span>` : ""}${lines.map(tipLine).join("")}</div>` : "";
+    // The comma stays with the set before it, so a line never starts with one.
+    const setList = sets.length ? `<span class="gtip-sets">${sets.map((s, i) =>
+      span("gtip-set", i < sets.length - 1 ? `${s},` : s)).join(" ")}</span>` : "";
     return tipFrame(
-      span("gtip-name", name.toUpperCase()) + span("gtip-type", type) + span("gtip-level", level) + span("gtip-req", req),
+      span("gtip-name", name.toUpperCase()) + span("gtip-type", type) + span("gtip-level", level) + span("gtip-req", req) + setList,
       all ? block("gtip-cur gtip-all", "", all)
-        : block("gtip-cur", "Current level:", current) + block("gtip-next", "Next level:", next), note);
+        : block("gtip-cur", "Current level:", current) + block("gtip-next", "Next level:", next), note, " gtip-skill");
   }
 
   /**
@@ -314,11 +321,18 @@ export function createPanels(art, pieces) {
 
   /**
    * Hint tooltip (HTML, SkillTooltipRef as the game shows it over an empty slot): the header with
-   * only the title, then one plain line, and an optional note under it (red when `noteBad`).
-   * @param {{ title?: string, text: string, note?: string, noteBad?: boolean }} o
+   * only the title, then plain text, and an optional note under it (red when `noteBad`).
+   * @param {{ title?: string, text: string, terms?: string[], note?: string, noteBad?: boolean }} o
    */
-  function hintTooltip({ title = "", text, note = "", noteBad = false }) {
-    return tipFrame(span("gtip-name", title.toUpperCase()), `<p class="gtip-text">${esc(text)}</p>`, note, " gtip-hint", !noteBad);
+  function hintTooltip({ title = "", text, terms = [], note = "", noteBad = false }) {
+    // A line break in the text starts a new line (a switch's hint: one line per choice). A line that
+    // starts with one of `terms` (the choices' names) has it in the values' colour.
+    const line = l => {
+      const term = terms.find(t => l.startsWith(`${t} `));
+      return term ? span("gtip-term", term) + esc(l.slice(term.length)) : esc(l);
+    };
+    const lines = text.split("\n").map(line).join("<br>");
+    return tipFrame(span("gtip-name", title.toUpperCase()), `<p class="gtip-text">${lines}</p>`, note, " gtip-hint", !noteBad);
   }
 
   /**

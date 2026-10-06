@@ -1,11 +1,11 @@
 // Key legend under the planner screen, in the game's style. Like the game, it lists the controls
 // for what is selected: the open tab, then the selected skill's state or the socket / diamond that
-// frames the selection, then the general controls in a group of their own. "Reset abilities" is a button and the R key, both asking first in the
-// game's message popup (ui/popup.js). "Menu" opens the Esc menu (ui/menu.js), like Esc; "Statistics"
-// toggles the Statistics panel (ui/statistics.js), like C; "Skill sets" the Skill sets panel
-// (ui/skillSets.js), like S. Remove point, Equip and Unequip are buttons for the selection, like
-// their mouse buttons and keys. Apply mode
-// hides the legend while its popup is up.
+// frames the selection, then the general controls in a group of their own. "Reset abilities" is a
+// button and the R key, both asking first in the game's message popup (ui/popup.js). "Menu" opens
+// the Esc menu (ui/menu.js), like Esc; "Statistics" toggles the Statistics panel
+// (ui/statistics.js), like C; "Skill sets" the Skill sets panel (ui/skillSets.js), like S. Remove
+// point, Equip and Unequip are buttons for the selection, like their mouse buttons and keys. Apply
+// mode hides the legend while its popup is up.
 import { $ } from "./dom.js";
 import { confirmPopup } from "./popup.js";
 import { MUTAGEN_TAB } from "../core/catalog.js";

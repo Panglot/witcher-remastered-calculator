@@ -1,10 +1,10 @@
-// The Build drawer of the Esc menu: it opens under the Build item like an
-// accordion (ui/menu.js). Inside: the build name (the same field as in Statistics), the share tools
-// as icon buttons (ui/buildTools.js, the same ones as on the rail right of the slots), and a field
-// to paste a code or a link into for Load code (one line like the name field: the code isn't meant
-// to be read). Until something is typed there, the field shows the current build's code (empty for
-// an empty build), following renames. Unlike the rail, the drawer's Export file and Load code use
-// these fields instead of asking in a popup.
+// The Build drawer of the Esc menu: it opens under the Build item like an accordion (ui/menu.js).
+// Inside: the build name (the same field as in Statistics), the share tools as icon buttons
+// (ui/buildTools.js, the same ones as on the rail right of the slots), and a field to paste a code
+// or a link into for Load code (one line like the name field: the code isn't meant to be read).
+// Until something is typed there, the field shows the current build's code (empty for an empty
+// build), following renames. Unlike the rail, the drawer's Export file and Load code use these
+// fields instead of asking in a popup.
 //
 // A drawer is { markup(), mount(el), pick(el), step(el, dir) } for the menu: pick runs the tool `el`
 // and step moves along the tools (the arrows left and right); both return false for anything else.

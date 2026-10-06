@@ -1,10 +1,10 @@
 // The build's share tools (copy code, export file, load code, import file, copy share link) as icon
 // buttons with the game's hint tooltip (data-hint says what the tool does); a run's result shows as
-// a toast (ui/toast.js), in red when it failed. Two places
-// draw them: the Build drawer of the Esc menu (ui/buildMenu.js, which runs them against its own
-// name and code fields) and the rail right of the slots (ui/buildRail.js), which runs them here:
-// the rail has no text fields, so the tools that need text ask for it in a popup (ui/popup.js), the
-// export the build name and Load code the code or link. The work itself is ui/share.js.
+// a toast (ui/toast.js), in red when it failed. Two places draw them: the Build drawer of the Esc
+// menu (ui/buildMenu.js, which runs them against its own name and code fields) and the rail right
+// of the slots (ui/buildRail.js), which runs them here: the rail has no text fields, so the tools
+// that need text ask for it in a popup (ui/popup.js), the export the build name and Load code the
+// code or link. The work itself is ui/share.js.
 //
 // The icons are game art cut to one-colour glyphs (tools/asset-recipe.json, icons/) that the page
 // tints like the menu text: photo mode's copy squares, the save indicator's card for Load code, and

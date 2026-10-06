@@ -4,7 +4,7 @@ export default {
   color: "var(--signs)",
   dark: "#1c2f4a",
   // Bonus granted per point spent anywhere in this tree.
-  passive: { label: "Stamina regen in combat", per: 0.5, unit: "%" },
+  passive: { label: "Stamina regen in combat", per: 0.5, unit: "/s" },
   // Mutagen colour this tree's skills match, or null.
   mutagen: "blue",
 

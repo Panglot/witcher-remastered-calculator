@@ -85,9 +85,28 @@ export function createCatalog(data) {
     nodes[a].to.push(b); nodes[b].from.push(a);
   }));
 
-  skillSets.forEach(a => a.ids.forEach(id => {
-    if (!nodes[id]) problems.push(`Skill set "${a.id}" lists unknown skill "${id}".`);
+  // Skill sets (data/skillSets.js): listed per tree, flattened in tree order, each with the `tree`
+  // it is shown under. A set given by `roles` gets its ids from them and `role`, each skill's role
+  // (none for a set without roles).
+  skillSets.forEach(g => {
+    if (!order.includes(g.tree)) problems.push(`Skill sets are listed under unknown tree "${g.tree}".`);
+  });
+  const sets = order.flatMap(t => skillSets.filter(g => g.tree === t)).flatMap(g => (g.sets || []).map(s => {
+    const roles = s.roles ? Object.entries(s.roles) : [];
+    const ids = s.roles ? roles.flatMap(([, list]) => list) : s.ids || [];
+    const role = Object.fromEntries(roles.flatMap(([r, list]) => list.map(id => [id, r])));
+    return { id: s.id, name: s.name, tree: g.tree, ids: [...new Set(ids)], role };
   }));
+  const setIds = new Set();
+  skillSets.flatMap(g => g.sets || []).forEach(s => {
+    if (setIds.has(s.id)) problems.push(`Duplicate skill set id "${s.id}".`);
+    setIds.add(s.id);
+    const ids = s.roles ? Object.values(s.roles).flat() : s.ids || [];
+    ids.forEach((id, i) => {
+      if (!nodes[id]) problems.push(`Skill set "${s.id}" lists unknown skill "${id}".`);
+      else if (ids.indexOf(id) !== i) problems.push(`Skill set "${s.id}" lists "${id}" twice.`);
+    });
+  });
 
   /** @type {Record<string, Mutagen>} */
   const mutagens = {};
@@ -123,7 +142,7 @@ export function createCatalog(data) {
   const slots = { groups: rules.slotGroups, perGroup: rules.slotsPerGroup, total: rules.slotGroups * rules.slotsPerGroup };
 
   return {
-    rules, trees, skillSets, order, nodes, edges, slots, problems,
+    rules, trees, skillSets: sets, order, nodes, edges, slots, problems,
     maxRank: rules.maxRank,
     mutagens, mutagenId, totals,
     // The points budget (core/budget.js). Test data without rules.points: level 1 and nothing else.

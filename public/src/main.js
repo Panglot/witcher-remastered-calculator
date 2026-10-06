@@ -51,8 +51,8 @@ const app = {
   apply: null,
   // The item being dragged to a holder (ui/drag.js): { kind, id, from }, else null. Not saved.
   drag: null,
-  // Everything open over the planner (popups, apply mode, a drag, later the menu and side panels),
-  // top first: Esc, keys, focus and inert go through it (ui/layers.js).
+  // Everything open over the planner (popups, apply mode, a drag, the menu, side panels), top
+  // first: Esc, keys, focus and inert go through it (ui/layers.js).
   layers,
   // Page-wide planner keys; panels add their handlers. Open layers get keys first.
   hotkeys: createHotkeys(layers),
@@ -98,7 +98,7 @@ app.views = {
   apply: mountApplyMode(app),
   drag: mountDrag(app),
   legend: mountLegend(app),
-  // Side panels (C, H) over the tree and the slots.
+  // Side panels (C, S) over the tree and the slots.
   stats: mountStatistics(app),
   skillSets: mountSkillSets(app),
   tooltip: mountTooltip(app),

@@ -45,18 +45,14 @@ const GAME_FONT_CAP_HEIGHT = 0.69;
 
 // Hover glow filters by piece kind, referenced by id from every game SVG.
 const GLOW_ID = { skill: "gglow-skill", item: "gglow-item" };
-// Touch buttons on a skill's sides (planner-only, stepButton): the side panels' toggle drawn 24 px
-// wide (ui/sidePanel.js, toggleArt: a 28 u disc with a 1 u dark edge, then a 1.5 u dark ring) with
-// its arrow, up for a point in and down for one out. On a phone the tree is drawn at about 0.6 px a
+// Touch buttons on a skill's sides (planner-only, stepButton): the side panels' toggle
+// (ui/sidePanel.js, toggleArt) drawn 24 px wide. On a phone the tree is drawn at about 0.6 px a
 // unit, so the tap area is larger than the button: the skill's full height, and from `in` px inside
-// the skill out to `out` px beyond its edge, half the 46 px gap to a skill beside it (gameArt.js,
-// GAP_X), so neighbours' areas don't overlap.
+// the skill to `out` px beyond its edge, half the 46 px gap to its neighbour (gameArt.js, GAP_X).
 const STEP = { size: 24, hit: { in: 16, out: 23, half: SOCKET / 2 }, ink: "#f8f8f8", rim: "#100808" };
-// A step button on an open (unlearned) skill looks like that skill: both rings in the grey border's
-// tone (node/border-grey.png), brightened from its #929092 (mean of its brighter half): the rings are
-// far thinner than that border, and smoothed into the dark around them they read darker. And the fill darkened as the skill's
-// is, by the vignette (OPEN_VIGNETTE times its mean cover, 0.66 of node/equipped-overlay.png) and the
-// shade (OPEN_SHADE) over each other.
+// On an open (unlearned) skill the button looks like that skill: the rings in the grey border's
+// tone (node/border-grey.png, brightened: thin rings read darker), and the fill darkened by the
+// same vignette (OPEN_VIGNETTE times node/equipped-overlay.png's mean cover, 0.66) and shade.
 const STEP_OPEN = { rim: "#d4d2d4", shade: 1 - (1 - OPEN_VIGNETTE * 0.66) * (1 - OPEN_SHADE) };
 const STEP_ARROW_ID = "gstep-arrow";
 const STEP_TURN = { add: 180, remove: 0 };
