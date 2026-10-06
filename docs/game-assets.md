@@ -38,8 +38,8 @@ To add or change an asset, edit [tools/asset-recipe.json](../tools/asset-recipe.
 
 | Script | What it does |
 | --- | --- |
-| `build_ui_assets.py` | Recipe-driven builder. Source types: `atlas` (movie sub-image, optionally over a solid shape with `"under"`), `cache` (`texture.cache` path), `svg` (FFDec shape or sprite frame, by number or label), `skills` (all skill icons), `placements` (layout JSON of a sprite's named children). New source types are one class each in `HANDLERS`. |
-| `game_files.py` | Library: `.bundle` and CR2W readers, `CSwfTexture` atlas textures (DXT5), `texture.cache` reader. |
+| `build_ui_assets.py` | Recipe-driven builder. Source types: `atlas` (movie sub-image, optionally over a solid shape with `"under"`), `cache` (`texture.cache` path), `cursor` (`RT_CURSOR` resource of the game executable), `svg` (FFDec shape or sprite frame, by number or label), `skills` (all skill icons), `placements` (layout JSON of a sprite's named children). New source types are one class each in `HANDLERS`. |
+| `game_files.py` | Library: `.bundle` and CR2W readers, `CSwfTexture` atlas textures (DXT5), `texture.cache` reader, Win32 resources of the executable (`exe_cursor`). |
 | `gfx_movie.py` | Library: SWF/GFX parser. Atlas images and sub-images, shapes with all fill styles, sprites with frame labels, PlaceObject/RemoveObject, text fields, symbol classes. `display_list(sprite, frame)` gives what is visible on a frame. `GameMovies` loads movies and textures straight from `r4gui.bundle`. Checked against FFDec's dump: all 203 sprites match. |
 | `extract_skill_icons.py` | Skill icon export by skill id, plus `skills.json`. Used by the builder; as a CLI it also writes the hidden `perk_8` icon. |
 | `render_movie.py` | Library: draws a sprite's bitmaps at their placement matrices (no vectors or text). |
@@ -79,12 +79,17 @@ java -jar ffdec.jar -format sprite:png -zoom 2 -export sprite out research/swf/p
 | Localized text | `content/content0/<lang>.w3strings` (one file per language, no DLC string files) | Encrypted string table |
 | Skill icons, mutagen icons, menu panoramas | `content/content0/texture.cache` (31 GB) | Paged zlib blobs |
 | Game logic | `content/content0/scripts/**/*.ws` | Plain text |
+| Mouse cursor | `bin/x64_dx12/witcher3.exe`: `RT_CURSOR` 12 (group 102) | 32x32 32-bit DIB with AND mask, hotspot 0 0 |
 
 All bundles are in `content/content0/bundles/`.
 
 Useful scripts: `game/gameplay/ability/PlayerAbilityManager.ws` (skills, mutagen color bonuses, grid loading), `game/gameplay/ability/abilityManagerTypes.ws` (`ESkillColor`), `game/gui/menus/commonMenu.ws` (menu background per world).
 
 **`panel_character_dupe` is the live Character screen.** Its root (`MenuCharacterDupe`) places `CharacterTabbedListModuleDupe`. `panel_character` and `panel_character_perks` are older versions. Inside `_dupe`, `CharacterTabbedListModuleRef` (with the `mcTabBackgrounds` header bars) is also a leftover: nothing on the live screen places it.
+
+### Mouse cursor
+
+The cursor is not in the GUI bundles. Every menu movie has a `MouseCursorRef` (in `componentslib.redswf`, sprite 247), but it is only a transparent 25x39 hit box; on PC the movies call `checkHardwareCursor` and the engine shows an OS cursor. That cursor is the only `RT_CURSOR` resource in `witcher3.exe`: a 32x32 pale gold arrow with a small medallion ring, hotspot at the tip (0, 0). The game has no hand or text variant: it shows the same arrow over buttons. The planner uses it through `--cursor` and `--cursor-pointer` in `styles.css` and keeps the I-beam in text fields.
 
 ### Atlas slices (sub-images)
 
@@ -128,6 +133,7 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `stats/` | `shield.png`, `icon-<attack-steel/spell-power/toxicity/additional>.png` (from `panel_inventory`, in `startup.bundle`) |
 | `tooltip/` | `header.png`, `header-frame.png` |
 | `legend/` | `mouse-<left/right/middle/scroll>.png`, `key.svg` |
+| `cursor/` | `arrow.png`: the game's mouse cursor (see [Mouse cursor](#mouse-cursor)) |
 | `points/` | `diamond.png` |
 | `popup/` | `frame.svg`, `buttons-frame.svg` (message popup, `popup_message.redswf`) |
 | `menu/` | `sheet.png`, `frame.png`, `title-underline.png`, `logo.png`, `slider-track.svg`, `option-edge.png` (Esc menu and options list, `panel_ingamemenu.redswf`) |

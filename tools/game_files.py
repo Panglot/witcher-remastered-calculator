@@ -4,6 +4,7 @@
   CR2W                                 CR2W resources: name table, exports and their properties
   swf_textures                         atlas textures (CSwfTexture, DXT5) embedded in a .redswf
   TextureCache                         content/content0/texture.cache (footer magic HCXT, version 7)
+  exe_resources / exe_cursor           Win32 resources of the game executable (the hardware mouse cursor)
 
 UI panels are Scaleform movies stored as .redswf (CR2W) files inside r4gui.bundle; gfx_movie.py
 parses the movie itself. Icons loaded by name at runtime live in texture.cache.
@@ -148,3 +149,61 @@ class TextureCache:
         if fmt == FORMAT_DXT5:
             return Image.open(io.BytesIO(dxt5_dds(width, height, data[:size])))
         raise NotImplementedError(f'texture format {fmt} ({name})')
+
+
+RT_CURSOR = 1
+
+
+def exe_resources(path, res_type):
+    """Return {resource id: bytes} of one Win32 resource type in a PE32+ file (first language of each id)."""
+    with open(path, 'rb') as f:
+        data = f.read()
+    pe = struct.unpack_from('<I', data, 0x3C)[0]
+    if data[pe:pe + 4] != b'PE\0\0':
+        raise ValueError(f'{path} is not a PE file')
+    sections, opt_size = struct.unpack_from('<H12xH', data, pe + 6)
+    opt = pe + 24
+    if struct.unpack_from('<H', data, opt)[0] != 0x20B:
+        raise ValueError(f'{path} is not PE32+')
+    res_rva = struct.unpack_from('<I', data, opt + 112 + 2 * 8)[0]
+    table = opt + opt_size
+    # section header: name, virtual size, virtual address, raw size, raw pointer
+    spans = [struct.unpack_from('<8xIIII', data, table + i * 40) for i in range(sections)]
+
+    def offset(rva):
+        for vsize, vaddr, raw_size, raw_ptr in spans:
+            if vaddr <= rva < vaddr + max(vsize, raw_size):
+                return raw_ptr + rva - vaddr
+        raise ValueError(f'RVA {rva:#x} is outside every section')
+
+    base = offset(res_rva)
+
+    def entries(directory):
+        named, ids = struct.unpack_from('<HH', data, base + directory + 12)
+        for i in range(named + ids):
+            name, target = struct.unpack_from('<II', data, base + directory + 16 + i * 8)
+            yield name, target & 0x7FFFFFFF, bool(target & 0x80000000)
+
+    found = {}
+    for type_id, type_dir, _ in entries(0):
+        if type_id != res_type:
+            continue
+        for res_id, lang_dir, _ in entries(type_dir):
+            _lang, leaf, _ = next(entries(lang_dir))
+            rva, size = struct.unpack_from('<II', data, base + leaf)
+            found[res_id] = data[offset(rva):offset(rva) + size]
+    return found
+
+
+def exe_cursor(path, res_id):
+    """Return (PIL.Image RGBA, (hotspot x, hotspot y)) of an RT_CURSOR resource in a PE32+ file.
+    The resource is a hotspot (2 x u16) then a PNG or a DIB with doubled height (XOR image, AND mask)."""
+    raw = exe_resources(path, RT_CURSOR)[res_id]
+    hotspot = struct.unpack_from('<HH', raw, 0)
+    image = raw[4:]
+    if image[:4] != b'\x89PNG':
+        # Wrap the DIB in a one-image .ico so Pillow decodes the colour image and the mask
+        width, height2, _planes, bpp = struct.unpack_from('<4xiiHH', image, 0)
+        image = (struct.pack('<HHH', 0, 1, 1)
+                 + struct.pack('<BBBBHHII', width % 256, height2 // 2 % 256, 0, 0, 1, bpp, len(image), 22) + image)
+    return Image.open(io.BytesIO(image)).convert('RGBA'), hotspot

@@ -19,8 +19,9 @@ import { artUrl, dropdownArrow, dropdownArrowMask, STAT_GLYPHS, STAT_ICON } from
 // panel's DropDownArrows): game art cut to a one-colour glyph (tools/asset-recipe.json,
 // icons/dropdown-arrow.png), pointing down; open sections turn it up (styles.css, .garrow).
 const ARROW = `<span class="garrow" aria-hidden="true"></span>`;
-// The toggle (28 u): the disc with the legend buttons' double rim (a 1 u dark edge, 1 u of the fill,
-// then a 1.5 u dark ring) and the dropdown arrow (gameArt.js, dropdownArrow) in the text colour, in
+// The toggle (28 u): a disc in the legend key's fill with a double rim like the close button's frame
+// (two 1 u brown circles)
+// and the dropdown arrow (gameArt.js, dropdownArrow) in the text colour, in
 // one SVG so the browser draws them all at the same sub-pixel position (styles.css, .gtoggle).
 // `maskId` keeps the arrow mask's id unique per toggle.
 const toggleArt = maskId => `<svg class="gtoggle" viewBox="-14 -14 28 28" aria-hidden="true">`

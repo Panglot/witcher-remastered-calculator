@@ -138,6 +138,7 @@
     "legend/mouse-middle.png": {"from": "atlas", "movie": "common", "sub": 399, "under": {"shape": 402}, "note": "InputFeedbackButton_mouseIcon frame \"middle\""},
     "legend/mouse-scroll.png": {"from": "atlas", "movie": "common", "sub": 398, "under": {"shape": 402, "at": [0, -6]}, "note": "InputFeedbackButton_mouseIcon frame \"scroll_up\", placed 6px up"},
     "legend/key.svg": {"from": "svg", "movie": "common", "shape": 534, "note": "InputFeedbackButton_keyboardButton.mcBackground: authored #675943, shown as #191919 (color transform); key letter #c0ae8c, label #c68e5b"},
+    "cursor/arrow.png": {"from": "cursor", "exe": "bin/x64_dx12/witcher3.exe", "id": 12, "note": "The hardware mouse cursor (RT_CURSOR 12, group 102). The movies' MouseCursorRef is only a transparent placeholder. Hotspot 0 0."},
     "popup/frame.svg": {"from": "svg", "movie": "popup", "shape": 174, "note": "SystemMessageModuleRef.mcBackground: panel fill and double frame, drawn by the game at scale (1.1, 0.66)"},
     "popup/buttons-frame.svg": {"from": "svg", "movie": "popup", "shape": 176, "note": "SystemMessageModuleRef.mcInputBackground: the strip behind the buttons, over the panel's bottom edge"},
     "menu/sheet.png": {"from": "atlas", "movie": "menu", "image": 694, "note": "MenuListModule's torn black sheet (shape 695): stretched to 369x1920, centred on the list at y +162.85, alpha 0.95"},

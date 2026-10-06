@@ -12,6 +12,7 @@ The recipe (tools/asset-recipe.json) maps every output file to where it comes fr
   {"from": "cache", "path": "gameplay/gui_new/icons/...png"}  texture from content0/texture.cache
   {"from": "svg", "movie": "<alias>", "shape": 603}            vector shape, exported with JPEXS FFDec
   {"from": "svg", "movie": "<alias>", "sprite": 665, "frame": "SC_Red"}   one sprite frame (number or label), via FFDec
+  {"from": "cursor", "exe": "bin/x64_dx12/witcher3.exe", "id": 12}   RT_CURSOR resource of the game executable
   {"from": "skills", "exclude_trees": ["None"]}                skill icons + skills.json (output is a folder)
   {"from": "placements", "movie": "<alias>", "sprite": 710}    JSON of a sprite's named children: matrix, text style
       optional "names": {"5": "frame"}                         names for unnamed children, by depth
@@ -39,7 +40,7 @@ import tempfile
 from PIL import Image, ImageChops, ImageColor, ImageDraw
 
 from extract_skill_icons import main as extract_skills
-from game_files import TextureCache, content_path
+from game_files import TextureCache, content_path, exe_cursor
 from gfx_movie import GameMovies, TWIPS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -283,6 +284,15 @@ class SvgSource:
         return {}
 
 
+class CursorSource:
+    """The hardware mouse cursor, an RT_CURSOR resource of the game executable. The hotspot goes to the
+    manifest; CSS needs it as the two numbers after url()."""
+
+    def build(self, ctx, src, dest):
+        image, hotspot = exe_cursor(os.path.join(ctx.game_dir, *src['exe'].split('/')), src['id'])
+        return {**save_image(image, dest), 'hotspot': list(hotspot)}
+
+
 class SkillsSource:
     def build(self, ctx, src, dest):
         extract_skills(ctx.game_dir, dest, src.get('exclude_trees', ()))
@@ -325,6 +335,7 @@ HANDLERS = {
     'atlas': AtlasSource,
     'cache': CacheSource,
     'svg': SvgSource,
+    'cursor': CursorSource,
     'skills': SkillsSource,
     'placements': PlacementsSource,
 }

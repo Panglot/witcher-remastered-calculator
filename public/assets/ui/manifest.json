@@ -1269,6 +1269,20 @@
    "shape": 534,
    "note": "InputFeedbackButton_keyboardButton.mcBackground: authored #675943, shown as #191919 (color transform); key letter #c0ae8c, label #c68e5b"
   },
+  "cursor/arrow.png": {
+   "from": "cursor",
+   "exe": "bin/x64_dx12/witcher3.exe",
+   "id": 12,
+   "size": [
+    32,
+    32
+   ],
+   "hotspot": [
+    0,
+    0
+   ],
+   "note": "The hardware mouse cursor (RT_CURSOR 12, group 102). The movies' MouseCursorRef is only a transparent placeholder. Hotspot 0 0."
+  },
   "popup/frame.svg": {
    "from": "svg",
    "movie": "popup_message.redswf",

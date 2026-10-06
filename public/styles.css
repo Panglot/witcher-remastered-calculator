@@ -46,12 +46,16 @@
   /* Popup button labels: the game's A and B keys (ModuleInputFeedback.getColorByNavCode). */
   --game-accept: #1c971c;
   --game-cancel: #9e2828;
+  /* The game's hardware mouse cursor (assets/ui/cursor/arrow.png, hotspot 0 0 as in manifest.json). The game
+     shows the same arrow over buttons too, so clickables use it as well; the keywords are only fallbacks. */
+  --cursor: url("assets/ui/cursor/arrow.png") 0 0, default;
+  --cursor-pointer: url("assets/ui/cursor/arrow.png") 0 0, pointer;
   /* Exponential.easeOut (GTween), for apply mode. */
   --ease-expo-out: cubic-bezier(.19, 1, .22, 1);
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--game-bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+body { cursor: var(--cursor); background: var(--game-bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
 [hidden] { display: none !important; }
 /* Game backdrop (ui/backdrop.js): fixed behind the page, the 1920x1080 screen scaled to cover the window. */
 .backdrop { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
@@ -67,7 +71,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
 .page { display: grid; gap: 16px; min-width: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
-button { cursor: pointer; }
+button { cursor: var(--cursor-pointer); }
+input[type="text"], textarea { cursor: text; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 .num { font-variant-numeric: tabular-nums; }
 
@@ -124,11 +129,11 @@ button { cursor: pointer; }
 /* Game SVG parts (ui/gamePanels.js). */
 .gsvg { display: block; width: 100%; height: auto; overflow: visible; }
 .gsvg text, .gscreen text, .gbonus text { font-family: var(--font-game); }
-.gtab, [tabindex].gnode, [tabindex].gsock, [tabindex].gdiamond, [tabindex].gitem { cursor: pointer; outline: none; }
+.gtab, [tabindex].gnode, [tabindex].gsock, [tabindex].gdiamond, [tabindex].gitem { cursor: var(--cursor-pointer); outline: none; }
 /* Skills and holders are pressed and held (ui/hold.js): no text selection or touch callout. */
 [tabindex].gnode, [tabindex].gsock, [tabindex].gitem { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 /* A skill's touch buttons (gamePieces.stepButton) are for touch screens only (shown below); a press lights them. */
-.gstep { display: none; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.gstep { display: none; cursor: var(--cursor-pointer); touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .gstep:active .gstep-disc { filter: brightness(1.4); }
 /* Drag sources (ui/drag.js): a touch on one drags instead of scrolling the page. */
 [data-drag] { touch-action: none; }
@@ -320,9 +325,9 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gmenu-body { flex: 0 1 auto; min-height: 0; margin-top: calc(24 * var(--u)); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #4a403b transparent; padding: 0 var(--gmenu-pad); font-size: calc(22 * var(--u)); line-height: 1.3; }
 .gmenu-body p { margin: 0 0 calc(14 * var(--u)); }
 .gmenu-list { flex: none; width: 100%; margin: calc(36 * var(--u)) 0 0; padding: 0; list-style: none; }
-.gmenu-item { position: relative; display: block; width: 100%; height: calc(43 * var(--u)); margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-transform: uppercase; cursor: pointer; }
+.gmenu-item { position: relative; display: block; width: 100%; height: calc(43 * var(--u)); margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-transform: uppercase; cursor: var(--cursor-pointer); }
 .gmenu-item.back { color: #ffffff; }
-.gmenu-item[aria-disabled="true"] { color: #555555; cursor: default; }
+.gmenu-item[aria-disabled="true"] { color: #555555; cursor: var(--cursor); }
 .gmenu-item:focus { outline: none; }
 .gmenu-item:focus::before, .gopt:focus::before, .gbuild-tool:focus::before { content: ""; position: absolute; inset: 50% 0 auto; height: calc(59 * var(--u)); translate: 0 -50%; border: calc(7 * var(--u)) solid transparent; border-image: url("assets/ui/menu/frame.png") 14 / calc(7 * var(--u)); filter: grayscale(1) brightness(2.6); animation: gmenu-pulse calc(26s / 30) linear infinite; pointer-events: none; }
 @keyframes gmenu-pulse { 50% { opacity: .4; } }
@@ -348,18 +353,18 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* Option row (W3SubMenuListItemRenderer over ListItemBG_189): a faint white gradient with the brown
    bar at its left end; the name 24px #adadad (white when focused) at x 31, the value 26px white
    right-aligned to x 829, the slider's origin at (870, 42). The frame is the menu's, 3px outside. */
-.gopt { position: relative; height: calc(77 * var(--u)); margin: calc(3 * var(--u)) 0 calc(4.5 * var(--u)); color: #adadad; font-size: calc(24 * var(--u)); line-height: calc(77 * var(--u)); white-space: nowrap; cursor: default;
+.gopt { position: relative; height: calc(77 * var(--u)); margin: calc(3 * var(--u)) 0 calc(4.5 * var(--u)); color: #adadad; font-size: calc(24 * var(--u)); line-height: calc(77 * var(--u)); white-space: nowrap; cursor: var(--cursor);
   background: url("assets/ui/menu/option-edge.png") 0 0 / calc(8 * var(--u)) 100% no-repeat, linear-gradient(90deg, rgb(255 255 255 / .039) 21.6%, rgb(255 255 255 / .031) 57.3%, transparent); }
 .gopt:focus { outline: none; color: #ffffff; }
 .gopt:focus::before { inset: calc(-3 * var(--u)); height: auto; translate: none; }
-.gopt.toggle { cursor: pointer; }
+.gopt.toggle { cursor: var(--cursor-pointer); }
 .gopt-label { position: absolute; left: calc(31 * var(--u)); }
 .gopt-value { position: absolute; right: calc((1167 - 829) * var(--u)); color: #ffffff; font-size: calc(26 * var(--u)); }
 .gopt.off .gopt-value { color: #808080; }
 /* Slider (SubMenuSlider 296 wide, SubMenuSliderToggle 140): the box is the track, its left edge at
    --x from the origin; the notched outline is 9-sliced at 12px. The thumb (sliderThumb) is a rounded
    bar #a8a5a3, #b7b5b3 under the pointer, --tw wide, placed by options.js at --at. */
-.gopt-slider { position: absolute; left: calc((870 + var(--x)) * var(--u)); top: calc(26.1 * var(--u)); width: calc(var(--w) * var(--u)); height: calc(30 * var(--u)); cursor: pointer; touch-action: none; }
+.gopt-slider { position: absolute; left: calc((870 + var(--x)) * var(--u)); top: calc(26.1 * var(--u)); width: calc(var(--w) * var(--u)); height: calc(30 * var(--u)); cursor: var(--cursor-pointer); touch-action: none; }
 .gopt-slider::before { content: ""; position: absolute; inset: 0; border: solid transparent; border-width: 0 calc(12 * var(--u)); border-image: url("assets/ui/menu/slider-track.svg") 0 12 fill / 0 calc(12 * var(--u)); }
 .gopt-thumb { position: absolute; left: calc(var(--at, 0) * var(--u)); top: calc(8 * var(--u)); width: calc(var(--tw) * var(--u)); height: calc(15.05 * var(--u)); border-radius: calc(4 * var(--u)); background: #a8a5a3; }
 .gopt-slider:hover .gopt-thumb, .gopt-slider.dragging .gopt-thumb { background: #b7b5b3; }
@@ -410,7 +415,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* No space under the tools: the next item's hover frame (59 tall over a 43 item) then sits just under the
    icons, the tool button's own empty half-height (59 - 30) / 2 being the only gap. */
 .gbuild-tools { display: flex; justify-content: space-between; }
-.gbuild-tool { position: relative; display: grid; place-items: center; width: calc(62 * var(--u)); height: calc(59 * var(--u)); margin: 0; padding: 0; border: 0; background: none; color: #979797; cursor: pointer; }
+.gbuild-tool { position: relative; display: grid; place-items: center; width: calc(62 * var(--u)); height: calc(59 * var(--u)); margin: 0; padding: 0; border: 0; background: none; color: #979797; cursor: var(--cursor-pointer); }
 .gbuild-tool:focus, .gbuild-tool:hover { outline: none; color: #ffffff; }
 /* On the rail the frame marks keyboard focus only: a clicked tool doesn't keep it. */
 .screen-rail .gbuild-tool:focus:not(:focus-visible) { color: #979797; }
@@ -444,7 +449,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    it (5 u margin + 63 u band). */
 .gside-close { position: absolute; z-index: 1; top: calc(5 * var(--u1) + 31.5 * var(--u1)); right: calc(22 * var(--u1)); translate: 0 -50%;
   width: calc(37 * var(--u1)); height: calc(37 * var(--u1)); margin: 0; padding: 0; border: 0;
-  background: url("assets/ui/icons/close.svg") center / contain no-repeat; cursor: pointer; }
+  background: url("assets/ui/icons/close.svg") center / contain no-repeat; cursor: var(--cursor-pointer); }
 .gside-close:hover, .gside-close:focus-visible { outline: none; background-image: url("assets/ui/icons/close-over.svg"); }
 .gside-title { flex: none; display: grid; place-items: center; height: calc(63 * var(--u1)); margin: calc(5 * var(--u1)) calc(5 * var(--u1)) 0; font-family: inherit; font-weight: 400; letter-spacing: 0; }
 /* The frame is a border-image over a 0 border, so it paints over the body's edges: the right margin keeps the
@@ -514,7 +519,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gside [data-color="yellow"] { --bar: #7e4f06; --bar-art: url("assets/ui/bonus/bar-yellow.png"); }
 .gside-bar { display: flex; align-items: center; gap: calc(12 * var(--u1)); height: calc(56 * var(--u1)); padding: 0 calc(20 * var(--u1));
   background: var(--bar-art) 0 0 / 100% 100%, linear-gradient(90deg, var(--bar) 0, var(--bar) 45%, rgba(0, 0, 0, 0) 100%);
-  color: var(--game-stat); font-size: calc(24 * var(--u1)); text-transform: uppercase; list-style: none; cursor: pointer; user-select: none; }
+  color: var(--game-stat); font-size: calc(24 * var(--u1)); text-transform: uppercase; list-style: none; cursor: var(--cursor-pointer); user-select: none; }
 .gside-bar::-webkit-details-marker { display: none; }
 .gside-bar:hover { filter: brightness(1.15); }
 .gside-bar:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
@@ -544,7 +549,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
   translate: 0 calc(2.32 * var(--u1)); transform-origin: 50% calc(4.68 * var(--u1)); transition: rotate .3s ease-in-out; }
 .gside-sec[open] > .gside-bar .garrow { rotate: 180deg; }
 /* A flat bar (sidePanel.bar): a header with nothing to open, so no pointer or hover. */
-.gside-bar-flat { margin-top: calc(10 * var(--u1)); cursor: default; }
+.gside-bar-flat { margin-top: calc(10 * var(--u1)); cursor: var(--cursor); }
 .gside-bar-flat:hover { filter: none; }
 /* No side padding: the rows' values start at the bar's left edge, like Statistics' values under their headings. */
 .gside-sec-body { padding: calc(14 * var(--u1)) 0 calc(4 * var(--u1)); }
@@ -573,7 +578,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gstat-band > .gstat-label:not(.gstat-detail) { grid-row: 1; grid-column: 2; color: var(--game-list-value); }
 /* Rows that are buttons (skill sets): placeholders until they get their own design. */
 .gstat-btn { position: relative; isolation: isolate; margin: 0; padding: calc(2 * var(--u1)) calc(6 * var(--u1)) calc(2 * var(--u1)) 0;
-  border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+  border: 0; background: none; font: inherit; text-align: left; cursor: var(--cursor-pointer); }
 /* The pressed look sits behind the row and reaches 10 u past its left, like the totals' band (.gstat-band-art), so the
    text stays on the values' line. */
 .gstat-btn::before { content: ""; position: absolute; inset: 0 0 0 calc(-10 * var(--u1)); z-index: -1;
@@ -590,7 +595,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* An action in a side panel: the popup button (.gpopup-btn) with its padding and hover, as tall as its text,
    in the panel's text colour and size. */
 .gpopup-btn.gside-action { height: auto; color: var(--game-list-text); font-size: inherit; line-height: inherit; }
-.gpopup-btn.gside-action:disabled { background: #161515; color: #6b5d56; cursor: default; }
+.gpopup-btn.gside-action:disabled { background: #161515; color: #6b5d56; cursor: var(--cursor); }
 #side-skillSets { --gstat-value-min: 3ch; }
 #side-skillSets .gstat-value { font-variant-numeric: tabular-nums; }
 /* The toggle: a round button with the arrow, centred on the covered part's bottom edge. The tree's sits on the
@@ -600,8 +605,9 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    466.2 px in from the slots area's left at 845, a margin in % of the area's 971.35 px width. Phones stack
    the areas and centre the slots on that divider, so there it sits mid-width on the slots area's bottom edge
    (970), clear of the divider's end, and on the card's (with its line) when Skill sets is open.
-   Its fill and dark rim are the legend's lit mouse button (legend/mouse-*.png). The arrow turns from up
-   (closed) to down (open). Its tooltip is the screen's (data-hint). */
+   Its double rim is the close button's frame (icons/close.svg) in the legend mouse button's brown, its fill
+   the legend key's (#191919).
+   The arrow turns from up (closed) to down (open). Its tooltip is the screen's (data-hint). */
 .gside-toggle-wrap { --u1: max(.6px, var(--gpx)); position: relative; z-index: 2; align-self: end; justify-self: center; translate: 0 50%; }
 .gside-toggle-wrap.gside-tree { justify-self: start; width: calc(606 * var(--u1)); max-width: 100%; display: flex; justify-content: center; pointer-events: none; translate: 0 calc(50% + 6.5 * var(--gpx)); }
 .gside-toggle-wrap.gside-slots { justify-self: start; margin-left: calc(466.2 / 971.35 * 100%); translate: -50% calc(50% + 6.5 * var(--gpx)); }
@@ -617,13 +623,13 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* The circle, its rim and the arrow are one SVG (ui/sidePanel.js, toggleArt), so they are drawn at the same
    sub-pixel spot. A CSS background and border get snapped to whole pixels while the SVG arrow does not,
    which left them half a pixel apart. The arrow group turns on the SVG's (0, 0), the arrow's centroid. */
-.gside-toggle { display: block; width: calc(28 * var(--u1)); height: calc(28 * var(--u1)); margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: #f8f8f8; cursor: pointer; pointer-events: auto; }
+.gside-toggle { display: block; width: calc(28 * var(--u1)); height: calc(28 * var(--u1)); margin: 0; padding: 0; border: 0; border-radius: 50%; background: none; color: #9b9078; cursor: var(--cursor-pointer); pointer-events: auto; }
 .gtoggle { display: block; width: 100%; height: 100%; overflow: visible; }
-.gtoggle-disc { fill: #685942; stroke: #100808; stroke-width: 1; }
-.gtoggle-ring { fill: none; stroke: #100808; stroke-width: 1.5; }
+.gtoggle-disc, .gtoggle-ring { fill: none; stroke: #685942; stroke-width: 1; }
+.gtoggle-disc { fill: #191919; }
 .gtoggle-arrow { fill: currentColor; transform-box: view-box; transform-origin: 0 0; rotate: 180deg; transition: rotate .3s ease-in-out; }
 .gside-toggle[aria-expanded="true"] .gtoggle-arrow { rotate: none; }
-.gside-toggle:hover { color: var(--game-hold); }
+.gside-toggle:hover { color: var(--game-text); }
 .gside-toggle:focus { outline: none; }
 .gside-toggle:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 /* Switching, like the game's screen change: the old view fades out fast; the new one fades in about as fast
@@ -683,7 +689,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
   border: calc(9 * var(--u)) solid transparent; border-image: url("assets/ui/popup/frame.svg") 9 / calc(9 * var(--u));
   background: var(--game-tooltip) padding-box; box-shadow: 0 6px 18px #000;
   font-family: var(--font-game); color: var(--game-next); font-size: calc(28 * var(--u)); line-height: 1.25; text-align: center;
-  pointer-events: auto; cursor: pointer; animation: gtoast-in .2s ease-out; }
+  pointer-events: auto; cursor: var(--cursor-pointer); animation: gtoast-in .2s ease-out; }
 .gtoast.bad { color: var(--bad); }
 .gtoast.leaving { opacity: 0; translate: 0 calc(8 * var(--u)); transition: opacity .2s ease-in, translate .2s ease-in; }
 @keyframes gtoast-in { from { opacity: 0; translate: 0 calc(8 * var(--u)); } }
