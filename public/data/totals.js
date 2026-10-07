@@ -3,9 +3,10 @@
 // number raises (`spell_power` is Sign intensity in Flood of Anger but knock-down reduction in
 // Aard Sweep), so each source is picked by reading its skill text (data/skillText.js).
 //
-// A stat is listed when more than one thing can raise it. Effects that only hit a subset (Catalyst:
-// Aard and Igni only), one attack (Counterattack) or scale with a live value (High Tolerance:
-// current Toxicity) are left out.
+// A stat is listed when more than one thing can raise it, or when builds are made around it
+// (Critical hit chance: only Battle Frenzy raises it; Fast and Strong Attack damage: the Cat and
+// Bear armor styles). Effects that only hit a subset (Catalyst: Aard and Igni only), one attack
+// (Counterattack) or scale with a live value (High Tolerance: current Toxicity) are left out.
 //
 // Stat fields: id, label, unit, color, sources (in the order the panel lists them).
 //   color: the band behind the row, like the slot groups' bonus labels: the mutagen colour that
@@ -36,7 +37,22 @@ export default {
       id: "attack-power", label: "Attack power", unit: "%", color: "red",
       sources: [
         { mutagen: "red" },
-        { skill: "g_wolf", value: "attack_power", times: ARMOR_PIECES, when: "4 Medium Armor pieces", armor: "medium" }
+        { skill: "g_wolf", value: "attack_power", times: ARMOR_PIECES, when: "4 Medium Armor pieces", armor: "medium" },
+        // The game's text says sword damage, not Fast Attack damage as the placeholder's name does.
+        { skill: "g_mant", value: "attack_power_fast_style", times: ARMOR_PIECES, when: "4 Medium Armor pieces", armor: "medium" },
+        { skill: "g_eos", value: "melee_damage_increase", when: "for 10 s after a bomb hit" }
+      ]
+    },
+    {
+      id: "fast-attack-damage", label: "Fast Attack damage", unit: "%", color: "red",
+      sources: [
+        { skill: "g_cat", value: "attack_power_fast_style", times: ARMOR_PIECES, when: "4 Light Armor pieces", armor: "light" }
+      ]
+    },
+    {
+      id: "strong-attack-damage", label: "Strong Attack damage", unit: "%", color: "red",
+      sources: [
+        { skill: "g_bear", value: "attack_power_heavy_style", times: ARMOR_PIECES, when: "4 Heavy Armor pieces", armor: "heavy" }
       ]
     },
     {
@@ -75,10 +91,26 @@ export default {
       ]
     },
     {
+      id: "crit-chance", label: "Critical hit chance", unit: "%", color: "red",
+      sources: [
+        { skill: "g_bf", value: "critical_hit_chance", times: ADRENALINE, when: "at 3 Adrenaline" }
+      ]
+    },
+    {
+      id: "poison-damage", label: "Poison damage", unit: "%", color: "green",
+      sources: [
+        // Raises all non-physical damage, poison included.
+        { skill: "g_ea", value: "damage_multiplier" },
+        // The game's text puts this number in the poison damage spot (see Maximum Vitality).
+        { skill: "g_viper", value: "vitality", times: ARMOR_PIECES, when: "4 Medium Armor pieces", armor: "medium" }
+      ]
+    },
+    {
       id: "adrenaline-gain", label: "Adrenaline gain", unit: "%", color: "red",
       sources: [
         { passive: "combat" },
-        { skill: "g_ab", value: "focus_gain" }
+        { skill: "g_ab", value: "focus_gain" },
+        { skill: "c_rf", value: "focus_gain", when: "from weapon strikes" }
       ]
     },
     {

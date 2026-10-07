@@ -5,7 +5,7 @@ import { createCatalog } from "../public/src/core/catalog.js";
 import { highlightedSkills, setLabels } from "../public/src/core/skillSets.js";
 
 const cat = createCatalog(data);
-const sorted = set => [...set].sort();
+const sorted = map => [...map.keys()].sort();
 
 test("a set given by roles gets its ids from them and a role per skill", () => {
   const adrenaline = cat.skillSets.find(s => s.id === "adrenaline");
@@ -30,6 +30,13 @@ test("highlight: any selected set, or only the skills in all of them", () => {
   assert.ok(any.has("s_fra") && any.has("s_es"));
   // An unknown id (a set since removed) is skipped.
   assert.deepEqual(sorted(highlightedSkills(cat, ["gone", "aard", "vitality"], true)), ["s_sw"]);
+});
+
+test("highlight counts the selected sets each skill is in", () => {
+  const any = highlightedSkills(cat, ["adrenaline", "stamina", "strong"], false);
+  assert.equal(any.get("c_rend"), 3);
+  assert.equal(any.get("c_wh"), 2);
+  assert.equal(highlightedSkills(cat, ["adrenaline", "stamina"], true).get("c_rend"), 2);
 });
 
 test("tooltip sets: the selected ones, or every one, with the role when the set has roles", () => {

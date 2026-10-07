@@ -16,6 +16,10 @@
   --alchemy: #62ad4d;
   --general: #cf9a3c;
   --mark: #f3ecdc;
+  /* Skill set frames (.gmark) by how many highlighted sets the skill is in: 1, 2, 3 or more. */
+  --mark-1: var(--mark);
+  --mark-2: #f0d27a; /* --game-current (#ebdba4) with more saturation, by eye */
+  --mark-3: var(--game-hold);
   --bad: #e2675d;
   --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
   --font-body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
@@ -167,7 +171,9 @@ input[type="text"], textarea { cursor: text; }
 @keyframes gbuy-shade { to { opacity: 0; } }
 /* `translate` adds to the SVG transform attribute instead of replacing it. */
 .gnode.shake { animation: shake .3s; }
-.gmark { fill: none; stroke: var(--mark); stroke-width: 2; stroke-dasharray: 6 5; pointer-events: none; }
+.gmark { fill: none; stroke: var(--mark-1); stroke-width: 2; stroke-dasharray: 6 5; pointer-events: none; }
+.gmark[data-sets="2"] { stroke: var(--mark-2); }
+.gmark[data-sets="3"] { stroke: var(--mark-3); }
 @keyframes shake { 25% { translate: -3px 0; } 75% { translate: 3px 0; } }
 @media (prefers-reduced-motion: reduce) { .gnode.shake, .gsel { animation: none; } }
 /* Apply mode (ui/applyMode.js, CharacterModeBackground). The mask is black at .85 x .79 = .67 alpha over the

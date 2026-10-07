@@ -154,10 +154,11 @@ function createSkillTree(app, el) {
   const highlighted = () => highlightedSkills(catalog, state.skillSets, app.settings.skillSetsMatchAll);
 
   // Game line states (docs/game-assets.md, Line colors), from the required skill to the one it
-  // opens: lit when both are learned, white when only the required one is, dark otherwise.
+  // opens: lit when both are learned, white when only the required one is, dark otherwise. In a
+  // tree with twoWayLinks either end is the required one.
   function linkState(from, to) {
-    const lf = planner.rank(state, from) > 0;
-    return lf && planner.rank(state, to) > 0 ? "lit" : lf ? "open" : "closed";
+    const lf = planner.rank(state, from) > 0, lt = planner.rank(state, to) > 0;
+    return lf && lt ? "lit" : lf || (lt && nodes[to].to.includes(from)) ? "open" : "closed";
   }
 
   return {
@@ -214,7 +215,7 @@ function createSkillTree(app, el) {
       const marked = highlighted();
       const grid = {
         color: TREE_ART[state.tab].color,
-        nodes: list.map(n => ({ ...nodeView(n), marked: marked.has(n.id), steps: steps(n.id) })),
+        nodes: list.map(n => ({ ...nodeView(n), marked: marked.get(n.id) || 0, steps: steps(n.id) })),
         links: edges.filter(([a]) => nodes[a].tree === state.tab)
           .map(([a, b]) => ({ a: index[a], b: index[b], state: linkState(a, b) }))
       };

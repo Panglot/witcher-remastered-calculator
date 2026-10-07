@@ -20,7 +20,8 @@ import { createBudget } from "./budget.js";
  * @property {string} note
  * @property {string} tree       Id of the tree it belongs to.
  * @property {string[]} from     Ids of the skills whose point opens this one.
- * @property {string[]} to       Ids of the skills a point in this one opens.
+ * @property {string[]} to       Ids of the skills a point in this one opens (in a tree with
+ *   `twoWayLinks`, the same skills as `from`).
  */
 
 /**
@@ -51,7 +52,8 @@ export function createCatalog(data) {
   const problems = [];
   /** @type {Record<string, Skill>} */
   const nodes = {};
-  /** One-way links [from, to]: a point in `from` opens `to`. @type {[string, string][]} */
+  /** Links [from, to] as written: a point in `from` opens `to`, and the other way round in a tree
+   * with `twoWayLinks`. @type {[string, string][]} */
   const edges = [];
 
   /** A skill's extracted text and numbers, checked against the tree data. */
@@ -83,6 +85,7 @@ export function createCatalog(data) {
     if (nodes[a].tree !== t || nodes[b].tree !== t) { problems.push(`Link "${link}" in ${t} crosses into another tree.`); return; }
     edges.push([a, b]);
     nodes[a].to.push(b); nodes[b].from.push(a);
+    if (trees[t].twoWayLinks) { nodes[b].to.push(a); nodes[a].from.push(b); }
   }));
 
   // Skill sets (data/skillSets.js): listed per tree, flattened in tree order, each with the `tree`

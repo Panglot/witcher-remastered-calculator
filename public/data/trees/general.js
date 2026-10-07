@@ -7,6 +7,8 @@ export default {
   passive: { label: "Vitality gain", per: 1, unit: "%" },
   // Mutagen colour this tree's skills match, or null.
   mutagen: null,
+  // Links open both ways here: a point in either end opens the other (the other trees open one way).
+  twoWayLinks: true,
 
   // game: the game's skill id (icon file). col/row: the game's gridColumn/gridRow, in thirds of a
   // skill step (geralt_skills.xml). root: open without a connected point. verified: text checked in-game.
@@ -35,8 +37,7 @@ export default {
     { id: "g_viper", name: "Viper School Techniques", game: "perk_28", col: 6, row: 25, root: true, verified: true }
   ],
 
-  // One-way connections: "a-b" means a point in a opens b (the game lights the line from a).
-  // Written from the upper skill down, except that a root opens skills above it too.
+  // Connections, opening both ways (twoWayLinks). Written from the upper skill down, or out of a root.
   links: [
     "g_cat-g_bf", "g_cat-g_ab", "g_cat-g_aibd", "g_cat-g_ss", "g_bf-g_sb", "g_ab-g_si",
     "g_wolf-g_aibd", "g_bear-g_aibd", "g_wolf-g_ss", "g_bear-g_ss", "g_aibd-g_sb", "g_ss-g_si",

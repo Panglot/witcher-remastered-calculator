@@ -40,6 +40,22 @@ test("links open one way only", () => {
   assert.equal(planner.isOpen(c, "a"), false);
 });
 
+test("links open both ways in a tree with twoWayLinks", () => {
+  const two = createCatalog({
+    rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 2, treeOrder: ["t"] },
+    trees: { t: { twoWayLinks: true, skills: [{ id: "r", name: "Root", root: true }, { id: "a", name: "A" }, { id: "b", name: "B" }], links: ["a-r", "r-b"] } },
+    skillSets: []
+  });
+  const p = createPlanner(two);
+  const b = { pts: { r: 1 }, slots: [null, null], mut: [""] };
+  // r opens a above it and b below it.
+  assert.equal(p.isOpen(b, "a"), true);
+  assert.equal(p.isOpen(b, "b"), true);
+  b.pts.a = 1;
+  // a hangs off r, so r keeps its last point.
+  assert.equal(p.canRemovePoint(b, "r"), false);
+});
+
 test("skills already cut off don't block removing a point", () => {
   // b has no path from r (an older build); removing c strands nothing new.
   const b = build({ r: 1, c: 1, b: 1 });
@@ -100,7 +116,7 @@ test("slots need a point and run out", () => {
 test("mutagen bonus counts matching slotted skills", () => {
   const b = build({ r: 1, a: 1 });
   planner.equipSkill(b, 0, "r"); planner.equipSkill(b, 1, "a");
-  assert.deepEqual(planner.groupBonus(b, 0), { mutagen: "red-x", color: "red", matches: 2, multiplier: 3, value: 15 });
+  assert.deepEqual(planner.groupBonus(b, 0), { mutagen: "red-x", color: "red", matches: 2, multiplier: 3, base: 15, synergy: 0, value: 15 });
   b.mut[0] = "";
   assert.equal(planner.groupBonus(b, 0).value, 0);
 });

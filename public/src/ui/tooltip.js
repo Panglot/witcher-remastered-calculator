@@ -58,7 +58,8 @@ export function mountTooltip(app) {
     const body = [`+${m.value}${unit} more for each ${m.color} skill slotted in its group, up to +${m.value * (1 + catalog.slots.perGroup)}${unit}.`];
     if (g != null) {
       const b = planner.groupBonus(state, +g);
-      body.push(`In this group: +${b.value}${unit} (${b.matches} matching skill${b.matches === 1 ? "" : "s"}).`);
+      const synergy = b.synergy ? `, +${b.synergy}${unit} from ${catalog.nodes[catalog.totals.synergy.skill].name}` : "";
+      body.push(`In this group: +${b.value}${unit} (${b.matches} matching skill${b.matches === 1 ? "" : "s"}${synergy}).`);
     }
     return app.game.panels.itemTooltip({
       name: m.name, type: m.type, stats: [{ value: `+${m.value}${unit}`, label }],

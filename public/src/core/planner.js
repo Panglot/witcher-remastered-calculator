@@ -4,16 +4,18 @@
 // Actions mutate the build and return { ok, msg }; msg explains a refusal and is "" on success.
 // Skills in slots and mutagens in groups have matching actions (canEquip, equip, clear), so
 // core/slotKinds.js can treat them alike.
+import { rankValues } from "./skillText.js";
 
 const done = { ok: true, msg: "" };
 const refuse = msg => ({ ok: false, msg });
 
 /** @param {ReturnType<import("./catalog.js").createCatalog>} catalog */
 export function createPlanner(catalog) {
-  const { nodes, maxRank, order, slots, trees, mutagens } = catalog;
+  const { nodes, maxRank, order, slots, trees, mutagens, totals } = catalog;
 
   const rank = (b, id) => b.pts[id] || 0;
-  // Links are one-way: a skill opens from a point in a skill that links to it, never backwards.
+  // A skill opens from a point in a skill that links to it: one way, or both ways in a tree with
+  // twoWayLinks (catalog.js fills `from` and `to` for it).
   const isOpen = (b, id) => nodes[id].root || nodes[id].from.some(n => rank(b, n) > 0);
   const isSlotted = (b, id) => b.slots.includes(id);
   const spentIn = (b, tree) => Object.keys(b.pts).reduce((s, id) => s + (nodes[id] && nodes[id].tree === tree ? b.pts[id] : 0), 0);
@@ -121,13 +123,28 @@ export function createPlanner(catalog) {
     return done;
   }
 
-  // Mutagen bonus for a group: the mutagen's value, plus one extra copy per slotted skill whose
-  // tree matches its colour. `value` is the total (0 without a mutagen).
+  /** A slotted skill's number at its rank, 0 when the skill isn't slotted or the rank lacks it. */
+  function skillNumber(b, { skill, value }) {
+    if (!isSlotted(b, skill)) return 0;
+    const n = nodes[skill];
+    return rankValues(n, rank(b, skill))[value] ?? n.missing[value] ?? 0;
+  }
+
+  // Percent the slotted Synergy skill (data/totals.js `synergy`) adds to every mutagen bonus.
+  const synergyPercent = b => totals.synergy ? skillNumber(b, totals.synergy) : 0;
+
+  // Mutagen bonus for a group, as the game shows it: the mutagen's value, plus one extra copy per
+  // slotted skill whose tree matches its colour (`base`), raised by Synergy (`synergy`).
+  // `value` is the total (0 without a mutagen).
   function groupBonus(b, g) {
     const m = mutagens[b.mut[g]];
     const matches = m ? groupSlots(b, g).filter(id => id && trees[nodes[id].tree].mutagen === m.color).length : 0;
     const multiplier = m ? 1 + matches : 0;
-    return { mutagen: m ? m.id : "", color: m ? m.color : "", matches, multiplier, value: m ? m.value * multiplier : 0 };
+    const base = m ? m.value * multiplier : 0;
+    // The game rounds the total to the nearest whole number, checked in game: Blue mutagen 7 with
+    // Synergy 10% = 7.7, shown as 8; with 2 matching skills 21 + 10% = 23.1, shown as 23.
+    const value = Math.round(base * (1 + synergyPercent(b) / 100));
+    return { mutagen: m ? m.id : "", color: m ? m.color : "", matches, multiplier, base, synergy: value - base, value };
   }
 
   // Passive bonus a tree grants for the points spent in it.
@@ -138,6 +155,7 @@ export function createPlanner(catalog) {
   return {
     rank, isOpen, canAddPoint, canRemovePoint, isSlotted, spentIn, spentAll, strandedIfRemoved,
     addPoint, removePoint, toggleSlot, canEquipSkill, equipSkill, clearSlot, clearTree, clearAll,
-    canEquipMutagen, equipMutagen, clearMutagen, unequipMutagen, groupSlots, groupBonus, passiveValue
+    canEquipMutagen, equipMutagen, clearMutagen, unequipMutagen, groupSlots, groupBonus, passiveValue,
+    skillNumber, synergyPercent
   };
 }

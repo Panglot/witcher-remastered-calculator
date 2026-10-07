@@ -440,7 +440,7 @@ All ids are `perk_<n>`.
 | `SC_Blue` | `#0049C6` |
 | `SC_Yellow` | `#B27100` |
 
-Checked against an in-game screenshot: lines are one-way. With Muscle Memory and Three Strikes learned and Strength Training not, the Strength Training to Three Strikes line stays `#333333`. Lines are drawn opaque.
+Checked against an in-game screenshot: lines are one-way. With Muscle Memory and Three Strikes learned and Strength Training not, the Strength Training to Three Strikes line stays `#333333`. The General tree is the exception: its links open both ways (a point in either end opens the other, `twoWayLinks` in data/trees/general.js), so a line there is white when either end is learned. Lines are drawn opaque.
 
 ## How the game draws mutagen connectors
 

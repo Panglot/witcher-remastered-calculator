@@ -42,7 +42,7 @@ test("mutagen bonus: the equipped mutagens of a colour, summed, one kind per mut
   // Group 0 holds r (match) and x (no match); group 1 holds a (match). Same mutagen twice: one kind.
   const b = build({ pts: { r: 2, a: 1, x: 1 }, slots: ["r", "x", "a", null], mut: ["red-x", "red-x"] });
   assert.deepEqual(stats.mutagenBonus(b, "red"), {
-    label: "Attack power", unit: "%", value: 20,
+    label: "Attack power", unit: "%", value: 20, synergy: 0,
     kinds: [{ id: "red-x", name: "Red mutagen", count: 2, matches: 2 }]
   });
   assert.equal(stats.mutagenBonus(b, "blue"), null);
@@ -68,7 +68,7 @@ test("different mutagens of one colour: one summed bonus, a kind each in slot gr
 test("totals: slotted skills at their rank, times their count; mutagens raised by Synergy", () => {
   const cat = createCatalog({
     rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 4, treeOrder: ["t"] },
-    mutagens: { stats: { red: { label: "Attack power", unit: "%" } }, items: [{ id: "red-x", name: "Red mutagen", color: "red", value: 10 }] },
+    mutagens: { stats: { red: { label: "Attack power", unit: "%" } }, items: [{ id: "red-x", name: "Red mutagen", color: "red", value: 10 }, { id: "red-7", name: "Odd red mutagen", color: "red", value: 7 }] },
     trees: {
       t: {
         name: "Tee", mutagen: "red", passive: { label: "Gain", per: 1, unit: "%" },
@@ -98,7 +98,7 @@ test("totals: slotted skills at their rank, times their count; mutagens raised b
     }
   });
   assert.deepEqual(cat.problems, []);
-  const s = createStats(cat, createPlanner(cat));
+  const p = createPlanner(cat), s = createStats(cat, p);
   // off has points but no slot: Gain has only the passive, so it isn't listed.
   const b = build({ pts: { r: 1, syn: 3, wolf: 2, bear: 1, off: 1 }, slots: ["syn", "wolf", "bear", "r"], mut: ["red-x"] });
   const [ap, vit, ...rest] = s.totals(b);
@@ -107,6 +107,11 @@ test("totals: slotted skills at their rank, times their count; mutagens raised b
   // Wolf is conditional: only in max.
   assert.deepEqual(ap.parts.map(p => [p.type, p.value, p.when]), [["mutagen", 50, ""], ["synergy", 15, ""], ["skill", 16, "4 Medium"]]);
   assert.deepEqual([ap.value, ap.max], [65, 81]);
+  // The group's bonus label shows the mutagen with Synergy, as the game does.
+  assert.deepEqual([p.groupBonus(b, 0).base, p.groupBonus(b, 0).synergy, p.groupBonus(b, 0).value], [50, 15, 65]);
+  // The game rounds the total: 7 x 2 (Synergy matches its colour) = 14, +10% at rank 1 = 15.4, shown as 15.
+  const odd = build({ pts: { r: 1, syn: 1 }, slots: ["syn", null, null, null], mut: ["red-7"] });
+  assert.deepEqual([p.groupBonus(odd, 0).synergy, p.groupBonus(odd, 0).value], [1, 15]);
   // Wolf (medium) 4 x 2 = 8, Bear (heavy) 4 x 2 = 8 at rank 1: a tie keeps the first; the other doesn't count.
   assert.deepEqual(vit.parts.map(p => p.counted), [true, false]);
   assert.deepEqual([vit.value, vit.max], [0, 8]);
