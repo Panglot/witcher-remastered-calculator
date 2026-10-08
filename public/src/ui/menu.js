@@ -28,7 +28,7 @@ import { OPTIONS, clearSavedSettings } from "../settings.js";
 import { FAN_NOTICE, REPO_URL, CONTACT_DISCORD } from "./pageInfo.js";
 
 // The game version the planner follows, shown under the logo.
-const GAME_VERSION = "5.0.0c";
+const GAME_VERSION = "5.01";
 const ABOUT = [
   "This is a build planner for The Witcher 3: Wild Hunt (Remastered), faithful to the original character screen. The main additions are the Skill sets and the Statistics panels.",
   "Selecting a Skill set highlights skills that fit a common theme, so you can easily pick complementing ones. A full build usually combines three or four.",

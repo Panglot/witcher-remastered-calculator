@@ -1,6 +1,6 @@
 // Mutagens for the slot groups: the pure single-colour ones, three sizes each. Each is unlimited,
 // so one mutagen can sit in any number of groups at once.
-// Values from the Witcher wiki's mutagen table (original game, not yet checked in the Remaster).
+// Values match the Remaster's game files (def_item_ingredients.xml, *_mutagen_color_*_x abilities).
 // A group's bonus is `value` once, plus `value` again for every slotted skill of the same colour
 // (up to 4 times `value` with three).
 //
