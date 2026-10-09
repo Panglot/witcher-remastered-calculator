@@ -44,6 +44,17 @@ function patchNode(have, n) {
   patchChildren(have, n);
 }
 
+// Keeps every run of the CSS animations named in `names` in step: each starts at the page's time 0
+// instead of when its element showed up, so pulses that appear at different moments (the
+// selection frame, search matches, tab icons) rise and fall together.
+export function syncAnimations(names) {
+  const set = new Set(names);
+  document.addEventListener("animationstart", e => {
+    if (!set.has(e.animationName)) return;
+    e.target.getAnimations().forEach(a => { if (a.animationName === e.animationName) a.startTime = 0; });
+  });
+}
+
 // Native controls keep their own key behaviour (Space and Enter press a button or follow a link).
 const NATIVE_CONTROLS = "a[href], button, summary";
 const onNativeControl = e => !!(e.target.closest && e.target.closest(NATIVE_CONTROLS));

@@ -61,12 +61,19 @@ export function mountTree(app) {
     return !e.repeat && !!c.hotkey && c.hotkey(e);
   });
 
-  // Tree tabs count the points spent in them; the Mutagens tab counts equipped mutagens.
+  // Whether tab t lists any search match (ui/search.js).
+  function tabFound(t) {
+    const found = app.found();
+    return t === MUTAGEN_TAB ? found.mutagen.size > 0 : [...found.skill].some(id => catalog.nodes[id].tree === t);
+  }
+
+  // Tree tabs count the points spent in them; the Mutagens tab counts equipped mutagens. A tab
+  // listing a search match pulses.
   function tabView(t) {
     const open = t === state.tab, mut = t === MUTAGEN_TAB;
     const name = mut ? "Mutagens" : catalog.trees[t].name;
     return {
-      id: mut ? MUTAGEN_ART_TAB : t, open,
+      id: mut ? MUTAGEN_ART_TAB : t, open, found: tabFound(t),
       count: mut ? state.mut.filter(Boolean).length : app.planner.spentIn(state, t),
       attrs: ` data-tab="${t}" role="tab" tabindex="0" aria-selected="${open}" aria-label="${esc(name)}"`
     };

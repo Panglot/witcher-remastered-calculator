@@ -176,6 +176,8 @@ input[type="text"], textarea { cursor: text; }
 .gmark[data-sets="3"] { stroke: var(--mark-3); }
 /* A search match (ui/search.js) pulses like the selection frame, in whatever colour its sets give it. */
 .gmark.found { animation: gpulse 0.8s ease-in-out infinite; }
+/* So does the icon of a tab listing one (its bar and count stay). */
+.gtab.found .gtab-icon { animation: gpulse 0.8s ease-in-out infinite; }
 @keyframes shake { 25% { translate: -3px 0; } 75% { translate: 3px 0; } }
 @media (prefers-reduced-motion: reduce) { .gnode.shake, .gsel { animation: none; } }
 /* Apply mode (ui/applyMode.js, CharacterModeBackground). The mask is black at .85 x .79 = .67 alpha over the

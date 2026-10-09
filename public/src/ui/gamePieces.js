@@ -244,8 +244,8 @@ export function createPieces(art) {
   function tab(tree, open, count) {
     const T = art.layout("tab");
     return filled(`tabs/${tree}-bar.png`)
-      + (open ? placed(T.mcOpened, filled(`tabs/${tree}-selected.png`))
-        : `<g class="ico">${filled(`tabs/${tree}.png`)}</g><g class="hov">${filled(`tabs/${tree}-hover.png`)}</g>`)
+      + `<g class="gtab-icon">${open ? placed(T.mcOpened, filled(`tabs/${tree}-selected.png`))
+        : `<g class="ico">${filled(`tabs/${tree}.png`)}</g><g class="hov">${filled(`tabs/${tree}-hover.png`)}</g>`}</g>`
       + (count == null ? "" : text(T.mcText, count));
   }
 

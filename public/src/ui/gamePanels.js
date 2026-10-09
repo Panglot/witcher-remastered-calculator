@@ -41,7 +41,8 @@ const STEP_SIDES = [["remove", 0, -1], ["add", SOCKET, 1]];
 
 /**
  * View models. `cls` adds classes and `attrs` adds attributes to the part's group.
- * @typedef {{ id: string, open: boolean, count?: number, attrs?: string }} TabView  id: a GAME_TABS id.
+ * @typedef {{ id: string, open: boolean, found?: boolean, count?: number, attrs?: string }} TabView  id: a GAME_TABS id.
+ *   found: it lists a search match, so its icon pulses.
  * @typedef {{ col: number, row: number, icon: string, state: "locked" | "open" | "learned",
  *   rank?: number, selected?: boolean, marked?: number, found?: boolean, mid?: boolean, cls?: string, attrs?: string,
  *   steps?: { remove?: string, add?: string } }} NodeView
@@ -84,7 +85,7 @@ export function createPanels(art, pieces) {
   function treePanel({ bg, title, tabs, grid, items }) {
     const S = art.layout("screen"), P = art.layout("tree-panel");
     const tabMarkup = tabs.map(t => placed(P[`mcTabListItem${GAME_TABS.indexOf(t.id) + 1}`],
-      TAB_HIT + pieces.tab(t.id, t.open, t.count), ` class="gtab${t.open ? " open" : ""}"${t.attrs || ""}`)).join("");
+      TAB_HIT + pieces.tab(t.id, t.open, t.count), ` class="${classes("gtab", t.open && "open", t.found && "found")}"${t.attrs || ""}`)).join("");
     return placed(S.mcDupeTabModule,
       placed(P.mcNewTabBackground, pieces.img(`tree/bg-${bg}.png`, 0, 0) + pieces.img("tree/frame.png", 0, 0))
       + tabMarkup

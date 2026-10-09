@@ -10,7 +10,7 @@ import { createSlotKinds } from "./core/slotKinds.js";
 import { createSearch } from "./core/search.js";
 import { loadState, saveState } from "./state.js";
 import { loadSettings, saveSettings } from "./settings.js";
-import { $, esc, blockKeyDefaults, createHotkeys, PLANNER_KEYS } from "./ui/dom.js";
+import { $, esc, blockKeyDefaults, createHotkeys, syncAnimations, PLANNER_KEYS } from "./ui/dom.js";
 import { loadArt } from "./ui/gameArt.js";
 import { createPieces, glowFilters, stepDefs } from "./ui/gamePieces.js";
 import { createPanels } from "./ui/gamePanels.js";
@@ -118,6 +118,9 @@ app.dropTargets = createDropTargets(app);
 
 // The planner's keys never fall through to the browser (Space would scroll the page).
 blockKeyDefaults(PLANNER_KEYS);
+
+// The selection frame, search matches and tab icons pulse in step (styles.css, gpulse).
+syncAnimations(["gpulse"]);
 
 app.render();
 
