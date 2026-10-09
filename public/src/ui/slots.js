@@ -1,8 +1,8 @@
 // The slot groups of the Character screen, drawn with the game art once it has loaded (app.game).
 // Sockets (skills) and diamonds (mutagens) are holders and behave alike, by the rules in
 // core/slotKinds.js. Like the game: pressing a full one selects it (it is framed, not the panel
-// item); Space (on the focused or framed one), a double-click or right-click (or Delete) takes its
-// item out; holding the left button or E on a skill adds a point, as in the tree (ui/hold.js).
+// item), and clicking it again deselects it unless a second click follows (ui/reselect.js); Space
+// (on the focused or framed one), a double-click or right-click (or Delete) takes its item out; holding the left button or E on a skill adds a point, as in the tree (ui/hold.js).
 // Clicking an empty diamond opens the mutagen tab (SlotKind.emptyOpensTab). Items go in through
 // apply mode (ui/applyMode.js): there a click picks a holder of the kind being equipped and a
 // double-click fills it, or they are dragged in (ui/drag.js), which finds the holder under the
@@ -10,6 +10,7 @@
 // (ui/dropTargets.js).
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
 import { createHold } from "./hold.js";
+import { createReselect } from "./reselect.js";
 import { skillIcon, MUTAGEN_ART, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
 import { highlightedSkills } from "../core/skillSets.js";
@@ -55,6 +56,12 @@ export function mountSlots(app) {
     frame(h.g);
     app.render("slots");
   }
+  function deselectInPlace(h) {
+    h.kind.deselect(state); app.msg = "";
+    h.g.classList.remove("selected");
+    app.render("slots");
+  }
+  const reselect = createReselect();
   // Runs an action on a holder, redraws and keeps focus on it.
   function act(h, action) {
     app.msg = action().msg; app.render(); focus(h.name, h.i);
@@ -64,14 +71,18 @@ export function mountSlots(app) {
 
   el.addEventListener("pointerdown", e => {
     const h = holderOf(e); if (!h || e.button !== 0 || app.apply || !itemOf(h)) return;
+    reselect.press(h.kind.framedAt(state, h.i));
     selectInPlace(h);
-    if (h.kind.canRaise(state, itemOf(h))) hold.press(e, h.g, () => raise(h));
+    if (h.kind.canRaise(state, itemOf(h))) hold.press(e, h.g, () => { reselect.held(); raise(h); });
   });
   el.addEventListener("click", e => {
     const h = holderOf(e); if (!h) return;
     if (app.apply) { if (aimable(h)) { app.views.apply.aim(h.i); frame(h.g); } return; }
-    if (itemOf(h)) selectInPlace(h);
-    else if (h.kind.emptyOpensTab && !h.kind.shown(state)) { h.kind.open(state); app.msg = ""; app.render(); }
+    if (itemOf(h)) {
+      const id = itemOf(h), was = h.kind.framedAt(state, h.i);
+      reselect.click(e, was, () => { if (h.kind.framedAt(state, h.i) && itemOf(h) === id) deselectInPlace(h); });
+      if (!was) selectInPlace(h);
+    } else if (h.kind.emptyOpensTab && !h.kind.shown(state)) { h.kind.open(state); app.msg = ""; app.render(); }
   });
   el.addEventListener("dblclick", e => {
     const h = holderOf(e); if (!h) return;
@@ -102,6 +113,7 @@ export function mountSlots(app) {
     const key = e.key.toLowerCase();
     if (e.repeat || (key !== "e" && key !== " ")) return false;
     const h = target(); if (!h || !itemOf(h)) return false;
+    reselect.cancel();
     if (key === " ") { unequip(h); return true; }
     selectInPlace(h); h.g.focus({ preventScroll: true });
     if (h.kind.canRaise(state, itemOf(h))) hold.key(e, h.g, () => raise(h));

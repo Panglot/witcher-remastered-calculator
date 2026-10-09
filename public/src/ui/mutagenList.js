@@ -1,9 +1,10 @@
 // The Mutagens tab of the tree panel: every mutagen in data/mutagens.js in the game's inventory
-// grid, each unlimited. Click selects; Space (on the focused or selected one) or a double-click
-// equips it through apply mode (ui/applyMode.js), like a skill; right-click or Delete takes it out
+// grid, each unlimited. Click selects, and on the selected one deselects unless a second click
+// follows (ui/reselect.js); Space (on the focused or selected one) or a double-click equips it through apply mode (ui/applyMode.js), like a skill; right-click or Delete takes it out
 // of every group. Selection and diamonds follow the shared slot rules (core/slotKinds.js).
 import { esc, keyTarget, isLongPress } from "./dom.js";
 import { mutagenIcon } from "./gameArt.js";
+import { createReselect } from "./reselect.js";
 
 // The game's 5th tab (GAME_TABS) lists mutagens; its art is named after Mutations.
 export const MUTAGEN_ART_TAB = "mutations";
@@ -24,7 +25,17 @@ export function createMutagenList(app, el) {
     selectItem(id);
     app.msg = action(state, id).msg; app.render(); focusItem(id);
   }
-  const select = () => ({ msg: "" });
+  const reselect = createReselect();
+  const framed = id => kind.framedInPanel(state, id);
+  // Selects, or with on false deselects, in place, like skills (ui/tree.js), so a double-click
+  // lands on the same element.
+  function selectInPlace(g, on = true) {
+    if (on) selectItem(g.dataset.mutagen); else kind.deselect(state);
+    app.msg = "";
+    el.querySelectorAll(".gitem.selected").forEach(n => n.classList.remove("selected"));
+    if (on) g.classList.add("selected");
+    app.views.slots.render(); app.views.tooltip.render(); app.save();
+  }
   const equip = id => app.views.apply.start("mutagen", id);
 
   function itemView(m) {
@@ -39,11 +50,9 @@ export function createMutagenList(app, el) {
   return {
     click(e) {
       const g = e.target.closest("[data-mutagen]"); if (!g) return;
-      // Like skills: move the selection in place so a double-click lands on the same element.
-      selectItem(g.dataset.mutagen); app.msg = "";
-      el.querySelectorAll(".gitem.selected").forEach(n => n.classList.remove("selected"));
-      g.classList.add("selected");
-      app.views.slots.render(); app.views.tooltip.render(); app.save();
+      const id = g.dataset.mutagen, was = framed(id);
+      reselect.click(e, was, () => { if (framed(id)) selectInPlace(g, false); });
+      if (!was) selectInPlace(g);
     },
     dblclick(e) { const id = idOf(e); if (id) equip(id); },
     contextmenu(e) {
@@ -53,12 +62,21 @@ export function createMutagenList(app, el) {
     },
     keydown(e) {
       const id = idOf(e); if (!id) return;
-      const action = { "Enter": select, "Delete": planner.unequipMutagen, "Backspace": planner.unequipMutagen }[e.key];
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const was = framed(id);
+        reselect.click(e, was, () => kind.deselect(state));
+        if (!was) selectItem(id);
+        app.msg = ""; app.render(); focusItem(id);
+        return;
+      }
+      const action = { "Delete": planner.unequipMutagen, "Backspace": planner.unequipMutagen }[e.key];
       if (action) { e.preventDefault(); act(id, action); }
     },
     // Space equips the focused mutagen, else the selection when the inventory frames it.
     hotkey(e) {
       if (e.key !== " ") return false;
+      reselect.cancel();
       const g = keyTarget(el, ".gitem[data-mutagen]",
         () => kind.selected(state) && kind.framedInPanel(state, kind.selected(state)) ? itemEl(kind.selected(state)) : null);
       if (g) equip(g.dataset.mutagen);

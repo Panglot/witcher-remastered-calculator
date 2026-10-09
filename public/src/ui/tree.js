@@ -1,13 +1,15 @@
 // The tree panel of the Character screen: the tabs, then the open tab's content, drawn with the
 // game art once it has loaded (app.game). A tree tab shows its skills (below); the Mutagens tab
 // shows the inventory (ui/mutagenList.js).
-// Skills: pressing selects; holding the left button or E (on the focused or selected skill) adds a
+// Skills: pressing selects, and clicking the selected one again deselects it, unless a second
+// click follows (ui/reselect.js); holding the left button or E (on the focused or selected skill) adds a
 // point, as the game's "[Hold] Acquire Ability" does (ui/hold.js); right-click removes one. Space or
 // a double-click on a learned skill equips it through apply mode (ui/applyMode.js). With a skill
-// focused, Enter selects and + / - change rank. On touch screens, arrow buttons on a skill's sides
+// focused, Enter selects or deselects and + / - change rank. On touch screens, arrow buttons on a skill's sides
 // take a point out (left, down) or put one in (right, up); styles.css shows them only there.
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
 import { createHold } from "./hold.js";
+import { createReselect } from "./reselect.js";
 import { skillIcon, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
 import { MUTAGEN_TAB } from "../core/catalog.js";
@@ -113,13 +115,17 @@ function createSkillTree(app, el) {
     if (!r.ok && r.msg) shake(id);
   }
   const skillOf = e => { const g = e.target.closest("[data-id]"); return g && g.dataset.id; };
-  // Selects in place (no tree redraw), so the pressed element stays under the pointer.
-  function selectInPlace(g) {
-    selectNode(g.dataset.id); app.msg = "";
+  // Selects, or with on false deselects, in place (no tree redraw), so the pressed element stays
+  // under the pointer.
+  function selectInPlace(g, on = true) {
+    if (on) selectNode(g.dataset.id); else kind.deselect(state);
+    app.msg = "";
     el.querySelectorAll(".gnode.selected").forEach(n => n.classList.remove("selected"));
-    g.classList.add("selected");
+    if (on) g.classList.add("selected");
     ["slots", "legend", "tooltip"].forEach(v => app.views[v].render()); app.save();
   }
+  const reselect = createReselect();
+  const framed = id => kind.framedInPanel(state, id);
   // Hold to acquire: the game only starts the fill on a skill that can take a point.
   const hold = createHold(() => app.settings.holdMs);
   const acquire = id => act(id, planner.addPoint);
@@ -163,14 +169,22 @@ function createSkillTree(app, el) {
   return {
     pointerdown(e) {
       const g = e.target.closest("[data-id]"); if (!g || e.button !== 0) return;
-      selectInPlace(g);
       const id = g.dataset.id;
-      if (planner.canAddPoint(state, id)) hold.press(e, g, () => acquire(id));
+      reselect.press(framed(id));
+      selectInPlace(g);
+      if (planner.canAddPoint(state, id)) hold.press(e, g, () => { reselect.held(); acquire(id); });
     },
     // A touch button selects its skill and changes its rank. Focus stays put, so the tooltip doesn't
     // open over the buttons around it.
     click(e) {
-      const b = e.target.closest("[data-step]"); if (!b) return;
+      const b = e.target.closest("[data-step]");
+      if (!b) {
+        const g = e.target.closest("[data-id]"); if (!g) return;
+        const id = g.dataset.id;
+        reselect.click(e, framed(id), () => { if (framed(id)) selectInPlace(g, false); });
+        return;
+      }
+      reselect.cancel();
       const id = b.dataset.stepId;
       selectNode(id);
       const r = STEP_ACTIONS[b.dataset.step](state, id);
@@ -189,6 +203,7 @@ function createSkillTree(app, el) {
       if (key !== "e" && key !== " ") return false;
       const g = target(); if (!g) return false;
       const id = g.dataset.id;
+      reselect.cancel();
       if (key === " ") { equip(id); return true; }
       selectInPlace(g); g.focus({ preventScroll: true });
       if (planner.canAddPoint(state, id)) hold.key(e, g, () => acquire(id));
@@ -196,7 +211,13 @@ function createSkillTree(app, el) {
     },
     keydown(e) {
       const id = skillOf(e); if (!id) return;
-      if (e.key === "Enter") { e.preventDefault(); selectNode(id); app.msg = ""; app.render(); focusNode(id); }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const was = framed(id);
+        reselect.click(e, was, () => kind.deselect(state));
+        if (!was) selectNode(id);
+        app.msg = ""; app.render(); focusNode(id);
+      }
       else if (e.key === "+" || e.key === "=") { e.preventDefault(); act(id, planner.addPoint); }
       else if (e.key === "-" || e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); act(id, planner.removePoint); }
     },

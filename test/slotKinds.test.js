@@ -80,6 +80,18 @@ for (const { name, kind, list, item, tab, other } of CASES) {
     assert.equal(kind.framedInPanel(s, item), true);
   });
 
+  test(`${name}: deselect clears the selection, from the panel or a holder, and keeps the tab`, () => {
+    const s = state();
+    s[list][0] = item;
+    kind.select(s, item, 0);
+    const open = s.tab;
+    kind.deselect(s);
+    assert.equal(kind.selected(s), null);
+    assert.equal(kind.framedAt(s, 0), false);
+    assert.equal(kind.framedInPanel(s, item), false);
+    assert.equal(s.tab, open);
+  });
+
   test(`${name}: open shows the kind's tab`, () => {
     const s = state();
     kind.select(s, item); s.tab = other;

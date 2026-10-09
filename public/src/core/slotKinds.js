@@ -9,6 +9,7 @@
 // only from a tab of the other kind does it open the item's. A holder that no longer has the
 // selected item hands the frame back to the panel. Nothing is selected until the user picks it:
 // opening a tab selects nothing, and drops a selection picked in a panel the tab doesn't show.
+// Clicking the selected item again deselects it (ui/reselect.js); the open tab stays.
 //
 // Equipping, like the game's apply mode (ui/applyMode.js): the item goes into the holder picked,
 // over what was there. A skill leaves the socket it was in (one copy); a mutagen is not moved, so
@@ -29,6 +30,7 @@ import { MUTAGEN_TAB } from "./catalog.js";
  * @property {(s: object) => (number|null)} heldAt  holder the selection was picked from, if it still holds it
  * @property {(s: object, id: string, at?: number|null) => void} select  selects; opens the item's tab when
  *   picked in its panel, or from holder `at` while the open tab doesn't show the kind
+ * @property {(s: object) => void} deselect  selects nothing; the open tab stays
  * @property {(s: object) => boolean} shown  its tab is open, so its selection is the one framed
  * @property {(s: object) => void} open  opens the tab that lists the kind
  * @property {(id: string) => string} tabOf  the tab that lists the item
@@ -92,8 +94,9 @@ function slotKind(d) {
     return i != null && selected(s) && itemAt(s, i) === selected(s) ? i : null;
   }
   const shown = s => d.onTab(s.tab);
+  const deselect = s => { s[d.idKey] = null; s[d.atKey] = null; };
   return {
-    selected, heldAt, shown, itemAt, emptyOpensTab: d.emptyOpensTab,
+    selected, heldAt, shown, itemAt, deselect, emptyOpensTab: d.emptyOpensTab,
     select(s, id, at = null) {
       s[d.idKey] = id; s[d.atKey] = at;
       if (at == null || !shown(s)) s.tab = d.tabOf(id);
@@ -101,7 +104,7 @@ function slotKind(d) {
     open(s) { s.tab = d.homeTab(s); },
     tabOf: id => d.tabOf(id),
     dropHidden(s) {
-      if (selected(s) && heldAt(s) == null && d.tabOf(selected(s)) !== s.tab) { s[d.idKey] = null; s[d.atKey] = null; }
+      if (selected(s) && heldAt(s) == null && d.tabOf(selected(s)) !== s.tab) deselect(s);
     },
     framedAt: (s, i) => shown(s) && heldAt(s) === i,
     framedInPanel: (s, id) => selected(s) === id && heldAt(s) == null,
