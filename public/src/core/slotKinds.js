@@ -7,7 +7,8 @@
 // holder it was picked from (null when picked in its panel), and the open tab decides which kind
 // is shown. Picking from a holder keeps the open tab when it shows the kind (another skill tree);
 // only from a tab of the other kind does it open the item's. A holder that no longer has the
-// selected item hands the frame back to the panel.
+// selected item hands the frame back to the panel. Nothing is selected until the user picks it:
+// opening a tab selects nothing, and drops a selection picked in a panel the tab doesn't show.
 //
 // Equipping, like the game's apply mode (ui/applyMode.js): the item goes into the holder picked,
 // over what was there. A skill leaves the socket it was in (one copy); a mutagen is not moved, so
@@ -30,6 +31,8 @@ import { MUTAGEN_TAB } from "./catalog.js";
  *   picked in its panel, or from holder `at` while the open tab doesn't show the kind
  * @property {(s: object) => boolean} shown  its tab is open, so its selection is the one framed
  * @property {(s: object) => void} open  opens the tab that lists the kind
+ * @property {(id: string) => string} tabOf  the tab that lists the item
+ * @property {(s: object) => void} dropHidden  clears a selection picked in a panel the open tab doesn't show
  * @property {boolean} emptyOpensTab  a click on an empty holder, with the kind's tab closed, opens it
  * @property {(s: object, i: number) => boolean} framedAt  holder i shows the selection frame
  * @property {(s: object, id: string) => boolean} framedInPanel  the panel item shows the selection frame
@@ -71,6 +74,15 @@ export function createSlotKinds(catalog, planner) {
   return Object.fromEntries(Object.entries(defs).map(([name, d]) => [name, slotKind(d)]));
 }
 
+/**
+ * Opens `tab` without selecting anything in it; a selection picked in another tab's panel is dropped.
+ * @param {{ [name: string]: SlotKind }} kinds
+ */
+export function openTab(kinds, s, tab) {
+  s.tab = tab;
+  Object.values(kinds).forEach(k => k.dropHidden(s));
+}
+
 /** The shared rules over one kind's parts. */
 function slotKind(d) {
   const selected = s => s[d.idKey] || null;
@@ -87,6 +99,10 @@ function slotKind(d) {
       if (at == null || !shown(s)) s.tab = d.tabOf(id);
     },
     open(s) { s.tab = d.homeTab(s); },
+    tabOf: id => d.tabOf(id),
+    dropHidden(s) {
+      if (selected(s) && heldAt(s) == null && d.tabOf(selected(s)) !== s.tab) { s[d.idKey] = null; s[d.atKey] = null; }
+    },
     framedAt: (s, i) => shown(s) && heldAt(s) === i,
     framedInPanel: (s, id) => selected(s) === id && heldAt(s) == null,
     clear: (s, i) => d.clear(s, i),

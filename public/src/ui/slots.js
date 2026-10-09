@@ -134,7 +134,7 @@ export function mountSlots(app) {
   // A full holder is a drop target source too (ui/dropTargets.js).
   const dragAttrs = (name, id, i) => ` data-drag="${name}" data-drag-item="${esc(id)}" data-drag-from="${i}"`;
 
-  function socketView(index, lit, marked) {
+  function socketView(index, lit, { marked, found }) {
     const id = state.slots[index];
     if (!id) {
       const label = emptyLabel("slot", "skill");
@@ -143,32 +143,33 @@ export function mountSlots(app) {
     const n = nodes[id], rank = planner.rank(state, id);
     return {
       ...holderView("skill", index, lit), icon: skillIcon(n.tree, n.game), color: TREE_ART[n.tree].color, rank,
-      marked: marked.get(id) || 0,
+      marked: marked.get(id) || 0, found: found.skill.has(id),
       attrs: ` data-slot="${index}" data-tip="${id}"${dragAttrs("skill", id, index)} tabindex="0" role="button" aria-label="${esc(n.name)}, rank ${rank} of ${maxRank}, equipped"`
     };
   }
 
   // A diamond with a mutagen shows its tooltip (ui/tooltip.js, data-mutagen); an empty one the
   // game's empty slot tooltip.
-  function groupView(g, lit, marked) {
+  function groupView(g, lit, frames) {
     const bonus = planner.groupBonus(state, g), m = mutagens[bonus.mutagen];
     const label = m ? `${m.name}, +${bonus.value}${m.stat.unit} ${m.stat.label}, equipped`
       : emptyLabel("mutagen slot", "mutagen");
     const tip = m ? ` data-mutagen="${m.id}"${dragAttrs("mutagen", m.id, g)}` : emptyTipAttrs("mutagen");
     return {
       ...holderView("mutagen", g, lit), mutagen: bonus.color, size: m && m.size,
-      bonus: m ? `+${bonus.value}${m.stat.unit}` : null,
+      bonus: m ? `+${bonus.value}${m.stat.unit}` : null, found: !!m && frames.found.mutagen.has(m.id),
       attrs: ` data-group="${g}"${tip} tabindex="0" role="button" aria-label="Group ${g + 1} mutagen: ${esc(label)}"`,
-      sockets: Array.from({ length: slots.perGroup }, (_, i) => socketView(g * slots.perGroup + i, lit, marked))
+      sockets: Array.from({ length: slots.perGroup }, (_, i) => socketView(g * slots.perGroup + i, lit, frames))
     };
   }
 
   function render() {
     if (!app.game) return;
     const lit = app.dropTargets.targets();
-    // Equipped skills of the highlighted skill sets are framed as in the tree (ui/tree.js).
-    const marked = highlightedSkills(catalog, state.skillSets, app.settings.skillSetsMatchAll);
-    const groups = Array.from({ length: slots.groups }, (_, g) => groupView(g, lit, marked));
+    // Equipped skills of the highlighted skill sets and equipped search matches (ui/search.js) are
+    // framed as in the tree (ui/tree.js) and the inventory.
+    const frames = { marked: highlightedSkills(catalog, state.skillSets, app.settings.skillSetsMatchAll), found: app.found() };
+    const groups = Array.from({ length: slots.groups }, (_, g) => groupView(g, lit, frames));
     // In place, like the tree (ui/tree.js, render), so a focused holder stays.
     patchHtml(el, app.game.panels.svg(VIEWS.slots, app.game.panels.mutagenPanel({ groups }),
       ` role="group" aria-label="Skill slots and mutagens"`));

@@ -174,6 +174,8 @@ input[type="text"], textarea { cursor: text; }
 .gmark { fill: none; stroke: var(--mark-1); stroke-width: 2; stroke-dasharray: 6 5; pointer-events: none; }
 .gmark[data-sets="2"] { stroke: var(--mark-2); }
 .gmark[data-sets="3"] { stroke: var(--mark-3); }
+/* A search match (ui/search.js) pulses like the selection frame, in whatever colour its sets give it. */
+.gmark.found { animation: gpulse 0.8s ease-in-out infinite; }
 @keyframes shake { 25% { translate: -3px 0; } 75% { translate: 3px 0; } }
 @media (prefers-reduced-motion: reduce) { .gnode.shake, .gsel { animation: none; } }
 /* Apply mode (ui/applyMode.js, CharacterModeBackground). The mask is black at .85 x .79 = .67 alpha over the
@@ -281,6 +283,9 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* Text fields of a popup that asks for text (ui/popup.js, fieldsPopup), the build name's look (.gfield). */
 .gpopup-fields { align-self: stretch; margin-top: calc(20 * var(--u1)); text-align: left; }
 .gpopup-fields .gfield { margin-bottom: calc(8 * var(--u1)); }
+/* A field with a Clear button at its right end (fieldsPopup, clearable): the field takes what the button leaves. */
+.gfield-row { display: flex; align-items: center; gap: calc(14 * var(--u1)); margin-bottom: calc(8 * var(--u1)); font-size: calc(20 * var(--u1)); }
+.gfield-row .gfield { flex: 1; margin-bottom: 0; }
 .gpopup-fields input[readonly] { color: #c9b48c; }
 .gpopup-error { margin: 0; color: var(--bad); font-size: calc(20 * var(--u1)); text-align: center; }
 .gpopup-short .gpopup-buttons { margin-top: calc(14 * var(--u1)); }

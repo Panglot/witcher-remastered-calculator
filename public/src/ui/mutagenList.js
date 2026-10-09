@@ -68,7 +68,10 @@ export function createMutagenList(app, el) {
     icon: id => mutagenIcon(mutagens[id].color, mutagens[id].size),
     focus: focusItem,
     panel() {
-      return { bg: MUTAGEN_ART_TAB, title: "Mutagens", items: Object.values(mutagens).map(itemView) };
+      // Search matches (ui/search.js) are framed; the lifted copy in apply mode isn't.
+      const found = app.found().mutagen;
+      const items = Object.values(mutagens).map(m => ({ ...itemView(m), found: found.has(m.id) }));
+      return { bg: MUTAGEN_ART_TAB, title: "Mutagens", items };
     }
   };
 }

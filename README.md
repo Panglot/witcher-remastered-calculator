@@ -54,6 +54,7 @@ public/                  The whole site. GitHub Pages publishes exactly this fol
       stats.js           What a build adds up to (points, build-wide totals, tree passives).
       skillSets.js       Which skills the selected skill sets highlight, and a skill's sets for its tooltip.
       skillText.js       A skill's tooltip text and numbers at a rank, from the data/skillText.js templates.
+      search.js          Which skills and mutagens a search query matches (name, text, skill sets).
     ui/                  One module per panel: mountX(app) wires events and returns { render }.
       dom.js             DOM helpers: in-place redraws (patchHtml), page-wide hotkeys, touch checks.
       gameArt.js         Game art paths, colours, layout data loading and tree line geometry.
@@ -71,6 +72,7 @@ public/                  The whole site. GitHub Pages publishes exactly this fol
       sidePanel.js       Side panels: a card over part of the screen (layer, toggle, animation, accordion).
       statistics.js      The Statistics panel (C) over the tree panel.
       skillSets.js       The Skill sets panel (S) over the slots.
+      search.js          The search popup (Ctrl+F) that frames the skills and mutagens it matches.
       share.js           Build share actions: copy, export, load, import, share links.
       buildTools.js, buildMenu.js, buildRail.js
                          The share tools as icon buttons, in the Esc menu's Build drawer and the rail right of the slots.
@@ -97,7 +99,7 @@ What gets extracted is listed in `tools/asset-recipe.json`. [docs/game-assets.md
 ## How things fit together
 
 - **Data → catalog → planner.** `data/` is plain objects. `core/catalog.js` validates it and builds lookups; `core/planner.js` applies the rules to a build `{ pts, slots, mut }`. Planner actions mutate the build and return `{ ok, msg }`, where `msg` explains a refusal.
-- **UI panels** get one shared `app` object (built in `main.js`): the `catalog`, `planner` and slot `kinds`, the page `state` and viewer `settings`, the `layers` and `hotkeys`, the loaded `game` art, the mounted `views`, and `render()`, `save()`, `setSetting()`, `select(id)`. A panel changes `app.state`, then calls `app.render()`, which redraws every panel and saves to localStorage.
+- **UI panels** get one shared `app` object (built in `main.js`): the `catalog`, `planner` and slot `kinds`, the page `state` and viewer `settings`, `found()` (the search's matches), the `layers` and `hotkeys`, the loaded `game` art, the mounted `views`, and `render()`, `save()`, `setSetting()`, `select(id)`. A panel changes `app.state`, then calls `app.render()`, which redraws every panel and saves to localStorage.
 - **Build codes** are `W3R1.` + base64 of the build as UTF-8 JSON `{ p, s, m, b, g, n }` (points, slots, mutagens, budget, progress: level, places of power, other points, NG+ and custom total, name). Import finds the code anywhere in pasted text or a file, so a code in a chat message or any text file loads too.
 
 ## Common changes

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createCatalog, MUTAGEN_TAB } from "../public/src/core/catalog.js";
 import { createPlanner } from "../public/src/core/planner.js";
-import { createSlotKinds } from "../public/src/core/slotKinds.js";
+import { createSlotKinds, openTab } from "../public/src/core/slotKinds.js";
 
 // One tree "t" (r - a) and two groups of one socket, so each kind has two holders.
 const cat = createCatalog({
@@ -28,6 +28,26 @@ const CASES = [
 
 for (const { name, kind, list, item, tab, other } of CASES) {
   const empty = name === "skill" ? null : "";
+
+  test(`${name}: opening a tab selects nothing and drops a panel selection it doesn't show`, () => {
+    const s = state();
+    kind.select(s, item);
+    openTab(kinds, s, tab);
+    assert.equal(kind.selected(s), item);
+    openTab(kinds, s, other);
+    assert.equal(kind.selected(s), null);
+    openTab(kinds, s, tab);
+    assert.equal(kind.selected(s), null);
+  });
+
+  test(`${name}: opening a tab keeps a selection picked from a holder`, () => {
+    const s = state();
+    s[list][0] = item;
+    kind.select(s, item, 0);
+    openTab(kinds, s, other);
+    assert.equal(kind.selected(s), item);
+    assert.equal(kind.heldAt(s), 0);
+  });
 
   test(`${name}: a full holder is selected and framed instead of the panel item`, () => {
     const s = state();

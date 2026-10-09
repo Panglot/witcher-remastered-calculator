@@ -3,7 +3,8 @@
 // frames the selection, then the general controls in a group of their own. "Reset abilities" is a
 // button and the R key, both asking first in the game's message popup (ui/popup.js). "Menu" opens
 // the Esc menu (ui/menu.js), like Esc; "Statistics" toggles the Statistics panel
-// (ui/statistics.js), like C; "Skill sets" the Skill sets panel (ui/skillSets.js), like S. Remove
+// (ui/statistics.js), like C; "Skill sets" the Skill sets panel (ui/skillSets.js), like S; "Search"
+// asks for a search (ui/search.js), like Ctrl+F. Remove
 // point, Equip and Unequip are buttons for the selection, like their mouse buttons and keys. Apply
 // mode hides the legend while its popup is up.
 import { $ } from "./dom.js";
@@ -16,6 +17,8 @@ const MENU = { key: "Esc", label: "Menu", action: "menu" };
 const STATS = { key: "C", label: "Statistics", action: "stats" };
 // The Skill sets side panel (ui/skillSets.js).
 const SKILL_SETS = { key: "S", label: "Skill sets", action: "skillSets" };
+// The skill search popup (ui/search.js).
+const SEARCH = { key: "Ctrl+F", label: "Search", action: "search" };
 // Left button or E, held (ui/tree.js, ui/slots.js).
 const ACQUIRE = { mouse: "left", key: "E", prefix: "[Hold]", label: "Acquire ability" };
 // One mouse and one key per item at most: other ways in (drag, double-click to unequip) work unlisted.
@@ -26,7 +29,7 @@ const EQUIP = { mouse: "left", clicks: 2, key: "Space", label: "Equip", action: 
 const REMOVE = { mouse: "right", label: "Remove point", action: "remove" };
 const UNEQUIP_MUTAGEN = { mouse: "right", label: "Unequip", action: "unequipMutagen" };
 // Two groups: the selection's skill controls (Reset abilities always last), then the general ones (Menu last).
-const GENERAL = [STATS, SKILL_SETS, MENU];
+const GENERAL = [STATS, SKILL_SETS, SEARCH, MENU];
 const skillGroup = (...items) => [[...items, RESET], GENERAL];
 const ITEMS = {
   unlearned: skillGroup(ACQUIRE),
@@ -69,6 +72,7 @@ export function mountLegend(app) {
     menu: () => app.views.menu.open(),
     stats: () => app.views.stats.toggle(),
     skillSets: () => app.views.skillSets.toggle(),
+    search: () => app.views.search.open(),
     remove() { if (state.sel) done(planner.removePoint(state, state.sel)); },
     equip() {
       const name = shownKind(), id = kinds[name].selected(state);

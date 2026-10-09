@@ -7,9 +7,8 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 | # | Item | Left |
 | --- | --- | --- |
 | 1 | Level and slot unlocks (optional) | Everything |
-| 2 | Skill search (optional) | Everything |
-| 3 | Blood and Wine mutations (later) | Everything |
-| 4 | Builds (optional) | Everything |
+| 2 | Blood and Wine mutations (later) | Everything |
+| 3 | Builds (optional) | Everything |
 
 ## 1. Character level and slot unlocks (optional)
 
@@ -32,22 +31,7 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 - The Statistics panel's Level field (progress, part of the build) already exists: decide whether level mode reads it, or gets its own.
 - Where the mode switch and the level field go: Statistics panel or main screen.
 
-## 2. Skill search (optional)
-
-**Goal:** Ctrl + F opens a search field that finds skills by name (and maybe by effect text), so a skill can be found without knowing its tree.
-
-**Now:** the hotkey handler (`createHotkeys` in `ui/dom.js`) skips every key with a modifier, so Ctrl + F still opens the browser's own find.
-
-**Recommendation:**
-- Catch Ctrl + F (Cmd + F on Mac) and prevent the browser default only while the planner is open, so the browser's find still works elsewhere.
-- Search the skill names and text in `data/skillText.js`. Picking a result switches to its tree and focuses the skill, the same way a skill set frames its skills.
-- Open it as a layer (`ui/layers.js`) so Escape closes it like the other panels.
-
-**To decide:**
-- Names only, or effect text too.
-- Whether matches are shown as a result list, or highlighted in place in the trees.
-
-## 3. Blood and Wine mutations (later)
+## 2. Blood and Wine mutations (later)
 
 **Goal:** the Mutations system from the Blood and Wine expansion: research mutations, equip one, and get the extra skill slots that researched mutations unlock.
 
@@ -69,7 +53,7 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 
 **To decide:** does the build track which mutations are researched (and their cost in points), or only the one equipped?
 
-## 4. Builds (optional)
+## 3. Builds (optional)
 
 **Goal:** ready-made builds (presets) like Spellsword: a named build that loads its skills, slots and mutagens. Unlike skill sets, a build is a combination of themes, not one theme.
 

@@ -9,8 +9,9 @@ export function defaultState(catalog) {
     // Build (see core/build.js). budget: the points the build has, from progress (core/budget.js).
     pts: {}, slots: Array(slots.total).fill(null), mut: Array(slots.groups).fill(""), budget: budget.totalOf(progress), progress, name: "",
     // View. sel / selMut: selected skill / mutagen; selSlot / selGroup: the socket / diamond it was
-    // picked from, null when picked in its panel (core/slotKinds.js).
-    tab: order[0], sel: null, selSlot: null, selMut: null, selGroup: null, skillSets: []
+    // picked from, null when picked in its panel (core/slotKinds.js). search: the skill search's
+    // query (ui/search.js), "" for none.
+    tab: order[0], sel: null, selSlot: null, selMut: null, selGroup: null, skillSets: [], search: ""
   };
 }
 
@@ -26,15 +27,14 @@ export function loadState(catalog) {
   state.progress = catalog.budget.normalize(saved && saved.pts ? saved.progress : state.progress, state.budget);
   state.budget = catalog.budget.budgetOf(state.progress, state.budget);
   if (!catalog.tabs.includes(state.tab)) state.tab = catalog.order[0];
-  if (state.sel && !catalog.nodes[state.sel]) state.sel = null;
-  if (state.selMut && !catalog.mutagenId(state.selMut)) state.selMut = null;
+  // A page opens with nothing selected: selecting is only ever the user's pick.
+  Object.assign(state, { sel: null, selSlot: null, selMut: null, selGroup: null });
   // Highlighted skill sets that no longer exist (renamed or removed in data/skillSets.js) are dropped.
   state.skillSets = Array.isArray(state.skillSets) ? state.skillSets.filter(id => catalog.skillSets.some(s => s.id === id)) : [];
+  if (typeof state.search !== "string") state.search = "";
   // Saved before mutagen sizes, `mut` held colours.
   state.mut = Array.isArray(state.mut) && state.mut.length === catalog.slots.groups
     ? state.mut.map(catalog.mutagenId) : Array(catalog.slots.groups).fill("");
-  // A holder index that no longer holds the selection is ignored on use (core/slotKinds.js, heldAt).
-  ["selSlot", "selGroup"].forEach(k => { if (!Number.isInteger(state[k])) state[k] = null; });
   return state;
 }
 

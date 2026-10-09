@@ -7,6 +7,7 @@ import data from "../data/index.js";
 import { createCatalog } from "./core/catalog.js";
 import { createPlanner } from "./core/planner.js";
 import { createSlotKinds } from "./core/slotKinds.js";
+import { createSearch } from "./core/search.js";
 import { loadState, saveState } from "./state.js";
 import { loadSettings, saveSettings } from "./settings.js";
 import { $, esc, blockKeyDefaults, createHotkeys, PLANNER_KEYS } from "./ui/dom.js";
@@ -24,6 +25,7 @@ import { createPageLayers } from "./ui/layers.js";
 import { mountDrag } from "./ui/drag.js";
 import { mountStatistics } from "./ui/statistics.js";
 import { mountSkillSets } from "./ui/skillSets.js";
+import { mountSearch } from "./ui/search.js";
 import { createBuildShare } from "./ui/share.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountBuildRail } from "./ui/buildRail.js";
@@ -37,12 +39,15 @@ catalog.problems.forEach(p => console.error(p));
 
 const planner = createPlanner(catalog);
 const layers = createPageLayers();
+const search = createSearch(catalog);
 const app = {
   catalog,
   planner,
   // Skills and mutagens as slot kinds: one set of slotting and selection rules for both.
   kinds: createSlotKinds(catalog, planner),
   state: loadState(catalog),
+  // The skills and mutagens a search query matches (core/search.js), by default the open search's (ui/search.js).
+  found: (query = app.state.search) => search.find(query),
   // Viewer settings, stored apart from the build (settings.js).
   settings: loadSettings(),
   // Feedback for the last action (why a point couldn't be added, etc.), shown in the tooltip.
@@ -101,6 +106,8 @@ app.views = {
   // Side panels (C, S) over the tree and the slots.
   stats: mountStatistics(app),
   skillSets: mountSkillSets(app),
+  // Ctrl+F and the legend's Search: frames the skills and mutagens a query matches.
+  search: mountSearch(app),
   tooltip: mountTooltip(app),
   // The Esc menu; Esc with nothing open opens it.
   menu: mountMenu(app)

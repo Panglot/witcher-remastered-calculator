@@ -19,11 +19,16 @@ export const VIEWS = {
 // Transparent squares under a piece, so the whole area takes the pointer and can show focus.
 const hit = (x, y, w, h) => `<rect class="ghit" x="${x}" y="${y}" width="${w}" height="${h}" fill="transparent"/>`;
 const SOCKET_HIT = hit(0, 0, SOCKET, SOCKET);
-// Dashed frame just outside a marked skill, in the tree or a socket (planner-only, not game art), coloured
-// by how many highlighted skill sets the skill is in: 1, 2, or MARK_LEVELS and more (styles.css, --mark-n).
+// Dashed frame (planner-only, not game art) on a skill or mutagen that is marked (in highlighted
+// skill sets) or found (by the search, ui/search.js). Coloured by how many highlighted sets the
+// skill is in: 1 (also for a found one in none), 2, or MARK_LEVELS and more (styles.css, --mark-n);
+// a found one pulses. Just outside a tree node, socket or diamond (the diamond's turns with it);
+// inside an inventory cell, which touches its neighbours.
 const MARK_LEVELS = 3;
-const mark = sets => sets
-  ? `<rect class="gmark" data-sets="${Math.min(sets, MARK_LEVELS)}" x="-6" y="-6" width="${SOCKET + 12}" height="${SOCKET + 12}"/>` : "";
+const MARK_OUTSIDE = { at: -6, size: SOCKET + 12 };
+const MARK_INSIDE = { at: 2, size: INVENTORY.cell - 4 };
+const mark = ({ marked = 0, found = false }, { at, size } = MARK_OUTSIDE) => marked || found
+  ? `<rect class="${classes("gmark", found && "found")}" data-sets="${Math.min(Math.max(marked, 1), MARK_LEVELS)}" x="${at}" y="${at}" width="${size}" height="${size}"/>` : "";
 // Tab shape bounds around its origin (see pieces.tab).
 const TAB_HIT = hit(-30, -5, 66, 52);
 const LINE_STROKE = { open: LINE_COLORS.open, closed: LINE_COLORS.closed };
@@ -38,19 +43,20 @@ const STEP_SIDES = [["remove", 0, -1], ["add", SOCKET, 1]];
  * View models. `cls` adds classes and `attrs` adds attributes to the part's group.
  * @typedef {{ id: string, open: boolean, count?: number, attrs?: string }} TabView  id: a GAME_TABS id.
  * @typedef {{ col: number, row: number, icon: string, state: "locked" | "open" | "learned",
- *   rank?: number, selected?: boolean, marked?: number, mid?: boolean, cls?: string, attrs?: string,
+ *   rank?: number, selected?: boolean, marked?: number, found?: boolean, mid?: boolean, cls?: string, attrs?: string,
  *   steps?: { remove?: string, add?: string } }} NodeView
  *   col/row in game grid units; mid: lines end at the node's vertical middle; marked: framed as part
- *   of that many highlighted skill sets (0 = none); steps: the touch buttons on its left (remove, a down arrow) and
+ *   of that many highlighted skill sets (0 = none); found: framed as a search match; steps: the touch buttons on its left (remove, a down arrow) and
  *   right (add, an up arrow) side, each drawn when given, with its attrs.
  * @typedef {{ a: number, b: number, state: "lit" | "open" | "closed" }} LinkView  a, b: node indexes.
- * @typedef {{ icon?: string, color?: string, rank?: number, selected?: boolean, marked?: number, cls?: string, attrs?: string }} SocketView
- *   No icon = empty socket. marked: framed like a tree node, its skill in a highlighted skill set.
- * @typedef {{ col: number, row: number, icon: string, selected?: boolean, cls?: string, attrs?: string }} ItemView
- *   An inventory item; col/row: its cell.
- * @typedef {{ mutagen: string, size?: string, bonus?: string, locked?: boolean, selected?: boolean, cls?: string, attrs?: string,
+ * @typedef {{ icon?: string, color?: string, rank?: number, selected?: boolean, marked?: number, found?: boolean, cls?: string, attrs?: string }} SocketView
+ *   No icon = empty socket. marked, found: framed like a tree node.
+ * @typedef {{ col: number, row: number, icon: string, selected?: boolean, found?: boolean, cls?: string, attrs?: string }} ItemView
+ *   An inventory item; col/row: its cell. found: framed as a search match.
+ * @typedef {{ mutagen: string, size?: string, bonus?: string, locked?: boolean, selected?: boolean, found?: boolean, cls?: string, attrs?: string,
  *   sockets: SocketView[] }} GroupView
- *   mutagen: its colour ("" = none), size: its icon size. cls and attrs go on the diamond.
+ *   mutagen: its colour ("" = none), size: its icon size. found: the diamond framed as a search match.
+ *   cls and attrs go on the diamond.
  * @typedef {{ key?: string, mouse?: string, clicks?: number, label: string, prefix?: string, action?: string }} LegendItem
  *   mouse: legend/mouse-<mouse>.png, key: key cap text; with both, "mouse / key". clicks: a "2x" badge on the
  *   mouse icon (it only applies to the mouse, so it isn't a prefix). prefix: "[Hold]"-style
@@ -95,7 +101,7 @@ export function createPanels(art, pieces) {
     for (let r = 0; r <= rows; r++) lines += `M0 ${r * cell}H${w}`;
     return `<path d="${lines}"${GRID_LINE}/>` + items.map(it =>
       `<g class="${classes("gitem", it.selected && "selected", it.cls)}" transform="translate(${it.col * cell} ${it.row * cell})"${it.attrs || ""}>`
-      + hit(0, 0, cell, cell) + pieces.item({ icon: it.icon, selected: true }) + `</g>`).join("");
+      + hit(0, 0, cell, cell) + pieces.item({ icon: it.icon, selected: true }) + mark(it, MARK_INSIDE) + `</g>`).join("");
   }
 
   /**
@@ -130,7 +136,7 @@ export function createPanels(art, pieces) {
     }).join("");
     const cells = nodes.map((n, i) =>
       `<g class="${classes("gnode", n.selected && "selected", n.cls)}" transform="translate(${fmt(pos[i].x)} ${fmt(pos[i].y)})"${n.attrs || ""}>`
-      + SOCKET_HIT + pieces.treeNode({ ...n, color, selected: true }) + mark(n.marked) + `</g>`).join("");
+      + SOCKET_HIT + pieces.treeNode({ ...n, color, selected: true }) + mark(n) + `</g>`).join("");
     const steps = nodes.map((n, i) => STEP_SIDES.map(([step, dx, out]) => n.steps && n.steps[step] != null
       ? `<g transform="translate(${fmt(pos[i].x + dx)} ${fmt(pos[i].y + SOCKET / 2)})">${pieces.stepButton(step, color, n.state, out, n.steps[step])}</g>` : "").join("")).join("");
     return lines + cells + steps;
@@ -204,10 +210,10 @@ export function createPanels(art, pieces) {
       g.sockets.forEach((s, si) => {
         wires += placed(G[`connector_g${n}_s${si + 1}`], pieces.connector(si === 1 ? "line" : "corner", match[si] && g.mutagen));
         parts += placed(G[`gr${n}_socket${si + 1}`],
-          SOCKET_HIT + pieces.socket({ ...s, locked: g.locked, selected: true }) + mark(s.marked),
+          SOCKET_HIT + pieces.socket({ ...s, locked: g.locked, selected: true }) + mark(s),
           ` class="${classes("gsock", s.selected && "selected", s.icon && "full", s.cls)}"${s.attrs || ""}`);
       });
-      parts += placed(G[`gr${n}_mutagen`], SOCKET_HIT + pieces.diamond({ color: g.mutagen, size: g.size, locked: g.locked, selected: true }),
+      parts += placed(G[`gr${n}_mutagen`], SOCKET_HIT + pieces.diamond({ color: g.mutagen, size: g.size, locked: g.locked, selected: true }) + mark(g),
         ` class="${classes("gdiamond", g.selected && "selected", g.mutagen && "full", g.cls)}"${g.attrs || ""}`);
       if (g.mutagen && g.bonus != null) labels += bonusLabel(n, g.mutagen, g.bonus);
     });

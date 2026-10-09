@@ -11,6 +11,7 @@ import { createHold } from "./hold.js";
 import { skillIcon, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
 import { MUTAGEN_TAB } from "../core/catalog.js";
+import { openTab as openKindsTab } from "../core/slotKinds.js";
 import { highlightedSkills } from "../core/skillSets.js";
 import { createMutagenList, MUTAGEN_ART_TAB } from "./mutagenList.js";
 
@@ -20,7 +21,7 @@ import { createMutagenList, MUTAGEN_ART_TAB } from "./mutagenList.js";
  * returns true when it used one. liftView(id) is the item's view for apply mode's lifted copy
  * (gamePanels.treePanelLift); focus(id) focuses the item.
  * @typedef {{ panel(): { bg: string, title: string, grid?: object, items?: object[] },
- *   onOpen?(): void, pointerdown?(e: PointerEvent): void, click?(e: Event): void, dblclick?(e: Event): void,
+ *   pointerdown?(e: PointerEvent): void, click?(e: Event): void, dblclick?(e: Event): void,
  *   contextmenu?(e: Event): void, keydown(e: KeyboardEvent): void, hotkey?(e: KeyboardEvent): boolean,
  *   liftView(id: string): object, icon(id: string): string, focus(id: string): void }} TabContent
  */
@@ -36,9 +37,7 @@ export function mountTree(app) {
   const byKind = { skill: skills, mutagen: mutagenList };
 
   function openTab(t) {
-    state.tab = t; app.msg = "";
-    const c = content();
-    if (c.onOpen) c.onOpen();
+    openKindsTab(app.kinds, state, t); app.msg = "";
     app.render();
   }
 
@@ -162,10 +161,6 @@ function createSkillTree(app, el) {
   }
 
   return {
-    // Opening a tree selects its first skill unless the selection is already in it.
-    onOpen() {
-      if (!state.sel || nodes[state.sel].tree !== state.tab) selectNode(catalog.skillsIn(state.tab)[0].id);
-    },
     pointerdown(e) {
       const g = e.target.closest("[data-id]"); if (!g || e.button !== 0) return;
       selectInPlace(g);
@@ -212,10 +207,10 @@ function createSkillTree(app, el) {
       const T = catalog.trees[state.tab];
       const list = catalog.skillsIn(state.tab);
       const index = Object.fromEntries(list.map((n, i) => [n.id, i]));
-      const marked = highlighted();
+      const marked = highlighted(), found = app.found().skill;
       const grid = {
         color: TREE_ART[state.tab].color,
-        nodes: list.map(n => ({ ...nodeView(n), marked: marked.get(n.id) || 0, steps: steps(n.id) })),
+        nodes: list.map(n => ({ ...nodeView(n), marked: marked.get(n.id) || 0, found: found.has(n.id), steps: steps(n.id) })),
         links: edges.filter(([a]) => nodes[a].tree === state.tab)
           .map(([a, b]) => ({ a: index[a], b: index[b], state: linkState(a, b) }))
       };

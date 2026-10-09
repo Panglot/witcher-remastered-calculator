@@ -2,7 +2,8 @@
 // Accept says yes, Escape, the right mouse button or Cancel says no. It is a modal layer
 // (ui/layers.js): while it is open the rest of the page is inert and the planner's keys are off.
 // A popup can also ask for text (fieldsPopup): its fields sit under the text, the first one gets
-// focus, and Enter in a field accepts.
+// focus, and Enter in a field accepts. A clearable field has a Clear button at its right end (the
+// side panels' action button) that empties it and gives it focus back.
 import { esc } from "./dom.js";
 
 /** Buttons of a yes / no popup: the game's A (accept) and B (back) keys on a keyboard. */
@@ -31,7 +32,7 @@ export function confirmPopup(app, { title, text = "" }) {
 
 /**
  * @typedef {{ name: string, label: string, value?: string, placeholder?: string, maxLength?: number,
- *   readOnly?: boolean }} PopupField
+ *   readOnly?: boolean, clearable?: boolean }} PopupField
  */
 
 /**
@@ -57,6 +58,14 @@ export function fieldsPopup(app, { title, text = "", fields, check = () => "", a
         e.preventDefault();
         if (!e.repeat) answer(true);
       });
+      // Clear is off while its field is empty.
+      dialog.querySelectorAll("[data-field-clear]").forEach(b => {
+        const input = dialog.querySelector(`[data-field="${b.dataset.fieldClear}"]`);
+        const sync = () => { b.disabled = !input.value; };
+        input.addEventListener("input", sync);
+        sync();
+        b.addEventListener("click", () => { input.value = ""; sync(); input.focus(); });
+      });
       // Focused at once: a Ctrl+V that opened the popup pastes into it (ui/buildRail.js).
       const first = inputs(dialog)[0];
       first.focus();
@@ -75,9 +84,13 @@ export function fieldsPopup(app, { title, text = "", fields, check = () => "", a
   }).then(yes => yes ? values : null);
 }
 
-const fieldHtml = f => `<label class="gfield">${esc(f.label)}
+const fieldInput = f => `<label class="gfield">${esc(f.label)}
   <input type="text" data-field="${esc(f.name)}" value="${esc(f.value || "")}" autocomplete="off" spellcheck="false"${
     f.placeholder ? ` placeholder="${esc(f.placeholder)}"` : ""}${f.maxLength ? ` maxlength="${f.maxLength}"` : ""}${f.readOnly ? " readonly" : ""}></label>`;
+// The Clear button sits beside the label, not in it: a label holds only its own field.
+const fieldHtml = f => f.clearable
+  ? `<div class="gfield-row">${fieldInput(f)}<button type="button" class="gpopup-btn gside-action" data-field-clear="${esc(f.name)}">Clear</button></div>`
+  : fieldInput(f);
 
 /**
  * The popup as a modal layer; resolves true when accepted, false when cancelled.
