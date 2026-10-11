@@ -555,10 +555,11 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 /* Sections as far apart as the Statistics tree bars; after the intro, as far as a heading from the text above it. */
 .gside-sec { margin-top: calc(10 * var(--u1)); }
 .gside-overview + .gside-sec { margin-top: calc(16 * var(--u1)); }
-.gside [data-color="red"] { --bar: #8e0a05; --bar-art: url("assets/ui/bonus/bar-red.png"); }
-.gside [data-color="blue"] { --bar: #0b3a94; --bar-art: url("assets/ui/bonus/bar-blue.png"); }
-.gside [data-color="green"] { --bar: #10661b; --bar-art: url("assets/ui/bonus/bar-green.png"); }
-.gside [data-color="yellow"] { --bar: #7e4f06; --bar-art: url("assets/ui/bonus/bar-yellow.png"); }
+.gside { --bar-red: #8e0a05; --bar-blue: #0b3a94; --bar-green: #10661b; --bar-yellow: #7e4f06; }
+.gside [data-color="red"] { --bar: var(--bar-red); --bar-art: url("assets/ui/bonus/bar-red.png"); }
+.gside [data-color="blue"] { --bar: var(--bar-blue); --bar-art: url("assets/ui/bonus/bar-blue.png"); }
+.gside [data-color="green"] { --bar: var(--bar-green); --bar-art: url("assets/ui/bonus/bar-green.png"); }
+.gside [data-color="yellow"] { --bar: var(--bar-yellow); --bar-art: url("assets/ui/bonus/bar-yellow.png"); }
 .gside-bar { display: flex; align-items: center; gap: calc(12 * var(--u1)); height: calc(56 * var(--u1)); padding: 0 calc(20 * var(--u1));
   background: var(--bar-art) 0 0 / 100% 100%, linear-gradient(90deg, var(--bar) 0, var(--bar) 45%, rgba(0, 0, 0, 0) 100%);
   color: var(--game-stat); font-size: calc(24 * var(--u1)); text-transform: uppercase; list-style: none; cursor: var(--cursor-pointer); user-select: none; }
@@ -641,6 +642,31 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 #side-skillSets { --gstat-value-min: 3ch; }
 .gside-head:has(> .gside-overview) + .gside-live > .gside-sec:first-child { margin-top: calc(16 * var(--u1)); }
 #side-skillSets .gstat-value { font-variant-numeric: tabular-nums; }
+/* Button rows (sidePanel.js, buttonRows; the Builds panel's builds): each on the Esc menu's option row band
+   (.gopt: the brown bar at its left end, a faint white gradient), the name in the list text colour and a
+   labelled value at the right end. The rows share one grid (subgrid), so every value sits in a column as
+   wide as the widest, right-aligned, and the labels before it line up whatever the digits' widths.
+   Hovered or keyboard-focused, the name lights up and the row gets the Esc menu's frame (.gmenu-item:focus::before). */
+.gside-rows { display: grid; grid-template-columns: minmax(0, 1fr) max-content max-content; column-gap: calc(10 * var(--u1)); row-gap: calc(4 * var(--u1)); }
+.gside-row { position: relative; grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: baseline;
+  margin: 0; padding: calc(5 * var(--u1)) calc(12 * var(--u1)) calc(5 * var(--u1)) calc(20 * var(--u1)); border: 0;
+  background: url("assets/ui/menu/option-edge.png") 0 0 / calc(8 * var(--u1)) 100% no-repeat, linear-gradient(90deg, rgb(255 255 255 / .039) 21.6%, rgb(255 255 255 / .031) 57.3%, transparent);
+  color: var(--game-list-text); font: inherit; text-align: left; cursor: var(--cursor-pointer); }
+/* A row with a colour mix (buttonRows `mix`): the bonus label bars in place of the band, at 0.8 like the totals' bands
+   (.gstat-band-art), under the text. Each bar's mask layer fades it out faster than the art does. */
+.gside-row { isolation: isolate; }
+.gside-row[data-mix] { background: none; }
+.gside-row[data-mix]::after { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--row-mix); opacity: .8; pointer-events: none;
+  -webkit-mask: var(--row-fade); mask: var(--row-fade); }
+.gside-row-name { padding-right: calc(8 * var(--u1)); }
+.gside-row-end { display: contents; white-space: nowrap; }
+.gside-row-end .gstat-value { justify-self: end; font-variant-numeric: tabular-nums; }
+.gside-row:focus { outline: none; }
+.gside-row:hover .gside-row-name, .gside-row:focus-visible .gside-row-name { color: var(--game-list-value); }
+.gside-row:hover::before, .gside-row:focus-visible::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  border: calc(7 * var(--u1)) solid transparent; border-image: url("assets/ui/menu/frame.png") 14 / calc(7 * var(--u1));
+  filter: grayscale(1) brightness(2.6); animation: gmenu-pulse calc(26s / 30) linear infinite; }
+@media (prefers-reduced-motion: reduce) { .gside-row::before { animation: none; } }
 /* The toggle: a round button with the arrow, centred on the covered part's bottom edge. The tree's sits on the
    line above POINTS AVAILABLE (tree/separator.png at screen y 905, 3 px tall: 6.5 px under the tree area's
    bottom at 900). The slots' sits on the Skill sets card's copy of that line, level with the tree's, which is

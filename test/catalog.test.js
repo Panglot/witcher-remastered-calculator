@@ -61,3 +61,19 @@ test("catalog reports totals that read unknown skills, numbers, colours or trees
   });
   assert.equal(cat.problems.length, 6);
 });
+
+test("builds: each code decoded for its name, points and slotted skills per tree; bad codes, no name and unknown skills reported", () => {
+  const code = d => "W3R1." + btoa(JSON.stringify(d));
+  const total = data.rules.slotGroups * data.rules.slotsPerGroup;
+  // x and z slotted, y slotted without points (loading drops it), ghost unknown.
+  const slots = ["x", "y", "z", "ghost"].concat(Array(total - 4).fill(null));
+  const cat = createCatalog({
+    rules: { ...data.rules, treeOrder: ["a", "b"] },
+    trees: { a: { skills: [{ id: "x", name: "X" }, { id: "y", name: "Y" }], links: [] }, b: { skills: [{ id: "z", name: "Z" }], links: [] } },
+    skillSets: [],
+    builds: [code({ p: { x: 2, y: 0, z: 9 }, s: slots, n: " Spellsword " }), "not a code", code({ p: { x: 1, ghost: 3 }, s: ["x"] })]
+  });
+  assert.deepEqual(cat.builds.map(b => [b.name, b.points, b.slotted]),
+    [["Spellsword", 2 + data.rules.maxRank, { a: 1, b: 1 }], ["", 1, {}]]);
+  assert.equal(cat.problems.length, 3);
+});

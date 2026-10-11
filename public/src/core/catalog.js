@@ -2,6 +2,7 @@
 // Pure: no DOM, no storage. Data mistakes are collected in `problems` instead of thrown,
 // so the page still loads and tests can assert the list is empty.
 import { createBudget } from "./budget.js";
+import { decodeBuildCode } from "./build.js";
 
 /**
  * @typedef {Object} Skill
@@ -25,6 +26,14 @@ import { createBudget } from "./budget.js";
  */
 
 /**
+ * @typedef {Object} PresetBuild  A build from data/builds.js, for the Builds panel.
+ * @property {string} code   The build code as listed.
+ * @property {string} name   The name saved in the code.
+ * @property {number} points Skill points spent on known skills.
+ * @property {Record<string, number>} slotted  Slotted skills per tree, in tree order (trees with none left out).
+ */
+
+/**
  * @typedef {Object} Mutagen  See data/mutagens.js.
  * @property {string} id
  * @property {string} name
@@ -43,8 +52,9 @@ export const MUTAGEN_TAB = "mutagens";
 
 /**
  * @param {{ rules: object, trees: Record<string, object>, skillSets: object[], mutagens?: object,
- *   skillText?: Record<string, object>, totals?: object }} data  skillText: extracted text by game id
- *   (data/skillText.js). totals: what adds up to the build-wide totals (data/totals.js).
+ *   skillText?: Record<string, object>, totals?: object, builds?: string[] }} data  skillText: extracted
+ *   text by game id (data/skillText.js). totals: what adds up to the build-wide totals (data/totals.js).
+ *   builds: build codes (data/builds.js).
  */
 export function createCatalog(data) {
   const { rules, trees, skillSets } = data;
@@ -148,10 +158,29 @@ export function createCatalog(data) {
   if (slots.unlocks.sockets.length !== slots.total) problems.push(`slotUnlocks has ${slots.unlocks.sockets.length} sockets, not ${slots.total}.`);
   if (slots.unlocks.mutagens.length !== slots.groups) problems.push(`slotUnlocks has ${slots.unlocks.mutagens.length} mutagens, not ${slots.groups}.`);
 
+  // Builds (data/builds.js): each code decoded once, for its name, points and slotted skills per
+  // tree. A code that doesn't decode is left out; a missing name or an unknown skill still lists it
+  // (loading drops the skill). Slots count as loading keeps them: known skills with points, and only
+  // from a full slot list.
+  /** @type {PresetBuild[]} */
+  const builds = [];
+  (data.builds || []).forEach((code, i) => {
+    const where = `Build ${i + 1} in data/builds.js`, d = decodeBuildCode(code);
+    if (!d) { problems.push(`${where} is not a build code.`); return; }
+    const name = typeof d.n === "string" ? d.n.trim() : "";
+    if (!name) problems.push(`${where} has no name.`);
+    Object.keys(d.p).filter(id => !nodes[id]).forEach(id => problems.push(`${where} lists unknown skill "${id}".`));
+    const rank = id => nodes[id] ? Math.max(0, Math.min(rules.maxRank, d.p[id] | 0)) : 0;
+    const points = Object.keys(d.p).reduce((sum, id) => sum + rank(id), 0);
+    const inSlots = Array.isArray(d.s) && d.s.length === slots.total ? d.s.filter(id => Object.hasOwn(d.p, id) && rank(id)) : [];
+    const slotted = Object.fromEntries(order.map(t => [t, inSlots.filter(id => nodes[id].tree === t).length]).filter(([, n]) => n));
+    builds.push({ code, name, points, slotted });
+  });
+
   return {
     rules, trees, skillSets: sets, order, nodes, edges, slots, problems,
     maxRank: rules.maxRank,
-    mutagens, mutagenId, totals,
+    mutagens, mutagenId, totals, builds,
     // The points budget (core/budget.js). Test data without rules.points: level 1 and nothing else.
     budget: createBudget(rules.points || { maxLevel: 1, placesOfPower: 0, items: [] }),
     // Planner tabs: the trees, then the mutagen inventory.

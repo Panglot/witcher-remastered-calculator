@@ -27,6 +27,7 @@ import { createPageLayers } from "./ui/layers.js";
 import { mountDrag } from "./ui/drag.js";
 import { mountStatistics } from "./ui/statistics.js";
 import { mountSkillSets } from "./ui/skillSets.js";
+import { mountBuilds } from "./ui/builds.js";
 import { mountSearch } from "./ui/search.js";
 import { createBuildShare } from "./ui/share.js";
 import { mountMenu } from "./ui/menu.js";
@@ -112,9 +113,10 @@ app.views = {
   apply: mountApplyMode(app),
   drag: mountDrag(app),
   legend: mountLegend(app),
-  // Side panels (C, S) over the tree and the slots.
+  // Side panels (C over the tree; S and B over the slots, one at a time).
   stats: mountStatistics(app),
   skillSets: mountSkillSets(app),
+  builds: mountBuilds(app),
   // Ctrl+F and the legend's Search: frames the skills and mutagens a query matches.
   search: mountSearch(app),
   tooltip: mountTooltip(app),

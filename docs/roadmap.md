@@ -7,7 +7,6 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 | # | Item | Left |
 | --- | --- | --- |
 | 1 | Blood and Wine mutations (later) | Everything |
-| 2 | Builds (optional) | Everything |
 
 ## 1. Blood and Wine mutations (later)
 
@@ -30,9 +29,3 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 **Recommendation:** build the extra sockets on the slot locks (`core/slotLocks.js`): in the game they are slots 13 to 16 of `geralt_skills.xml`, opened by mutation research instead of points (see "Slot unlocks" in [game-assets.md](game-assets.md)). The data side can reuse the skill text extraction tool.
 
 **To decide:** does the build track which mutations are researched (and their cost in points), or only the one equipped?
-
-## 2. Builds (optional)
-
-**Goal:** ready-made builds (presets) like Spellsword: a named build that loads its skills, slots and mutagens. Unlike skill sets, a build is a combination of themes, not one theme.
-
-**To decide:** where the presets come from (hand-picked, or community builds), and where they are picked (Esc menu, or the Skill sets panel).

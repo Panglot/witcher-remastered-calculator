@@ -1,7 +1,8 @@
 // Side panels: a card that slides over one part of the Character screen (Statistics over the tree
 // panel and its tabs, Skill sets over the slots) while the rest stays usable. Each is a non-modal
-// layer (ui/layers.js): Esc closes the one opened last, and both can be open at once. A key and an
-// arrow button on the covered part's bottom edge toggle it.
+// layer (ui/layers.js): Esc closes the one opened last, and cards over different parts can be open at
+// once; opening one closes any other over the same part (Skill sets and Builds over the slots). A key
+// toggles it, and so does an arrow button on the covered part's bottom edge, for panels that have one.
 //
 // The card has the tree panel's frame (tree/frame.png: a double line whose sides fade out), a
 // header like the message popup's with a close button at its right end, and a body that scrolls
@@ -120,6 +121,51 @@ export function statRows(rows) {
   }).join("")}</div>`;
 }
 
+// Where each mix bar is fully faded out, as a share of its width (the art alone fades only in its last quarter).
+const MIX_FADE = "90%";
+
+/**
+ * A colour mix as CSS background and mask layers, left to right: each colour's bonus label bar
+ * (bonus/bar-<colour>.png, like the slot groups' bonus labels) as wide as its share, under a mask
+ * at the same place that fades it out from its left end to MIX_FADE.
+ * @param {{ color: string, share: number }[]} mix  game colour labels ("red", "blue", "green", "yellow")
+ * @returns {{ bars: string, fades: string }}
+ */
+function mixLayers(mix) {
+  const total = mix.reduce((sum, m) => sum + m.share, 0);
+  const pct = x => `${+(x * 100).toFixed(3)}%`;
+  let at = 0;
+  const places = mix.map(m => {
+    const w = m.share / total, from = at;
+    at += w;
+    // A percentage position lines up that point of the image with that point of the box, so an
+    // offset `from` for a layer `w` wide is from / (1 - w) of the free room.
+    return { color: m.color, place: `${pct(w < 1 ? from / (1 - w) : 0)} 0 / ${pct(w)} 100% no-repeat` };
+  });
+  return {
+    bars: places.map(p => `url('${artUrl(`bonus/bar-${p.color}.png`)}') ${p.place}`).join(", "),
+    fades: places.map(p => `linear-gradient(90deg, #000, transparent ${MIX_FADE}) ${p.place}`).join(", ")
+  };
+}
+
+// A row's style for its mix (mixLayers), read by styles.css (.gside-row[data-mix]).
+function mixStyle(mix) {
+  const { bars, fades } = mixLayers(mix);
+  return ` data-mix style="--row-mix: ${bars}; --row-fade: ${fades}"`;
+}
+
+/**
+ * Button rows: a name on the left and a labelled value at the right end ("Points 44"), with the Esc
+ * menu's hover frame on hover and keyboard focus. The caller wires them (`attrs`). `mix`: colours
+ * behind the row by share (mixLayers) in place of the plain band, such as a build's slotted skills per tree.
+ * @param {{ label: string, end: { label: string, value: string }, attrs: string, mix?: { color: string, share: number }[] }[]} rows
+ */
+export const buttonRows = rows => `<div class="gside-rows">${rows.map(r => `<button type="button" class="gside-row"${r.attrs}`
+  + `${r.mix && r.mix.length ? mixStyle(r.mix) : ""}>`
+  + `<span class="gside-row-name">${esc(r.label)}</span>`
+  + `<span class="gside-row-end"><span class="gstat-label">${esc(r.end.label)}</span> <span class="gstat-value">${esc(r.end.value)}</span></span>`
+  + `</button>`).join("")}</div>`;
+
 /** A sub-heading inside a section, white capitals like the game's sign names. */
 export const subhead = text => `<p class="gside-sub">${esc(text)}</p>`;
 
@@ -137,13 +183,13 @@ export const switchRows = options => `<div class="gside-modes">${optionRowsHtml(
  * Mounts a side panel over `cover` (a grid area of the screen).
  * @param {object} app
  * @param {{ name: string, title: string, area: "tree" | "slots", cover: HTMLElement, key: string,
- *   hint: string, head?: string, mount?: (body: HTMLElement) => void, markup: () => string }} o
- *   name: the layer and settings name; key: the toggle key (also shown on the toggle's tooltip);
- *   hint: the toggle's tooltip text; head: static markup above the sections, drawn once (fields
- *   that keep focus while typing); mount: wires the body's events once; markup: the sections,
- *   redrawn on render when they changed.
+ *   hint?: string, titleHint?: string, head?: string, mount?: (body: HTMLElement) => void, markup: () => string }} o
+ *   name: the layer and settings name; key: the toggle key; hint: the arrow toggle's tooltip text,
+ *   none for a panel without the arrow; titleHint: a tooltip on the card's title; head: static
+ *   markup above the sections, drawn once (fields that keep focus while typing); mount: wires the
+ *   body's events once; markup: the sections, redrawn on render when they changed.
  */
-export function createSidePanel(app, { name, title, area, cover, key, hint, head = "", mount, markup }) {
+export function createSidePanel(app, { name, title, area, cover, key, hint, titleHint, head = "", mount, markup }) {
   const screen = cover.closest(".screen");
   const id = `side-${name}`;
 
@@ -153,19 +199,25 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
   root.hidden = true;
   root.tabIndex = -1;
   root.setAttribute("aria-label", title);
-  root.innerHTML = `<h2 class="gside-title">${esc(title)}</h2>
+  // The title's tooltip is on its text, not the band, so it opens at the text's corner.
+  const titleText = titleHint ? `<span data-hint-title="${esc(title)}" data-hint="${esc(titleHint)}">${esc(title)}</span>` : esc(title);
+  root.innerHTML = `<h2 class="gside-title">${titleText}</h2>
     <button type="button" class="gside-close" aria-label="Close ${esc(title)}"></button>
     <div class="gside-body"><div class="gside-head">${head}</div><div class="gside-live"></div></div>`;
   const body = root.querySelector(".gside-body"), live = root.querySelector(".gside-live");
 
-  // The toggle sits on its own [data-panel] so the screen's tooltip (data-hint) follows it.
-  const toggleWrap = document.createElement("div");
-  toggleWrap.className = `gside-toggle-wrap gside-${area}`;
-  toggleWrap.dataset.panel = "";
-  toggleWrap.innerHTML = `<button type="button" class="gside-toggle" aria-controls="${id}" aria-expanded="false"
-    aria-label="${esc(title)}" data-hint-title="${esc(title)}" data-hint="${esc(hint)}">${toggleArt(`${id}-arrow`)}</button>`;
-  const toggleBtn = toggleWrap.querySelector("button");
-  screen.append(root, toggleWrap);
+  screen.append(root);
+  // The arrow toggle sits on its own [data-panel] so the screen's tooltip (data-hint) follows it.
+  let toggleBtn = null;
+  if (hint) {
+    const toggleWrap = document.createElement("div");
+    toggleWrap.className = `gside-toggle-wrap gside-${area}`;
+    toggleWrap.dataset.panel = "";
+    toggleWrap.innerHTML = `<button type="button" class="gside-toggle" aria-controls="${id}" aria-expanded="false"
+      aria-label="${esc(title)}" data-hint-title="${esc(title)}" data-hint="${esc(hint)}">${toggleArt(`${id}-arrow`)}</button>`;
+    toggleBtn = toggleWrap.querySelector("button");
+    screen.append(toggleWrap);
+  }
 
   const layer = { name, modal: false, escape: close };
   let drawn = null;
@@ -196,6 +248,8 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
 
   function open() {
     if (isOpen()) return;
+    // One card per covered part: another one over it closes first.
+    app.reveal(cover);
     const focusInCover = cover.contains(document.activeElement);
     app.layers.open(layer);
     root.hidden = false;
@@ -203,7 +257,7 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
     play(cover, "gside-covered", "gside-uncover");
     // Covered parts take no pointer, focus or keys (ui/dom.js, keyTarget) until it closes.
     cover.inert = true;
-    toggleBtn.setAttribute("aria-expanded", "true");
+    if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "true");
     drawn = null;
     render();
     // Focus inside the covered part would be lost: it moves to the card.
@@ -212,11 +266,14 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
 
   function close() {
     if (!isOpen()) return;
-    // Focus in the card (its close button) would be lost when it hides: it moves to the toggle.
-    if (root.contains(document.activeElement)) toggleBtn.focus({ preventScroll: true });
+    // Focus in the card (its close button) would be lost when it hides: it moves to the toggle, or
+    // without one is let go.
+    if (root.contains(document.activeElement)) {
+      if (toggleBtn) toggleBtn.focus({ preventScroll: true }); else document.activeElement.blur();
+    }
     cover.inert = false;
     app.layers.close(layer);
-    toggleBtn.setAttribute("aria-expanded", "false");
+    if (toggleBtn) toggleBtn.setAttribute("aria-expanded", "false");
     play(root, "gside-leave", "gside-enter");
     play(cover, "gside-uncover", "gside-covered");
     afterAnimation(root, () => { if (!isOpen()) root.hidden = true; });
@@ -234,7 +291,7 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, head
     all[name] = [...list];
     app.saveSettings();
   }, true);
-  toggleBtn.addEventListener("click", toggle);
+  if (toggleBtn) toggleBtn.addEventListener("click", toggle);
   root.querySelector(".gside-close").addEventListener("click", close);
   app.hotkeys.add(e => {
     if (e.repeat || e.key.toLowerCase() !== key) return false;
