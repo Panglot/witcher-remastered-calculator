@@ -3,6 +3,7 @@
 // is versioned like the build's.
 import { HOLD_MS } from "./ui/hold.js";
 import { REGIONS } from "./ui/gameArt.js";
+import { LOCK_NONE, LOCK_SOFT, LOCK_HARD } from "./core/slotLocks.js";
 
 const SETTINGS_KEY = "w3r-skill-planner-settings-v1";
 
@@ -29,7 +30,9 @@ export function defaultSettings() {
     // Skill sets panel (ui/skillSets.js): highlight only the skills in every selected set, not in any;
     // and name a skill's sets in its tooltip always, not only the selected ones.
     skillSetsMatchAll: false,
-    skillSetsInTooltip: false
+    skillSetsInTooltip: false,
+    // How slot locks act (core/slotLocks.js): LOCK_NONE, LOCK_SOFT or LOCK_HARD.
+    slotLocking: LOCK_SOFT
   };
 }
 
@@ -55,7 +58,13 @@ export const OPTIONS = {
   },
   skillText: {
     key: "skillText", label: "Skill descriptions",
+    hint: "Modern combines all the levels of a skill into one.",
     choices: [{ value: SKILL_TEXT_CLASSIC, label: "Classic" }, { value: SKILL_TEXT_MODERN, label: "Modern" }]
+  },
+  slotLocking: {
+    key: "slotLocking", label: "Slot locking", offFirst: true,
+    hint: "Soft locked slots still take skills and mutagens, but display the requirements.\nHard locked slots do not allow slotting, as in the game.",
+    choices: [{ value: LOCK_NONE, label: "No locking" }, { value: LOCK_SOFT, label: "Soft" }, { value: LOCK_HARD, label: "Hard" }]
   }
 };
 

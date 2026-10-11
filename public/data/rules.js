@@ -3,6 +3,14 @@ export default {
   maxRank: 3,
   slotGroups: 4,
   slotsPerGroup: 3,
+  // Total skill points (earned, spent or not) that open each slot, from geralt_skills.xml (5.01,
+  // checked 2026-10-11; the same in abilities_plus). The remastered menu compares them with free +
+  // spent points, not the level (PlayerAbilityManager.ws, UpdateSkillSlots). sockets: by slot index
+  // (group * slotsPerGroup + socket, the game's slotId - 1); mutagens: by group.
+  slotUnlocks: {
+    sockets: [0, 2, 4, 6, 8, 10, 12, 15, 18, 22, 26, 30],
+    mutagens: [2, 9, 16, 28]
+  },
   // Tab order in the planner. Each id must be registered in data/index.js.
   treeOrder: ["combat", "signs", "alchemy", "general"],
   // Where skill points come from (core/budget.js). Read from the game files (5.0, checked 2026-10-06).

@@ -9,7 +9,6 @@ import { $, syncInput } from "./dom.js";
 import { createSidePanel, barList, statRows, subhead, note, switchRows } from "./sidePanel.js";
 import { bindOptionRows, bindOptionKeys } from "./options.js";
 import { TREE_ART } from "./gameArt.js";
-import { createStats } from "../core/stats.js";
 import { SOURCE_FIELDS } from "../core/budget.js";
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
@@ -24,9 +23,8 @@ const UNUSED = "-";
 const NG_PLUS = { key: "ngPlus", label: "Playthrough", choices: [{ value: false, label: "New Game" }, { value: true, label: "New Game+" }] };
 
 export function mountStatistics(app) {
-  const { catalog, planner, state } = app;
+  const { catalog, state, stats } = app;
   const { budget } = catalog;
-  const stats = createStats(catalog, planner);
   let ngPlusRow = null;
 
   // A pair in the Points grid: the field, then its name.
@@ -38,22 +36,28 @@ export function mountStatistics(app) {
 
   // Static fields, so they keep focus while typing: the build name and the Points section. Name and
   // the Points heading share a column, so the name field starts clear of both, and Set max sits at
-  // the heading's right end. Then the playthrough switch, then two rows of value and label pairs on a
+  // the heading's right end with Reset. Then the playthrough switch, then two rows of value and label pairs on a
   // grid: what the total adds up from, then the total (their sum, or typed in) with the points spent
-  // and left (render() fills them).
+  // and left (render() fills them). When locked slots in use, not the skills, set the points needed
+  // (core/stats.js, points), a lock at the number's bottom right says so, and the pair's tooltip has
+  // both numbers.
   const head = `<div class="glead">
     <label class="gside-sub" for="statsName">Name</label>
     <input id="statsName" type="text" maxlength="60" placeholder="Enter build name" autocomplete="off" spellcheck="false">
     ${subhead("Points")}
-    <button type="button" class="gpopup-btn gside-action glead-action" data-points-max
-      data-hint-title="Set max" data-hint="Sets the maximum points based on the playthrough.">Set max</button>
+    <div class="glead-action">
+      <button type="button" class="gpopup-btn gside-action" data-points-max
+        data-hint-title="Set max" data-hint="Sets the maximum points based on the playthrough.">Set max</button>
+      <button type="button" class="gpopup-btn gside-action" data-points-reset
+        data-hint-title="Reset" data-hint="Sets every points field to its minimum, a total of 0.">Reset</button>
+    </div>
   </div>
   ${switchRows([NG_PLUS])}
   <div class="gpoints">
     ${SOURCE_FIELDS.map(numField).join("")}
     ${numField("total")}
     <div class="gpoint"><span class="gstat-value" id="statsSpent"></span><span class="gstat-label">Spent</span></div>
-    <div class="gpoint"><span class="gstat-value" id="statsLeft"></span><span class="gstat-label gpoint-swap" id="statsLeftLabel"><span>Available</span><span>Needed</span></span></div>
+    <div class="gpoint" id="statsLeftPair" data-hint-title="Points needed" data-hint-terms="Skills|Slots"><span class="gstat-value gpoint-lockable"><span id="statsLeft"></span><span class="gpoint-lock" id="statsLock" hidden></span></span><span class="gstat-label gpoint-swap" id="statsLeftLabel"><span>Available</span><span>Needed</span></span></div>
   </div>`;
 
   // One row per total: what always applies, "up to" the most with every condition met, and a value
@@ -110,6 +114,7 @@ export function mountStatistics(app) {
       });
       bindOptionKeys(modes, ngPlusRow);
       body.querySelector("[data-points-max]").addEventListener("click", () => { budget.setMax(state); app.render(); });
+      body.querySelector("[data-points-reset]").addEventListener("click", () => { budget.reset(state); app.render(); });
     },
     markup() {
       const s = stats.summary(state);
@@ -124,8 +129,12 @@ export function mountStatistics(app) {
     syncInput(body.querySelector('[data-points="total"]'), state.budget);
     SOURCE_FIELDS.forEach(k => syncInput(body.querySelector(`[data-points="${k}"]`), p.custom ? "" : p[k]));
     ngPlusRow.redraw();
-    const { spent, left } = stats.points(state);
+    const { spent, slots, left, bySlots } = stats.points(state, app.lockMode());
     body.querySelector("#statsSpent").textContent = spent;
+    body.querySelector("#statsLock").hidden = !bySlots;
+    const pair = body.querySelector("#statsLeftPair");
+    if (bySlots) pair.dataset.hint = `Skills need ${spent} points.\nSlots need ${slots} points to be unlocked.`;
+    else delete pair.dataset.hint;
     body.querySelector("#statsLeft").textContent = Math.abs(left);
     // Both labels stay in the cell, so its width doesn't change when one replaces the other (styles.css, .gpoint-swap).
     body.querySelector("#statsLeftLabel").classList.toggle("over", left < 0);

@@ -346,6 +346,13 @@ Mutagen tooltips follow the item tooltip (`panel_character`, `TooltipInventory.a
   | `SC_Yellow` | `rgb(184, 184, 184)` |
   | `SC_RedBlue`, `SC_RedGreen`, `SC_BlueGreen`, `SC_RedWhite`, `SC_GreenWhite`, `SC_BlueWhite` | Linear gradient between the two colors (`#ff0000`, `#0066ff`, green, `#ffffff`) |
 
+- **Slot unlocks** (`rules.slotUnlocks`):
+  - `geralt_skills.xml` lists them in `<skill_slots>` (`unlockedOnLevel`) and `<mutagen_slots>` (`unlockedAtLevel`). The values are the same in `abilities_plus`.
+  - Despite the attribute names, the remastered menu compares them with **total skill points** (free + spent + mutation points), not the level: `PlayerAbilityManager.ws` (`UpdateSkillSlots`, `IsSkillMutagenSlotUnlocked`) and `characterMenuDupe.ws` (mutagen list). The locked tooltip says so too: `skill_slot_unlock_description` = "Unlocked at $I$ Ability Points acquired.". The older `characterMenu.ws` still uses `GetLevel()` and the "Slot unlocked at level" text.
+  - Sockets, by group: 0, 2, 4 / 6, 8, 10 / 12, 15, 18 / 22, 26, 30. Diamonds: 2, 9, 16, 28.
+  - Groups: `gr1` left top, `gr2` right top, `gr3` left bottom, `gr4` right bottom; sockets top to bottom. Socket `slotId`s 1 to 12 run in that order (`mc_slotContainer_1_52`), and the diamonds' `slotType`s 22 to 25 (`EES_SkillMutagen1..4`) match `<mutagen_slots>` in order. This is the planner's slot order.
+  - Slots 13 to 16 (`unlockedOnLevel="999999"`, group 5) are the Blood and Wine Mutations sockets, opened by mutation research, never by points.
+
 - **Bonus label** (`mc_bonus_bkg_new`, 8 placements in `layout/mutagen-panel.json`):
   - `bonus/bar-<color>.png` at 280x64, alpha 0.8, offset (-4, 4). Mirrored (`scaleX(-1)`) on the right side.
   - `bonus/shield.png` at (5, 8) with `bonus/glyph-<stat>.png` on top, each at its own offset: sword (6, 5), sign (4.75, 1.45), plus and person (4.95, 4.85). The shield stays visible for every color.

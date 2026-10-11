@@ -143,6 +143,10 @@ export function createCatalog(data) {
   }));
 
   const slots = { groups: rules.slotGroups, perGroup: rules.slotsPerGroup, total: rules.slotGroups * rules.slotsPerGroup };
+  // Points that open each socket and diamond (core/slotLocks.js). Test data without them: all open.
+  slots.unlocks = rules.slotUnlocks || { sockets: Array(slots.total).fill(0), mutagens: Array(slots.groups).fill(0) };
+  if (slots.unlocks.sockets.length !== slots.total) problems.push(`slotUnlocks has ${slots.unlocks.sockets.length} sockets, not ${slots.total}.`);
+  if (slots.unlocks.mutagens.length !== slots.groups) problems.push(`slotUnlocks has ${slots.unlocks.mutagens.length} mutagens, not ${slots.groups}.`);
 
   return {
     rules, trees, skillSets: sets, order, nodes, edges, slots, problems,

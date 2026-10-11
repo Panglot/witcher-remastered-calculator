@@ -5,7 +5,8 @@
 // panel it is equipped, from another holder the two swap. Anywhere else it goes back.
 // Picking it up ends any press-and-hold (ui/hold.js), so a hold and a drag never both act.
 // While it lasts it is a non-modal layer (ui/layers.js) on top: Escape puts the item back and the
-// planner's other keys do nothing. Off in apply mode.
+// planner's other keys do nothing. Off in apply mode. Letting go on a holder that is locked, or on
+// a locked one it was dropped into anyway (soft mode), shows a toast (ui/slots.js, lockNotice).
 import { $ } from "./dom.js";
 import { artUrl } from "./gameArt.js";
 import { cancelHolds } from "./hold.js";
@@ -63,9 +64,11 @@ export function mountDrag(app) {
     // The release fires a click on the common parent of where it started and ended; it is not one.
     swallowClick();
     end();
-    if (!into) return;
+    const onKind = h && h.name === drag.kind && h.i !== drag.from;
+    if (!into) { if (onKind) app.views.slots.lockNotice(h.name, h.i); return; }
     const kind = kinds[drag.kind];
     app.msg = kind.move(state, drag.id, drag.from, h.i).msg;
+    app.views.slots.lockNotice(drag.kind, h.i);
     kind.select(state, drag.id, h.i);
     app.render();
     app.views.slots.focus(drag.kind, h.i);

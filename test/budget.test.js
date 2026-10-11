@@ -57,6 +57,15 @@ test("setMax: every field at the playthrough's max; a custom total is dropped", 
   assert.deepEqual([s.progress.custom, s.budget, s.progress.places], [false, 132, 30]);
 });
 
+test("reset: every field at its min, a total of 0; a custom total is dropped", () => {
+  const s = fresh();
+  budget.setNgPlus(s, true);
+  budget.setTotal(s, 50);
+  budget.reset(s);
+  assert.deepEqual(s.progress, { ngPlus: true, level: 1, places: 0, other: 0, custom: false });
+  assert.equal(s.budget, 0);
+});
+
 test("normalize: no progress is a custom total, in NG+ when New Game can't reach it", () => {
   assert.deepEqual(budget.normalize(null, 20), { ngPlus: false, level: 100, places: 30, other: 3, custom: true });
   assert.equal(budget.normalize(undefined, 150).ngPlus, true);

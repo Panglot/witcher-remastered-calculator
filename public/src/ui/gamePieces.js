@@ -45,6 +45,9 @@ const GAME_FONT_CAP_HEIGHT = 0.69;
 
 // Hover glow filters by piece kind, referenced by id from every game SVG.
 const GLOW_ID = { skill: "gglow-skill", item: "gglow-item" };
+// Fills a shape with one colour, kept to its alpha: the lock warning's lock (lockWarn). The colour
+// is set in styles.css (.glock-tint), so it follows --bad.
+const LOCK_TINT_ID = "glock-tint";
 // Touch buttons on a skill's sides (planner-only, stepButton): the side panels' toggle
 // (ui/sidePanel.js, toggleArt) drawn 24 px wide. On a phone the tree is drawn at about 0.6 px a
 // unit, so the tap area is larger than the button: the skill's full height, and from `in` px inside
@@ -63,6 +66,7 @@ export const stepDefs = () => dropdownArrowMask(STEP_ARROW_ID);
 /**
  * The hover glow filters, to put once in an always-rendered <svg> on the page. Each draws only the
  * glow (GlowFilter without the source): the alpha blurred, filled with the colour, times the strength.
+ * With them, the lock warning's tint (LOCK_TINT_ID).
  */
 export function glowFilters() {
   const { color, strength, sigma } = OVER_GLOW;
@@ -70,7 +74,8 @@ export function glowFilters() {
     `<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%" color-interpolation-filters="sRGB">`
     + `<feGaussianBlur in="SourceAlpha" stdDeviation="${sigma[kind]}" result="blur"/>`
     + `<feFlood flood-color="${color}"/><feComposite in2="blur" operator="in"/>`
-    + `<feComponentTransfer><feFuncA type="linear" slope="${strength}"/></feComponentTransfer></filter>`).join("");
+    + `<feComponentTransfer><feFuncA type="linear" slope="${strength}"/></feComponentTransfer></filter>`).join("")
+    + `<filter id="${LOCK_TINT_ID}" color-interpolation-filters="sRGB"><feFlood class="glock-tint"/><feComposite in2="SourceAlpha" operator="in"/></filter>`;
 }
 
 /** @param {import("./gameArt.js").Art} art */
@@ -163,9 +168,20 @@ export function createPieces(art) {
       + (selected ? selectedFrame(L.mcStateSelectedActive) : "");
   }
 
+  // A full holder in a locked slot (soft mode, or a loaded build in hard mode; core/slotLocks.js):
+  // not the game's. A dark mask over the item (a SOCKET square placed by `maskAt`), so the lock
+  // reads over a bright icon, a red edge on the holder's frame (`box`: [x, y, w, h] in piece
+  // units) and the lock in the edge's red (LOCK_TINT_ID), pulsing together (styles.css, .glock-warn).
+  const lockWarn = ([x, y, w, h], lockAt, maskAt) => `<g class="glock-warn">`
+    + placed(maskAt, `<rect class="glock-mask" width="${SOCKET}" height="${SOCKET}"/>`)
+    + `<rect class="glock-edge" x="${fmt(x)}" y="${fmt(y)}" width="${fmt(w)}" height="${fmt(h)}" fill="none" vector-effect="non-scaling-stroke"/>`
+    + `${placed(lockAt, img("slots/lock.svg", 0, 0, 1, ` filter="url(#${LOCK_TINT_ID})"`))}</g>`;
+  const AT_ORIGIN = { matrix: [1, 0, 0, 1, 0, 0] };
+
   /**
    * A slot socket. No icon = empty. A full one carries the hold block, like a tree node. An
    * unlocked one carries the drop target frame, around its frame and under the skill like the game's.
+   * A locked one shows the lock; with a skill in it, the skill under the lock warning (lockWarn).
    * `allowed` (e.g. "red-green") marks a slot that takes only those skill colours and shows the
    * edge glow `slots/glow-<allowed>`: SlotSkillSocket shows mcColorBorder only for data.colorBorder,
    * never for a skill matching its group's mutagen (that only lights the connectors).
@@ -175,11 +191,15 @@ export function createPieces(art) {
     const L = art.layout("mutagen-socket");
     let out = placed(L.frame, img("slots/frame.svg", 0, 0));
     if (allowed) out += placed(L.mcColorBorder, imgAt(`slots/glow-${allowed}.png`, 0, 0));
-    if (locked) out += placed(L.iconLock, img("slots/lock.svg", 0, 0));
+    if (locked && !file) out += placed(L.iconLock, img("slots/lock.svg", 0, 0));
     else out += dropFrame(L.mcStateDropTarget);
-    if (!locked && file) {
+    if (file) {
       out += img(`node/equipped-${color}.png`, 0, 0, 0.5) + icon(file) + BUY_BLOCK
         + img(`node/border-${color}.png`, 0, 0, 0.5) + pips(L.mcSkillPoints, rank, color);
+      if (locked) {
+        const [a, , , d, x, y] = L.frame.matrix, [w, h] = art.size("slots/frame.svg");
+        out += lockWarn([x, y, w * a, h * d], L.iconLock, AT_ORIGIN);
+      }
     }
     if (selected) out += selectedFrame(L.mcStateSelectedActive, slotSelection());
     return out;
@@ -189,16 +209,19 @@ export function createPieces(art) {
    * A mutagen diamond, unrotated: the layout matrix turns it 45°. The fill fits inside the frame
    * through the layout's background matrix on a 64px square (square size by eye). The selection
    * frame is the sockets' sprite, turned with the diamond. An unlocked one carries the drop target
-   * frame inside its frame, under the mutagen (the game loads the icon over it).
+   * frame inside its frame, under the mutagen (the game loads the icon over it). A locked one shows
+   * the lock; with a mutagen in it, the mutagen under the lock warning (lockWarn).
    * @param {{ color?: string, size?: "lesser" | "normal" | "greater", locked?: boolean, selected?: boolean }} o
    */
   function diamond({ color = "", size = "greater", locked = false, selected = false }) {
     const L = art.layout("mutagen-diamond");
+    const [w, h] = art.size(DIAMOND_FRAME), [ox, oy] = art.origin(DIAMOND_FRAME);
     return piece(DIAMOND_FRAME)
       + placed(L.background, `<rect width="${SOCKET}" height="${SOCKET}" fill="${MUTAGEN_ART[color].fill}"/>`)
-      + (locked ? "" : dropFrame(L.mcStateDropTarget))
-      + (color && !locked ? glowable(imgAt(mutagenIcon(color, size), SOCKET / 2, SOCKET / 2, 0.9)) : "")
-      + (locked ? placed(L.iconLock, img("slots/lock.svg", 0, 0)) : "")
+      + (locked && !color ? "" : dropFrame(L.mcStateDropTarget))
+      + (color ? glowable(imgAt(mutagenIcon(color, size), SOCKET / 2, SOCKET / 2, 0.9)) : "")
+      + (locked && !color ? placed(L.iconLock, img("slots/lock.svg", 0, 0)) : "")
+      + (locked && color ? lockWarn([-ox, -oy, w, h], L.iconLock, L.background) : "")
       + (selected ? selectedFrame(diamondSelection(L.mcStateSelectedActive), slotSelection()) : "");
   }
   // The layout's selection placement sits about 2px off the frame's centre and leaves one diagonal

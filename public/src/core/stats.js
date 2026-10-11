@@ -14,20 +14,32 @@
  * @typedef {{ id: string, label: string, unit: string, color: string, value: number, max: number, parts: TotalPart[] }} Total
  *   value: what always applies; max: with every condition met (the same when nothing is conditional).
  *   parts: the ones that always apply first.
+ * @typedef {{ total: number, spent: number, slots: number, left: number, bySlots: boolean }} Points
+ *   slots: the total the slots in use need to be open (0 without locks); left: points left to
+ *   spend, negative for the points needed; bySlots: the slots, not the skills, set what is needed.
  */
+import { LOCK_NONE } from "./slotLocks.js";
 
 /**
  * @param {ReturnType<import("./catalog.js").createCatalog>} catalog
  * @param {ReturnType<import("./planner.js").createPlanner>} planner
+ * @param {ReturnType<import("./slotLocks.js").createSlotLocks>} [locks]  without them slots need nothing
  */
-export function createStats(catalog, planner) {
+export function createStats(catalog, planner, locks = null) {
   const { nodes, order, trees, mutagens, slots, totals: totalsData } = catalog;
   const round = v => Math.round(v * 10) / 10;
 
-  /** Points: the budget, how many are spent and how many are left (negative when overspent). */
-  function points(b) {
-    const spent = planner.spentAll(b);
-    return { total: b.budget, spent, left: b.budget - spent };
+  /**
+   * Points: the budget, how many are spent and how many are left. With locks (`mode`, settings.js
+   * slotLocking) a slot in use that the budget doesn't open needs points too: what is needed is
+   * the larger of the two, so a slot that opens at 45 with 40 spent and a total of 0 needs 45.
+   * @returns {Points}
+   */
+  function points(b, mode = LOCK_NONE) {
+    const spent = planner.spentAll(b), total = b.budget;
+    const slots = locks && mode !== LOCK_NONE ? locks.required(b) : 0;
+    const short = slots > total;
+    return { total, spent, slots, left: short ? total - Math.max(spent, slots) : total - spent, bySlots: short && slots > spent };
   }
 
   /** @returns {MutagenBonus | null} The equipped mutagens of one colour, summed and grouped by kind. */

@@ -33,12 +33,19 @@ export function mountTooltip(app) {
   const { catalog, planner, state } = app;
   const { nodes, trees, maxRank, mutagens } = catalog;
 
-  function skillTip(id) {
-    const n = nodes[id], T = trees[n.tree], rank = planner.rank(state, id);
+  // A part in a locked slot (data-slot, data-group): when the slot opens.
+  function lockLine(part) {
+    const [name, i] = part.dataset.slot != null ? ["skill", part.dataset.slot] : ["mutagen", part.dataset.group];
+    if (i == null || !app.kinds[name].lockedAt(state, +i)) return "";
+    return `This slot unlocks at ${app.kinds[name].unlockAt(+i)} points.`;
+  }
+
+  function skillTip(part) {
+    const id = part.dataset.tip, n = nodes[id], T = trees[n.tree], rank = planner.rank(state, id);
     const passive = r => `${T.passive.label}: +${tidy(T.passive.per * r)}${T.passive.unit}`;
     // The skill's sets (ui/skillSets.js): the selected ones, or every one with the panel's switch.
     const sets = setLabels(catalog, id, state.skillSets, app.settings.skillSetsInTooltip);
-    const head = { name: n.name, level: `${rank}/${maxRank}`, sets, note: id === state.sel ? app.msg : "" };
+    const head = { name: n.name, level: `${rank}/${maxRank}`, sets, lock: lockLine(part), note: id === state.sel ? app.msg : "" };
     if (app.settings.skillText === SKILL_TEXT_MODERN) {
       const ranks = Array.from({ length: maxRank }, (_, i) => tidy(T.passive.per * (i + 1)));
       const passiveParts = [`${T.passive.label}: +`, { values: ranks }, T.passive.unit];
@@ -63,7 +70,7 @@ export function mountTooltip(app) {
     }
     return app.game.panels.itemTooltip({
       name: m.name, type: m.type, stats: [{ value: `+${m.value}${unit}`, label }],
-      body, rarity: m.rarity, note: m.id === state.selMut ? app.msg : ""
+      body, rarity: m.rarity, lock: lockLine(part), note: m.id === state.selMut ? app.msg : ""
     });
   }
 
@@ -72,7 +79,7 @@ export function mountTooltip(app) {
   // On a touch screen apply mode shows none: each tap to pick a holder would cover the slots with one.
   return createTipHost({
     area: $("screen"), el: $("tooltip"),
-    kinds: { tip: part => skillTip(part.dataset.tip), mutagen: mutagenTip, hint: part => hintTip(app, part) },
+    kinds: { tip: skillTip, mutagen: mutagenTip, hint: part => hintTip(app, part) },
     places: ["group", "slot"],
     shown: () => !!app.game && !app.drag && !(app.apply && isTouchScreen())
   });

@@ -8,6 +8,9 @@
 // double-click fills it, or they are dragged in (ui/drag.js), which finds the holder under the
 // pointer with holderAt. A hovered skill or mutagen lights the holders it could go into
 // (ui/dropTargets.js).
+// Locked holders (core/slotLocks.js, by the slotLocking setting) show the lock: an empty one with
+// the game's locked tooltip, a full one with the lock warning over its item (gamePieces.js,
+// lockWarn) and a red line in its tooltip (ui/tooltip.js). lockNotice says in a toast when one opens.
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
 import { createHold } from "./hold.js";
 import { createReselect } from "./reselect.js";
@@ -21,6 +24,10 @@ const HOLDER_SELECTOR = Object.keys(HOLDERS).map(a => `[data-${a}]`).join(", ");
 // Tooltip of an empty holder by kind name, the game's own text (ui/tooltip.js, data-hint).
 const EMPTY_TIP = { title: "Empty slot", text: { skill: "Place an Ability here to activate it.", mutagen: "Place a mutagen here to activate it." } };
 const emptyTipAttrs = name => ` data-hint="${esc(EMPTY_TIP.text[name])}" data-hint-title="${esc(EMPTY_TIP.title)}"`;
+// Tooltip of an empty locked holder: the game's titles, and when it opens in points (the game's
+// skill_slot_unlock_description says "Ability Points acquired").
+const LOCKED_TIP = { skill: "Locked slot", mutagen: "Locked mutagen slot" };
+const lockedTipAttrs = (name, points) => ` data-hint="Unlocks at ${points} points." data-hint-title="${esc(LOCKED_TIP[name])}"`;
 
 export function mountSlots(app) {
   const { catalog, planner, state, kinds } = app;
@@ -41,6 +48,20 @@ export function mountSlots(app) {
   const itemOf = h => h.kind.itemAt(state, h.i);
   // In apply mode only holders of the kind being equipped take part.
   const aimable = h => app.apply && h.name === app.apply.kind;
+
+  const lockedAt = (name, i) => kinds[name].lockedAt(state, i);
+  const tipAttrs = (name, i) => lockedAt(name, i) ? lockedTipAttrs(name, kinds[name].unlockAt(i)) : emptyTipAttrs(name);
+
+  /**
+   * After an item went into holder i, or failed to: a toast when the holder is locked. Hard mode
+   * refused it (a failure toast with when it opens); soft mode took it (what opening it needs).
+   */
+  function lockNotice(name, i) {
+    if (!lockedAt(name, i)) return;
+    const points = kinds[name].unlockAt(i);
+    if (kinds[name].blockedAt(state, i)) app.toast.show(`Unlocks at ${points} points`, { tone: "bad" });
+    else app.toast.show(`To unlock this slot you will need ${points} points`);
+  }
 
   /** Focuses a holder (apply mode starts on one). */
   function focus(name, i) { const g = holderEl(name, i); if (g) g.focus({ preventScroll: true }); }
@@ -77,7 +98,7 @@ export function mountSlots(app) {
   });
   el.addEventListener("click", e => {
     const h = holderOf(e); if (!h) return;
-    if (app.apply) { if (aimable(h)) { app.views.apply.aim(h.i); frame(h.g); } return; }
+    if (app.apply) { if (aimable(h) && app.views.apply.aim(h.i)) frame(h.g); return; }
     if (itemOf(h)) {
       const id = itemOf(h), was = h.kind.framedAt(state, h.i);
       reselect.click(e, was, () => { if (h.kind.framedAt(state, h.i) && itemOf(h) === id) deselectInPlace(h); });
@@ -147,14 +168,14 @@ export function mountSlots(app) {
   const dragAttrs = (name, id, i) => ` data-drag="${name}" data-drag-item="${esc(id)}" data-drag-from="${i}"`;
 
   function socketView(index, lit, { marked, found }) {
-    const id = state.slots[index];
+    const id = state.slots[index], locked = lockedAt("skill", index);
     if (!id) {
-      const label = emptyLabel("slot", "skill");
-      return { ...holderView("skill", index, lit), attrs: ` data-slot="${index}"${emptyTipAttrs("skill")} tabindex="0" role="button" aria-label="${esc(label)}"` };
+      const label = locked ? `Locked slot, unlocks at ${kinds.skill.unlockAt(index)} points.` : emptyLabel("slot", "skill");
+      return { ...holderView("skill", index, lit), locked, attrs: ` data-slot="${index}"${tipAttrs("skill", index)} tabindex="0" role="button" aria-label="${esc(label)}"` };
     }
     const n = nodes[id], rank = planner.rank(state, id);
     return {
-      ...holderView("skill", index, lit), icon: skillIcon(n.tree, n.game), color: TREE_ART[n.tree].color, rank,
+      ...holderView("skill", index, lit), icon: skillIcon(n.tree, n.game), color: TREE_ART[n.tree].color, rank, locked,
       marked: marked.get(id) || 0, found: found.skill.has(id),
       attrs: ` data-slot="${index}" data-tip="${id}"${dragAttrs("skill", id, index)} tabindex="0" role="button" aria-label="${esc(n.name)}, rank ${rank} of ${maxRank}, equipped"`
     };
@@ -163,12 +184,12 @@ export function mountSlots(app) {
   // A diamond with a mutagen shows its tooltip (ui/tooltip.js, data-mutagen); an empty one the
   // game's empty slot tooltip.
   function groupView(g, lit, frames) {
-    const bonus = planner.groupBonus(state, g), m = mutagens[bonus.mutagen];
+    const bonus = planner.groupBonus(state, g), m = mutagens[bonus.mutagen], locked = lockedAt("mutagen", g);
     const label = m ? `${m.name}, +${bonus.value}${m.stat.unit} ${m.stat.label}, equipped`
-      : emptyLabel("mutagen slot", "mutagen");
-    const tip = m ? ` data-mutagen="${m.id}"${dragAttrs("mutagen", m.id, g)}` : emptyTipAttrs("mutagen");
+      : locked ? `Locked mutagen slot, unlocks at ${kinds.mutagen.unlockAt(g)} points.` : emptyLabel("mutagen slot", "mutagen");
+    const tip = m ? ` data-mutagen="${m.id}"${dragAttrs("mutagen", m.id, g)}` : tipAttrs("mutagen", g);
     return {
-      ...holderView("mutagen", g, lit), mutagen: bonus.color, size: m && m.size,
+      ...holderView("mutagen", g, lit), mutagen: bonus.color, size: m && m.size, locked,
       bonus: m ? `+${bonus.value}${m.stat.unit}` : null, found: !!m && frames.found.mutagen.has(m.id),
       attrs: ` data-group="${g}"${tip} tabindex="0" role="button" aria-label="Group ${g + 1} mutagen: ${esc(label)}"`,
       sockets: Array.from({ length: slots.perGroup }, (_, i) => socketView(g * slots.perGroup + i, lit, frames))
@@ -190,5 +211,8 @@ export function mountSlots(app) {
   // Mutagen colours must have game art; a new one in data/mutagens.js needs MUTAGEN_ART first.
   Object.values(mutagens).filter(m => !MUTAGEN_ART[m.color]).forEach(m => console.error(`No game art for mutagen colour "${m.color}" (${m.id}).`));
 
-  return { render, focus, showDrop, holderAt };
+  // Locks show by the slotLocking setting.
+  function settingChanged(key) { if (key === "slotLocking") app.render(); }
+
+  return { render, focus, showDrop, holderAt, lockNotice, settingChanged };
 }

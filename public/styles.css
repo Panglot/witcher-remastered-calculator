@@ -152,6 +152,16 @@ input[type="text"], textarea { cursor: text; }
 :root:not(.dragging) :is([tabindex].gnode, [tabindex].gsock, [tabindex].gdiamond, [tabindex].gitem):not(.selected):hover .gglow { display: inline; }
 .gsel { animation: gpulse 0.8s ease-in-out infinite; }
 @keyframes gpulse { 50% { opacity: 0.5; } }
+/* An item in a locked slot (gamePieces.js, lockWarn): a dark mask over the item, a red edge (red like the points needed)
+   and the lock, pulsing together between 10% and 60% opacity in step with the selection frame. Still at 60% with
+   reduced motion. */
+.glock-mask { fill: #000; fill-opacity: 0.2; }
+.glock-edge { stroke: var(--bad); stroke-width: 2; }
+/* The lock is solid, so the same red reads stronger than on the thin edge: paled towards white to look alike. */
+.glock-tint { flood-color: color-mix(in srgb, var(--bad) 90%, #fff); }
+.glock-warn { opacity: 0.1; animation: glock-pulse 0.8s ease-in-out infinite; }
+@keyframes glock-pulse { 50% { opacity: 0.6; } }
+@media (prefers-reduced-motion: reduce) { .glock-warn { animation: none; opacity: 0.6; } }
 /* Drop target frame (ui/dropTargets.js): on every unlocked socket and diamond, shown on the holders the
    hovered item could go into unless the selection frame is there (SlotBase.getTargetIndicator). It fades
    in and out like the game's indicators: 1.5 s, Strong.easeOut (quintic). */
@@ -497,8 +507,8 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    spread to the section's edges, so the grid ends where Set max and the switch do, with equal room between the
    columns. Every value, field or not, sits in a slot as wide as the widest number (--gpoint-slot,
    statistics.js FIELDS), centred, so the field lines are one length and the labels start at one offset. */
-/* Set max at the Points heading's right end, in the name field's column. */
-.glead-action { grid-column: 2; justify-self: end; align-self: center; }
+/* Set max and Reset at the Points heading's right end, in the name field's column. */
+.glead-action { grid-column: 2; justify-self: end; align-self: center; display: flex; gap: calc(10 * var(--u1)); }
 .gpoints { --gpoint-slot: calc(3ch + 2 * var(--u1)); display: grid; grid-template-columns: repeat(3, max-content); justify-content: space-between;
   column-gap: calc(14 * var(--u1)); row-gap: calc(6 * var(--u1)); align-items: baseline; margin-bottom: calc(14 * var(--u1)); }
 .gpoint { display: grid; grid-template-columns: var(--gpoint-slot) max-content; column-gap: calc(10 * var(--u1)); align-items: baseline; white-space: nowrap; }
@@ -509,6 +519,11 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gpoint-swap > * { grid-area: 1 / 1; }
 .gpoint-swap > :last-child, .gpoint-swap.over > :first-child { visibility: hidden; }
 .gpoint-swap.over > :last-child { visibility: visible; }
+/* When locked slots set the points needed (statistics.js): the slots' lock before the number, out of its slot so the
+   number doesn't move, in the number's colour (slots/lock.svg as a mask, 56.15 x 54.5). */
+.gpoint-lockable { position: relative; }
+.gpoint-lock { position: absolute; left: -0.9em; bottom: 0em; height: 1.2em; aspect-ratio: 56.15 / 54.5; background: var(--game-list-value);
+  -webkit-mask: url("assets/ui/slots/lock.svg") center / contain no-repeat; mask: url("assets/ui/slots/lock.svg") center / contain no-repeat; }
 /* Side panels' switch rows (sidePanel.js, switchRows: Statistics' playthrough, Skill sets' modes): one row each,
    like the settings' (options.js, .gopt) without the row's background, at the list's size: the name on the left
    in the values' colour, then the picked value right-aligned in the text colour and the slider at the
@@ -714,6 +729,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gtip p { margin: calc(8 * var(--u1)) calc(11 * var(--u1)) 0; }
 .gtip-note { color: var(--game-req); font-size: calc(23 * var(--u1)); }
 .gtip-note.ok { color: var(--game-current); }
+.gtip-lock { color: var(--bad); font-size: calc(23 * var(--u1)); }
 /* Item tooltip (TooltipInventory). Type colour from its code (0xC8C8C7), the rest sampled from an
    in-game Greater blue mutagen tooltip. The type sits where a skill's level does. */
 .gtip-item .gtip-name { color: #b9924d; }

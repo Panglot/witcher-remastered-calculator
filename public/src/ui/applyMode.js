@@ -6,6 +6,8 @@
 // Accept fill the picked one; Escape, the right mouse button or Cancel back out. It is a modal
 // layer (ui/layers.js) that keeps the slot groups usable: the rest of the page is inert, the
 // planner's other keys do nothing and Tab is held, so focus stays on the picked holder.
+// A holder that is locked in hard mode can't be picked or filled (core/slotKinds.js, blockedAt):
+// a toast says when it opens (ui/slots.js, lockNotice), and apply mode doesn't start when every one is.
 import { $ } from "./dom.js";
 import { VIEWS } from "./gamePanels.js";
 import { CONFIRM_KEYS, CONFIRM_LABELS } from "./popup.js";
@@ -39,20 +41,36 @@ export function mountApplyMode(app) {
   /** Starts equipping an item of a kind ("skill" or "mutagen"); false if it can't be equipped. */
   function start(kind, id) {
     if (app.apply || !kinds[kind].canEquip(state, id)) return false;
+    const at = kinds[kind].target(state, id);
+    if (kinds[kind].blockedAt(state, at)) { app.views.slots.lockNotice(kind, at); return false; }
     app.reveal(slots);
-    app.apply = { kind, id, at: kinds[kind].target(state, id) };
+    app.apply = { kind, id, at };
     app.layers.open(layer);
     app.msg = ""; app.render();
     app.views.slots.focus(kind, app.apply.at);
     return true;
   }
-  /** Picks the holder to fill. */
-  function aim(i) { if (app.apply) app.apply.at = i; }
-  /** Fills holder i (default: the picked one) and ends. */
+  /** Picks the holder to fill; false when it is locked. */
+  function aim(i) {
+    if (!app.apply) return false;
+    if (refused(i)) return false;
+    app.apply.at = i;
+    return true;
+  }
+  /** Fills holder i (default: the picked one) and ends; a locked one stays in apply mode. */
   function accept(i = app.apply.at) {
     const { kind, id } = app.apply;
+    if (refused(i)) return;
     app.msg = kinds[kind].equip(state, id, i).msg;
+    app.views.slots.lockNotice(kind, i);
     end(kind, id);
+  }
+  // Holder i of the kind being equipped is locked in hard mode: says when it opens.
+  function refused(i) {
+    const { kind } = app.apply;
+    if (!kinds[kind].blockedAt(state, i)) return false;
+    app.views.slots.lockNotice(kind, i);
+    return true;
   }
   function cancel() { const { kind, id } = app.apply; app.msg = ""; end(kind, id); }
   // Like the game, focus goes back to the item in the tree panel.

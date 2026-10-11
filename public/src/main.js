@@ -7,7 +7,9 @@ import data from "../data/index.js";
 import { createCatalog } from "./core/catalog.js";
 import { createPlanner } from "./core/planner.js";
 import { createSlotKinds } from "./core/slotKinds.js";
+import { createSlotLocks } from "./core/slotLocks.js";
 import { createSearch } from "./core/search.js";
+import { createStats } from "./core/stats.js";
 import { loadState, saveState } from "./state.js";
 import { loadSettings, saveSettings } from "./settings.js";
 import { $, esc, blockKeyDefaults, createHotkeys, syncAnimations, PLANNER_KEYS } from "./ui/dom.js";
@@ -33,6 +35,7 @@ import { mountBackdrop } from "./ui/backdrop.js";
 import { statIconFilters } from "./ui/sidePanel.js";
 import { createToaster } from "./ui/toast.js";
 import { mountPageInfo } from "./ui/pageInfo.js";
+import { mountClickAway } from "./ui/clickAway.js";
 
 const catalog = createCatalog(data);
 catalog.problems.forEach(p => console.error(p));
@@ -40,11 +43,17 @@ catalog.problems.forEach(p => console.error(p));
 const planner = createPlanner(catalog);
 const layers = createPageLayers();
 const search = createSearch(catalog);
+const locks = createSlotLocks(catalog);
 const app = {
   catalog,
   planner,
-  // Skills and mutagens as slot kinds: one set of slotting and selection rules for both.
-  kinds: createSlotKinds(catalog, planner),
+  // Slot locks by the build's points (core/slotLocks.js); how they act is the slotLocking setting.
+  locks,
+  lockMode: () => app.settings.slotLocking,
+  // Skills and mutagens as slot kinds: one set of slotting and selection rules for both, locks included.
+  kinds: createSlotKinds(catalog, planner, { locks, mode: () => app.lockMode() }),
+  // What the build adds up to (core/stats.js); points(state, app.lockMode()) counts the locked slots in use.
+  stats: createStats(catalog, planner, locks),
   state: loadState(catalog),
   // The skills and mutagens a search query matches (core/search.js), by default the open search's (ui/search.js).
   found: (query = app.state.search) => search.find(query),
@@ -113,14 +122,18 @@ app.views = {
   menu: mountMenu(app)
 };
 
+// A click on empty space drops the selection.
+mountClickAway(app);
+
 // The holders the hovered skill or mutagen could go into, drawn by the slots panel.
 app.dropTargets = createDropTargets(app);
 
 // The planner's keys never fall through to the browser (Space would scroll the page).
 blockKeyDefaults(PLANNER_KEYS);
 
-// The selection frame, search matches and tab icons pulse in step (styles.css, gpulse).
-syncAnimations(["gpulse"]);
+// The selection frame, search matches and tab icons pulse in step (styles.css, gpulse), and so do
+// the locks over items in locked slots (glock-pulse).
+syncAnimations(["gpulse", "glock-pulse"]);
 
 app.render();
 

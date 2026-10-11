@@ -1,16 +1,17 @@
 // POINTS AVAILABLE under the tree: the points left to spend, or when overspent how many are
-// needed. Display only; the total (the budget) is set in the Statistics panel (ui/statistics.js).
+// needed, locked slots in use included (core/stats.js, points). Display only; the total (the
+// budget) is set in the Statistics panel (ui/statistics.js).
 import { $ } from "./dom.js";
 import { VIEWS } from "./gamePanels.js";
 
 export function mountPoints(app) {
-  const { planner, state } = app;
+  const { state } = app;
   const el = $("points");
   let drawn = null;
 
   function render() {
     if (!app.game) return;
-    const left = state.budget - planner.spentAll(state);
+    const { left } = app.stats.points(state, app.lockMode());
     const { panels } = app.game;
     const html = panels.svg(VIEWS.points, panels.pointsRow(left));
     if (html === drawn) return;

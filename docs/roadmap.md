@@ -6,32 +6,10 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 
 | # | Item | Left |
 | --- | --- | --- |
-| 1 | Level and slot unlocks (optional) | Everything |
-| 2 | Blood and Wine mutations (later) | Everything |
-| 3 | Builds (optional) | Everything |
+| 1 | Blood and Wine mutations (later) | Everything |
+| 2 | Builds (optional) | Everything |
 
-## 1. Character level and slot unlocks (optional)
-
-**Now:** every socket and diamond is open. The lock art (`slots/lock.svg`) and the apply-mode rule that locked holders can't be picked are documented in [game-assets.md](game-assets.md) but not used.
-
-**Goal:** slots open at character levels, as in-game. It works both ways:
-- **Level first:** pick a level. Slots above it show locked and can't take anything.
-- **Build first:** every slot stays usable. The build shows a **required level**: the lowest level that has every used slot open.
-
-**Recommendation:**
-- One data table, slot index to unlock level, e.g. `rules.slotLevels`. Both modes read it. Only the "is this slot locked" check differs:
-  - level mode: `slotLevel > level`,
-  - build mode: never locked, and required level = highest `slotLevel` among the used slots.
-- Put that check in the planner core (`slotKinds.js`), which already decides where an item can go. Apply mode, drag and drop targets then respect locks with no changes of their own.
-- The level is stored in the build already (progress `g.l`, core/build.js); build-first or level-first would be one more optional field. Old codes load in build-first mode.
-- Show it in the Statistics panel's Points section, or next to POINTS AVAILABLE if it needs to be on screen.
-- Take the unlock levels from the game files, not wikis. The Remastered patch may have changed them.
-
-**To decide:**
-- The Statistics panel's Level field (progress, part of the build) already exists: decide whether level mode reads it, or gets its own.
-- Where the mode switch and the level field go: Statistics panel or main screen.
-
-## 2. Blood and Wine mutations (later)
+## 1. Blood and Wine mutations (later)
 
 **Goal:** the Mutations system from the Blood and Wine expansion: research mutations, equip one, and get the extra skill slots that researched mutations unlock.
 
@@ -49,11 +27,11 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 - **UI:** in-game it's a separate panel, so it fits as its own screen or a 5th tree tab, on the layer manager (`ui/layers.js`).
 - **Build data:** researched and equipped mutations as new optional fields, so old codes still load.
 
-**Recommendation:** don't start this before Level and slot unlocks. It reuses the skill text extraction tool, and it needs the variable slot count, so build that slot model (slots that can be locked) with Level and slot unlocks in a way mutations can extend.
+**Recommendation:** build the extra sockets on the slot locks (`core/slotLocks.js`): in the game they are slots 13 to 16 of `geralt_skills.xml`, opened by mutation research instead of points (see "Slot unlocks" in [game-assets.md](game-assets.md)). The data side can reuse the skill text extraction tool.
 
 **To decide:** does the build track which mutations are researched (and their cost in points), or only the one equipped?
 
-## 3. Builds (optional)
+## 2. Builds (optional)
 
 **Goal:** ready-made builds (presets) like Spellsword: a named build that loads its skills, slots and mutagens. Unlike skill sets, a build is a combination of themes, not one theme.
 

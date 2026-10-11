@@ -50,14 +50,15 @@ const STEP_SIDES = [["remove", 0, -1], ["add", SOCKET, 1]];
  *   of that many highlighted skill sets (0 = none); found: framed as a search match; steps: the touch buttons on its left (remove, a down arrow) and
  *   right (add, an up arrow) side, each drawn when given, with its attrs.
  * @typedef {{ a: number, b: number, state: "lit" | "open" | "closed" }} LinkView  a, b: node indexes.
- * @typedef {{ icon?: string, color?: string, rank?: number, selected?: boolean, marked?: number, found?: boolean, cls?: string, attrs?: string }} SocketView
- *   No icon = empty socket. marked, found: framed like a tree node.
+ * @typedef {{ icon?: string, color?: string, rank?: number, locked?: boolean, selected?: boolean, marked?: number, found?: boolean, cls?: string, attrs?: string }} SocketView
+ *   No icon = empty socket. marked, found: framed like a tree node. locked: the slot is locked
+ *   (core/slotLocks.js); a full one still shows its skill, with the lock warning over it.
  * @typedef {{ col: number, row: number, icon: string, selected?: boolean, found?: boolean, cls?: string, attrs?: string }} ItemView
  *   An inventory item; col/row: its cell. found: framed as a search match.
  * @typedef {{ mutagen: string, size?: string, bonus?: string, locked?: boolean, selected?: boolean, found?: boolean, cls?: string, attrs?: string,
  *   sockets: SocketView[] }} GroupView
  *   mutagen: its colour ("" = none), size: its icon size. found: the diamond framed as a search match.
- *   cls and attrs go on the diamond.
+ *   locked: the diamond is locked, like a socket's. cls and attrs go on the diamond.
  * @typedef {{ key?: string, mouse?: string, clicks?: number, label: string, prefix?: string, action?: string }} LegendItem
  *   mouse: legend/mouse-<mouse>.png, key: key cap text; with both, "mouse / key". clicks: a "2x" badge on the
  *   mouse icon (it only applies to the mouse, so it isn't a prefix). prefix: "[Hold]"-style
@@ -206,12 +207,12 @@ export function createPanels(art, pieces) {
     let wires = "", parts = "", labels = "";
     groups.forEach((g, gi) => {
       const n = gi + 1;
-      const match = g.sockets.map(s => !g.locked && !!s.icon && s.color === g.mutagen);
+      const match = g.sockets.map(s => !!s.icon && s.color === g.mutagen);
       wires += placed(G[`groupConnector${n}`], pieces.connector("line", match.some(Boolean) && g.mutagen));
       g.sockets.forEach((s, si) => {
         wires += placed(G[`connector_g${n}_s${si + 1}`], pieces.connector(si === 1 ? "line" : "corner", match[si] && g.mutagen));
         parts += placed(G[`gr${n}_socket${si + 1}`],
-          SOCKET_HIT + pieces.socket({ ...s, locked: g.locked, selected: true }) + mark(s),
+          SOCKET_HIT + pieces.socket({ ...s, selected: true }) + mark(s),
           ` class="${classes("gsock", s.selected && "selected", s.icon && "full", s.cls)}"${s.attrs || ""}`);
       });
       parts += placed(G[`gr${n}_mutagen`], SOCKET_HIT + pieces.diamond({ color: g.mutagen, size: g.size, locked: g.locked, selected: true }) + mark(g),
@@ -283,6 +284,8 @@ export function createPanels(art, pieces) {
       ${note ? `<p class="gtip-note${noteOk ? " ok" : ""}">${esc(note)}</p>` : ""}
     </div>`;
   const span = (cls, text) => text ? `<span class="${cls}">${esc(text)}</span>` : "";
+  // Not the game's: when the locked slot holding the item opens (ui/tooltip.js), red like the points needed.
+  const lockLine = text => text ? `<p class="gtip-lock">${esc(text)}</p>` : "";
 
   /**
    * A tooltip line: plain text, or segments of text with an optional class each (a highlighted number).
@@ -297,11 +300,12 @@ export function createPanels(art, pieces) {
    * `all` replaces both with one unlabelled block (the "Modern" text for every rank, ui/tooltip.js).
    * `req` is the red requirement text, `note` a red line under everything. `sets` (not the game's)
    * are the skill's sets, in a column right of the name and level: each kept on one line, the list
-   * wrapping between them, and the header growing to fit (styles.css, .gtip-sets).
+   * wrapping between them, and the header growing to fit (styles.css, .gtip-sets). `lock`: the
+   * locked slot line under the text (lockLine).
    * @param {{ name: string, type?: string, level?: string, req?: string, sets?: string[], current?: TipLine[],
-   *   next?: TipLine[], all?: TipLine[], note?: string }} o
+   *   next?: TipLine[], all?: TipLine[], lock?: string, note?: string }} o
    */
-  function tooltip({ name, type = "", level = "", req = "", sets = [], current, next, all, note = "" }) {
+  function tooltip({ name, type = "", level = "", req = "", sets = [], current, next, all, lock = "", note = "" }) {
     const block = (cls, label, lines) => lines && lines.length
       ? `<div class="${cls}">${label ? `<span class="gtip-label">${label}</span>` : ""}${lines.map(tipLine).join("")}</div>` : "";
     // The comma stays with the set before it, so a line never starts with one.
@@ -309,23 +313,24 @@ export function createPanels(art, pieces) {
       span("gtip-set", i < sets.length - 1 ? `${s},` : s)).join(" ")}</span>` : "";
     return tipFrame(
       span("gtip-name", name.toUpperCase()) + span("gtip-type", type) + span("gtip-level", level) + span("gtip-req", req) + setList,
-      all ? block("gtip-cur gtip-all", "", all)
-        : block("gtip-cur", "Current level:", current) + block("gtip-next", "Next level:", next), note, " gtip-skill");
+      (all ? block("gtip-cur gtip-all", "", all)
+        : block("gtip-cur", "Current level:", current) + block("gtip-next", "Next level:", next)) + lockLine(lock), note, " gtip-skill");
   }
 
   /**
    * Item tooltip (HTML, TooltipInventory): the header with the name and the upper-case item type
    * under it, the stat list (value, then label), the description lines straight under it in the
-   * stat label's style, and the rarity line. The game's weight and price row is left out.
+   * stat label's style, and the rarity line. The game's weight and price row is left out. `lock`:
+   * the locked slot line, as in tooltip().
    * @param {{ name: string, type?: string, stats?: { value: string, label: string }[], body?: string[],
-   *   rarity?: string, note?: string }} o
+   *   rarity?: string, lock?: string, note?: string }} o
    */
-  function itemTooltip({ name, type = "", stats = [], body = [], rarity = "", note = "" }) {
+  function itemTooltip({ name, type = "", stats = [], body = [], rarity = "", lock = "", note = "" }) {
     const statList = stats.length
       ? `<div class="gtip-stats">${stats.map(s => `<span>${span("gtip-value", s.value)} ${span("gtip-stat", s.label)}</span>`).join("")}</div>` : "";
     return tipFrame(
       span("gtip-name", name.toUpperCase()) + span("gtip-itemtype", type.toUpperCase()),
-      statList + (body.length ? `<div class="gtip-desc">${body.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : "") + (rarity ? `<p class="gtip-rarity">${esc(rarity)}</p>` : ""),
+      statList + (body.length ? `<div class="gtip-desc">${body.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : "") + (rarity ? `<p class="gtip-rarity">${esc(rarity)}</p>` : "") + lockLine(lock),
       note, " gtip-item");
   }
 

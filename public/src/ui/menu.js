@@ -61,7 +61,7 @@ export function mountMenu(app) {
             ]
         },
         settings: {
-            title: "Settings", options: [OPTIONS.holdMs, OPTIONS.background, OPTIONS.skillText], items: [
+            title: "Settings", options: [OPTIONS.holdMs, OPTIONS.background, OPTIONS.skillText, OPTIONS.slotLocking], items: [
                 { label: "Reset all data", run: resetAllData }
             ]
         },

@@ -21,7 +21,13 @@
 // Drop targets, like the game's (SlotsTransferManager.highlightDropTargets): while an item that
 // can be equipped is hovered, every holder of its kind it could go into lights up, full or empty,
 // except the holder it is in.
+//
+// Locks (core/slotLocks.js): every holder can be locked by the build's points. In hard mode
+// nothing new goes into a locked holder: it is no drop target, apply mode doesn't start on it, and
+// equipping or moving an item there is refused. A move out of a locked holder that would swap
+// something into it is refused too. Soft mode only reports locks (lockedAt).
 import { MUTAGEN_TAB } from "./catalog.js";
+import { LOCK_NONE } from "./slotLocks.js";
 
 /**
  * @typedef {{ ok: boolean, msg: string }} Result
@@ -48,14 +54,21 @@ import { MUTAGEN_TAB } from "./catalog.js";
  *   in holder `to`; when it came from holder `from`, what `to` held goes there (else `from` empties)
  * @property {(s: object, id: string, from?: number|null) => number[]} dropTargets  holders the item
  *   could go into, but `from` (the holder it is hovered in); none when it can't be equipped
+ * @property {(s: object, i: number) => boolean} lockedAt  holder i is locked (shown with a lock)
+ * @property {(s: object, i: number) => boolean} blockedAt  nothing new can go into holder i (hard mode)
+ * @property {(i: number) => number} unlockAt  total points that open holder i
  * @property {(s: object, id: string) => boolean} canRaise  a point can go into the item
  * @property {(s: object, id: string) => Result} raise  adds a point to the item
  */
 
 const cannot = () => false;
 
-/** @returns {{ skill: SlotKind, mutagen: SlotKind }} */
-export function createSlotKinds(catalog, planner) {
+/**
+ * @param {{ locks?: ReturnType<import("./slotLocks.js").createSlotLocks>, mode?: () => string }} [o]
+ *   locks and the lock mode (settings.js, slotLocking); without them no holder is locked
+ * @returns {{ skill: SlotKind, mutagen: SlotKind }}
+ */
+export function createSlotKinds(catalog, planner, { locks = null, mode = () => LOCK_NONE } = {}) {
   const { nodes, order } = catalog;
   const defs = {
     skill: {
@@ -73,7 +86,12 @@ export function createSlotKinds(catalog, planner) {
       canRaise: cannot, raise: () => ({ ok: false, msg: "" })
     }
   };
-  return Object.fromEntries(Object.entries(defs).map(([name, d]) => [name, slotKind(d)]));
+  const lockOf = name => locks ? {
+    locked: (s, i) => locks.isLocked(s, name, i, mode()),
+    blocked: (s, i) => locks.isBlocked(s, name, i, mode()),
+    unlockAt: i => locks.unlockAt(name, i)
+  } : { locked: cannot, blocked: cannot, unlockAt: () => 0 };
+  return Object.fromEntries(Object.entries(defs).map(([name, d]) => [name, slotKind(d, lockOf(name))]));
 }
 
 /**
@@ -85,8 +103,12 @@ export function openTab(kinds, s, tab) {
   Object.values(kinds).forEach(k => k.dropHidden(s));
 }
 
-/** The shared rules over one kind's parts. */
-function slotKind(d) {
+const refuse = msg => ({ ok: false, msg });
+// Why nothing can go into a holder that opens at `n` points.
+const lockedMsg = n => `Unlocks at ${n} points.`;
+
+/** The shared rules over one kind's parts, and its locks. */
+function slotKind(d, lock) {
   const selected = s => s[d.idKey] || null;
   const itemAt = (s, i) => s[d.list][i] || null;
   function heldAt(s) {
@@ -111,17 +133,26 @@ function slotKind(d) {
     clear: (s, i) => d.clear(s, i),
     canEquip: (s, id) => d.canEquip(s, id),
     target(s, id) {
-      const list = s[d.list], empty = list.findIndex(x => !x);
-      return empty >= 0 ? empty : Math.max(0, list.indexOf(id));
+      const list = s[d.list], open = i => i >= 0 && !lock.blocked(s, i);
+      const empty = list.findIndex((x, i) => !x && open(i)), at = list.indexOf(id);
+      return empty >= 0 ? empty : open(at) ? at : Math.max(0, list.findIndex((_, i) => open(i)));
     },
-    equip: (s, id, i) => d.equip(s, i, id),
+    equip: (s, id, i) => lock.blocked(s, i) ? refuse(lockedMsg(lock.unlockAt(i))) : d.equip(s, i, id),
     move(s, id, from, to) {
-      const was = itemAt(s, to), r = d.equip(s, to, id);
+      const was = itemAt(s, to);
+      if (lock.blocked(s, to)) return refuse(lockedMsg(lock.unlockAt(to)));
+      if (from != null && from !== to && was && was !== id && lock.blocked(s, from)) return refuse(lockedMsg(lock.unlockAt(from)));
+      const r = d.equip(s, to, id);
       if (!r.ok || from == null || from === to) return r;
       if (was && was !== id) return d.equip(s, from, was);
       return itemAt(s, from) === id ? d.clear(s, from) : r;
     },
-    dropTargets: (s, id, from = null) => d.canEquip(s, id) ? s[d.list].map((_, i) => i).filter(i => i !== from) : [],
+    // From a blocked holder, the item can only go where nothing would swap back into it.
+    dropTargets: (s, id, from = null) => !d.canEquip(s, id) ? [] : s[d.list].map((_, i) => i).filter(i => i !== from
+      && !lock.blocked(s, i) && !(from != null && lock.blocked(s, from) && itemAt(s, i) && itemAt(s, i) !== id)),
+    lockedAt: (s, i) => lock.locked(s, i),
+    blockedAt: (s, i) => lock.blocked(s, i),
+    unlockAt: i => lock.unlockAt(i),
     canRaise: (s, id) => !!id && d.canRaise(s, id),
     raise: (s, id) => d.raise(s, id)
   };
