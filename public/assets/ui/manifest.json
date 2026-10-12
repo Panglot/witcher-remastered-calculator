@@ -1298,17 +1298,17 @@
   "menu/sheet.png": {
    "from": "atlas",
    "movie": "panel_ingamemenu.redswf",
-   "image": 694,
+   "image": 682,
    "size": [
     400,
     1080
    ],
-   "note": "MenuListModule's torn black sheet (shape 695): stretched to 369x1920, centred on the list at y +162.85, alpha 0.95"
+   "note": "MenuListModule's torn black sheet (shape 683): stretched to 369x1920, centred on the list at y +162.85, alpha 0.95"
   },
   "menu/frame.png": {
    "from": "atlas",
    "movie": "panel_ingamemenu.redswf",
-   "sub": 389,
+   "sub": 391,
    "size": [
     286,
     286
@@ -1318,7 +1318,7 @@
   "menu/title-underline.png": {
    "from": "atlas",
    "movie": "panel_ingamemenu.redswf",
-   "sub": 449,
+   "sub": 451,
    "size": [
     8,
     3
@@ -1328,8 +1328,8 @@
   "menu/logo.png": {
    "from": "atlas",
    "movie": "panel_ingamemenu.redswf",
-   "sub": 697,
-   "shape": 698,
+   "sub": 685,
+   "shape": 686,
    "size": [
     1024,
     501
@@ -1353,12 +1353,12 @@
   "menu/option-edge.png": {
    "from": "atlas",
    "movie": "panel_ingamemenu.redswf",
-   "sub": 340,
+   "sub": 342,
    "size": [
     8,
     77
    ],
-   "note": "ListItemBG_189 (shape 341): the brown bar at the left end of an option row, at 1:1 over a white gradient (alpha 0.04 to 0) 1167 x 77"
+   "note": "ListItemBG_184 (shape 343): the brown bar at the left end of an option row, at 1:1 over a white gradient (alpha 0.04 to 0) 1167 x 77"
   },
   "icons/copy.png": {
    "from": "atlas",
@@ -2234,7 +2234,7 @@
   "layout/menu.json": {
    "from": "placements",
    "movie": "panel_ingamemenu.redswf",
-   "sprite": 724,
+   "sprite": 712,
    "children": 16,
    "note": "MenuListModule at (333, 370) on the 1920x1080 screen; items 42px apart"
   }

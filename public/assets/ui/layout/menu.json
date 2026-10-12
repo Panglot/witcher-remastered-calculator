@@ -3,7 +3,7 @@
  "sprite": "MenuListModule",
  "children": {
   "mcList": {
-   "character": 360,
+   "character": 362,
    "class": "W3ScrollingListNoBG",
    "matrix": [
     1.0,
@@ -15,7 +15,7 @@
    ]
   },
   "mcGameLogo": {
-   "character": 711,
+   "character": 699,
    "class": "mcGameLogoRE_28",
    "matrix": [
     0.22855,
@@ -27,7 +27,7 @@
    ]
   },
   "mcListItem1": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -39,7 +39,7 @@
    ]
   },
   "mcListItem2": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -51,7 +51,7 @@
    ]
   },
   "mcListItem3": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -63,7 +63,7 @@
    ]
   },
   "mcListItem4": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -75,7 +75,7 @@
    ]
   },
   "mcListItem5": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -87,7 +87,7 @@
    ]
   },
   "mcListItem6": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -99,7 +99,7 @@
    ]
   },
   "mcListItem7": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -111,7 +111,7 @@
    ]
   },
   "mcListItem8": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -123,7 +123,7 @@
    ]
   },
   "mcListItem9": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -135,7 +135,7 @@
    ]
   },
   "mcListItem10": {
-   "character": 693,
+   "character": 681,
    "class": "MenuListItemCommon",
    "matrix": [
     1.0,
@@ -147,7 +147,7 @@
    ]
   },
   "mcMenuTitleUnderline": {
-   "character": 713,
+   "character": 701,
    "class": null,
    "matrix": [
     1.0,
@@ -173,7 +173,7 @@
    }
   },
   "txtMenuListTitle": {
-   "character": 714,
+   "character": 702,
    "class": null,
    "matrix": [
     1.0,
@@ -196,7 +196,7 @@
    }
   },
   "txtMenuListDescripion": {
-   "character": 715,
+   "character": 703,
    "class": null,
    "matrix": [
     1.0,
@@ -219,7 +219,7 @@
    }
   },
   "MenuContinue": {
-   "character": 723,
+   "character": 711,
    "class": null,
    "matrix": [
     1.0,
