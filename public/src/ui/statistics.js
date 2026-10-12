@@ -142,13 +142,13 @@ export function mountStatistics(app) {
   /** The points spent, split: only when both skills and mutations use some. */
   const spentHint = ({ skills, mutations }) => skills && mutations ? usedLines(skills, mutations).join("\n") : "";
   /**
-   * What makes up the points needed: what skills and mutations use and, when the slots set it,
-   * what they need. Shown when the slots set it or both skills and mutations use points.
+   * What makes up the points needed: what skills and mutations use and, when the total leaves slots
+   * in use locked, what they need. Shown then or when both skills and mutations use points.
    */
-  function neededHint({ skills, mutations, slots, left, bySlots }) {
+  function neededHint({ skills, mutations, slots, total, left }) {
     if (left >= 0) return "";
     const lines = usedLines(skills, mutations);
-    if (bySlots) return [...lines, `Slots need ${pointCount(slots)} to be unlocked.`].join("\n");
+    if (slots > total) return [...lines, `Slots need ${pointCount(slots)} to be unlocked.`].join("\n");
     return lines.length > 1 ? lines.join("\n") : "";
   }
 
