@@ -40,6 +40,20 @@ const CONNECTOR_MASK = {
 };
 // Inventory cell lift under an item (by eye: about +4 brightness on the reference).
 const ITEM_FILL = "rgba(255, 255, 255, 0.025)";
+// Backdrop fog (panel_common, MC_IMG_Background_Assets, placed as mcBlackBackground by `matrix`).
+// Each layer is fog.png (shape 578) stretched to `size`, its top-left at (x, y + top).
+// W3Background.startBackgroundFogTween slides layer 1 from x to `to` over `secs` (linear), then
+// jumps back and repeats; layer 2 runs the other way. Layer 1's alpha is set to 0.8 in code (0.7
+// in the movie). styles.css (.gfog) animates the slide.
+const FOG = {
+  matrix: [1, 0, 0, 1.018524, 135, 5.9],
+  size: [1500, 778],
+  top: -390.95,
+  layers: [
+    { x: -2036.75, to: 1791.6, y: 461, secs: 60, alpha: 0.8 },
+    { x: 1791.6, to: -2036.75, y: 665.35, secs: 100, alpha: 0.6 }
+  ]
+};
 // Cap height of the game font (styles.css --font-game, D-DIN Condensed: OS/2 sCapHeight 690 / 1000).
 const GAME_FONT_CAP_HEIGHT = 0.69;
 
@@ -278,16 +292,22 @@ export function createPieces(art) {
 
   /**
    * The Character screen backdrop in screen units, back to front: the fill, the region panorama
-   * at 22%, two fog layers (placement unverified) and the DNA image.
+   * at 22%, two drifting fog layers (FOG) and the DNA image.
    * @param {string} region  Panorama id, e.g. "velen" for backdrop/panorama-velen.jpg.
    */
   function backdrop(region) {
     const S = art.layout("screen");
     return `<rect width="${SCREEN.w}" height="${SCREEN.h}" fill="${BACKDROP_FILL}"/>`
       + img(`backdrop/panorama-${region}.jpg`, -23, -2, 1, ` opacity="0.22"`)
-      + box("backdrop/fog.png", 0, 0, 1500, 778, ` opacity="0.7"`)
-      + box("backdrop/fog.png", 420, 302, 1500, 778, ` opacity="0.6"`)
+      + `<g transform="${matrix(FOG.matrix)}">${FOG.layers.map(fogLayer).join("")}</g>`
       + placed(S.mcBackgroundImage, img("backdrop/dna.png", 0, 0));
+  }
+
+  // One fog layer, drawn at its start and slid to `to` by styles.css (.gfog).
+  function fogLayer({ x, to, y, secs, alpha }) {
+    const [w, h] = FOG.size;
+    return `<g class="gfog" style="--fog-shift:${fmt(to - x)}px;--fog-secs:${secs}s">`
+      + box("backdrop/fog.png", x, y + FOG.top, w, h, ` opacity="${alpha}"`) + `</g>`;
   }
 
   /**

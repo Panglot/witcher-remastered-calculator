@@ -47,7 +47,9 @@ export function mountBackdrop(app) {
     if (!pieces || drawn === view.region) return;
     drawn = view.region;
     const old = el.lastElementChild;
-    el.insertAdjacentHTML("beforeend", `<svg viewBox="0 0 ${SCREEN.w} ${SCREEN.h}" preserveAspectRatio="xMidYMid slice">${pieces.backdrop(view.region)}</svg>`);
+    // A negative delay starts the new drawing's fog where the old one's is (styles.css, .gfog).
+    const clock = `--fog-clock:${-(performance.now() / 1000).toFixed(2)}s`;
+    el.insertAdjacentHTML("beforeend", `<svg viewBox="0 0 ${SCREEN.w} ${SCREEN.h}" preserveAspectRatio="xMidYMid slice" style="${clock}">${pieces.backdrop(view.region)}</svg>`);
     if (old) fadeIn(el.lastElementChild, view.region);
   }
 

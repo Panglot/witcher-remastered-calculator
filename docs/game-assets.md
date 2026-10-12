@@ -163,7 +163,7 @@ Screen size 1920x1080. Positions are in `layout/screen.json` and the other layou
 
 1. `#040404` fill (`panel_common`, `MC_IMG_Background_Assets`).
 2. Location panorama at native size (3072x1024), top-left at (-23, -2), alpha 0.22 (`mcMenuBackgroundContainer`). `commonMenu.ws` picks it by world: Novigrad, Skellige, Kaer Morhen, White Orchard (summer or winter), Vizima, Isle of Mists, Spiral, Toussaint. `no_mans_land` (Velen) has no case in the script. **Likely** it's the default the container starts with.
-3. Fog: `fog.png` stretched to 1500x778, twice, at alpha 0.70 and 0.60. **Unverified:** it may be animated by code.
+3. Fog: `fog.png` stretched to 1500x778, twice (`mcFogEffect1/2`, sprite 579), in `mcBlackBackground` at (135, 5.9) with y scale 1.0185. Layer 1 sits at (-2036.75, 461), layer 2 at (1791.6, 665.35), shape top at -390.95. `W3Background.startBackgroundFogTween` sets layer 1's alpha to 0.8 (0.70 in the movie; layer 2 keeps 0.60) and slides each to the other's x, linearly (GTween's default ease): layer 1 in 60 s, layer 2 back in 100 s. On completion a layer jumps to its start and repeats. The game's layer 2 handler restarts with layer 1's callback, so after its second pass layer 2 stops and layer 1 restarts early; the planner loops both as intended (`FOG` in `gamePieces.js`).
 4. Character screen: `backdrop/dna.png` at (614.9, 130.95).
 
 Checked against `reference/fullscreen.png` by rendering these layers (`tools/compare_screen.py`): the Novigrad panorama at exactly this size, position and alpha, and the DNA image, match the screenshot. The mean brightness is 9.8 rendered vs 9.0 in the screenshot.

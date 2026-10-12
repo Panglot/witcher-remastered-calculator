@@ -70,6 +70,9 @@ body { cursor: var(--cursor); background: var(--game-bg); color: var(--fg); font
 .backdrop svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transition: opacity 1.2s ease; }
 /* A new panorama fades in over the old one (by eye). */
 .backdrop svg.entering { opacity: 0; }
+/* Fog drift (gamePieces.js, FOG). --fog-clock (backdrop.js) keeps it going across panorama swaps. */
+.gfog { animation: gfog-drift var(--fog-secs) linear var(--fog-clock, 0s) infinite; }
+@keyframes gfog-drift { to { transform: translateX(var(--fog-shift)); } }
 @media (prefers-reduced-motion: reduce) { .backdrop svg { transition: none; } }
 .wrap { --wrap-top: 8px; padding-inline: var(--game-edge); padding-block: var(--wrap-top) 0; display: grid; gap: 16px; }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: .02em; margin: 0; text-wrap: balance; }
