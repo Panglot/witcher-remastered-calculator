@@ -1,7 +1,7 @@
 // Local dev server for the planner. The live site is GitHub Pages, which serves public/ as static files;
 // this server does the same locally, because browsers won't load ES modules from file://.
 //   npm start      serve public/ and open the browser
-//   npm run dev    same, plus live reload; the server restarts when server code changes
+//   npm run dev    same, plus live reload (run through server/dev.js, which restarts it when server code changes)
 import http from "node:http";
 import { exec } from "node:child_process";
 import { PUBLIC_DIR, HOST, FIRST_PORT, PORT_TRIES, FLAGS, MIME } from "./config.js";
@@ -29,19 +29,26 @@ function openBrowser(url) {
   exec(cmd, () => {});
 }
 
+function onListening(port) {
+  const url = `http://${HOST}:${port}`;
+  console.log(`\n  Wild Hunt Skill Planner (local) is running at ${url}\n`);
+  if (port !== FIRST_PORT) console.log(`  Port ${FIRST_PORT} was taken (another copy of the server running?). Builds saved on one port don't show on another.\n`);
+  if (!live) return openBrowser(url);
+  console.log("  Live reload is on: open tabs refresh when you save a file.");
+  live.watch();
+  // After a restart, open tabs reconnect within a second; only open a new tab if none did.
+  setTimeout(() => { if (!live.clientCount()) openBrowser(url); }, 1500);
+}
+
+// Each try's listeners are removed when it settles, so a failed port's callback can't fire for the next one.
 function start(port) {
-  server.once("error", err => {
+  const ok = () => { server.off("error", fail); onListening(port); };
+  const fail = err => {
+    server.off("listening", ok);
     if (err.code !== "EADDRINUSE" || port >= FIRST_PORT + PORT_TRIES) { console.error("Couldn't start the server: " + err.message); process.exit(1); }
     start(port + 1);
-  });
-  server.listen(port, HOST, () => {
-    const url = `http://${HOST}:${port}`;
-    console.log(`\n  Wild Hunt Skill Planner (local) is running at ${url}\n`);
-    if (!live) return openBrowser(url);
-    console.log("  Live reload is on: open tabs refresh when you save a file.");
-    live.watch();
-    // After a restart, open tabs reconnect within a second; only open a new tab if none did.
-    setTimeout(() => { if (!live.clientCount()) openBrowser(url); }, 1500);
-  });
+  };
+  server.once("listening", ok).once("error", fail);
+  server.listen(port, HOST);
 }
 start(FIRST_PORT);

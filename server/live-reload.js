@@ -1,8 +1,10 @@
 // Live reload for `npm run dev`: watches the served files and tells open tabs to refresh.
 // CSS is swapped in place, anything else reloads. Tabs also reload when they reconnect,
-// which covers server restarts under `node --watch`.
-import fs from "node:fs";
+// which covers server restarts (server/dev.js).
 import path from "node:path";
+import { watchChanges } from "./watch.js";
+
+const ext = name => path.extname(name).toLowerCase();
 
 const CLIENT_SCRIPT = `<script>
 (function () {
@@ -37,14 +39,13 @@ export function createLiveReload({ dir, mime }) {
   }
 
   function watch() {
-    let timer = null, kind = null;
-    fs.watch(dir, { recursive: true }, (event, name) => {
-      const ext = path.extname(String(name || "")).toLowerCase();
-      if (!mime[ext]) return;
-      // Batch the burst of events one save produces; a CSS-only batch doesn't need a full reload.
-      kind = ext === ".css" && kind !== "reload" ? "css" : "reload";
-      clearTimeout(timer);
-      timer = setTimeout(() => { clients.forEach(c => c.write(`data: ${kind}\n\n`)); kind = null; }, 100);
+    watchChanges(dir, {
+      filter: name => !!mime[ext(name)],
+      onChange: names => {
+        // A CSS-only change doesn't need a full reload.
+        const kind = names.every(n => ext(n) === ".css") ? "css" : "reload";
+        clients.forEach(c => c.write(`data: ${kind}\n\n`));
+      }
     });
   }
 
