@@ -87,7 +87,7 @@ export const OPTIONS = {
   },
   mutationLook: {
     key: "mutationLook", label: "Mutation look",
-    hint: "Classic shows the active mutation's name and description beside it, as in the game.\nModern shows them in its tooltip.",
+    hint: "Classic shows the active mutation's name and description beside it, as in the game.\nModern shows only the name beside it and the description in its tooltip.",
     choices: [{ value: MUTATION_LOOK_CLASSIC, label: "Classic" }, { value: MUTATION_LOOK_MODERN, label: "Modern" }]
   }
 };

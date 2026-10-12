@@ -22,14 +22,14 @@ export function createHold(duration = () => HOLD_MS) {
     held = off = null;
   }
 
-  // ends: [target, event type, test?] that let go of the hold.
-  function start(el, done, ends) {
+  // ends: [target, event type, test?] that let go of the hold. shown: the element that shows it.
+  function start(shown, done, ends) {
     cancel();
     const ms = duration();
     if (ms <= 0) { done(); return; }
-    held = el; off = new AbortController();
-    el.style.setProperty("--hold", `${ms}ms`);
-    el.classList.add("holding");
+    held = shown; off = new AbortController();
+    shown.style.setProperty("--hold", `${ms}ms`);
+    shown.classList.add("holding");
     const ending = [...ends, [window, "blur"]];
     for (const [target, type, test] of ending) {
       target.addEventListener(type, e => { if (!test || test(e)) cancel(); }, { signal: off.signal });
@@ -39,9 +39,10 @@ export function createHold(duration = () => HOLD_MS) {
 
   const hold = {
     // Primary button: ends on release anywhere, or when the pointer leaves the element (the game's MOUSE_OUT).
-    press(e, el, done) {
+    // shown: another element to show the hold on, for a control that holds something elsewhere.
+    press(e, el, done, shown = el) {
       if (e.button !== 0) return;
-      start(el, done, [[document, "pointerup"], [document, "pointercancel"], [el, "pointerleave"]]);
+      start(shown, done, [[document, "pointerup"], [document, "pointercancel"], [el, "pointerleave"]]);
     },
     // A key: ends when that key is released.
     key(e, el, done) {

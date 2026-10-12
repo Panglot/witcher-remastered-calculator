@@ -59,6 +59,9 @@
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; }
+/* A full-screen layer (the Mutations panel, a popup, the Esc menu) holds the page still under it: wheel and touch
+   scrolls over it would otherwise reach the page behind. Released as the Mutations panel starts closing. */
+html:has(body > :is(.gmut:not([hidden], .gmut-leave), .glayer)) { overflow: hidden; }
 body { cursor: var(--cursor); background: var(--game-bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
 [hidden] { display: none !important; }
 /* Game backdrop (ui/backdrop.js): fixed behind the page, the 1920x1080 screen scaled to cover the window. */
@@ -226,7 +229,7 @@ input[type="text"], textarea { cursor: text; }
 @keyframes gring { to { stroke-dashoffset: 0; } }
 .gorb:not(.ghost):focus-visible .gorb-hit { stroke: var(--mark); stroke-width: 2; }
 .gorb-keycap { --u1: 1px; display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-game); pointer-events: none; }
-/* The active mutation's name and description beside the orb (the Classic look): white game text, the name right-aligned
+/* The active mutation's name beside the orb, and in the Classic look its description: white game text, the name right-aligned
    to the orb, both centred on their line. */
 .gorb-name, .gorb-desc { display: flex; align-items: center; height: 100%; color: #fff; font-family: var(--font-game); line-height: 1.15; }
 .gorb-name { justify-content: flex-end; text-align: right; }
@@ -273,6 +276,8 @@ input[type="text"], textarea { cursor: text; }
 .gbackdrop { position: absolute; z-index: -1; inset: calc(-1 * var(--backdrop-bleed, 1.5%)); background: var(--backdrop) center / cover no-repeat; pointer-events: none; }
 .gmut-legend { padding: calc(10 * var(--u)) 16px calc(24 * var(--u)); }
 .gmut-tip { position: absolute; z-index: 3; pointer-events: none; }
+/* A tooltip wider than its area, cut to its width (ui/tipHost.js). */
+.fill > .gtip { width: auto; }
 .gmut-title { fill: #fff; font-family: var(--font-game); }
 .gmut-points { font-family: var(--font-game); }
 .gmut-points-label { fill: var(--game-label); }
@@ -338,10 +343,8 @@ input[type="text"], textarea { cursor: text; }
   .gorb-wide { visibility: visible; }
   .gorb-name .gorb-box { max-width: min(100%, var(--stack-room, 100%)); }
   /* The Mutations panel's tall layout (ui/mutationLayouts.js) has no room at its sides: the space to the window's
-     edge grows with the window, so a phone gives the nodes nearly all its width. Its tooltip docks across the
-     area (ui/tipHost.js, dock). */
+     edge grows with the window, so a phone gives the nodes nearly all its width. */
   .gmut-view { padding-inline: clamp(4px, 3vw - 4px, 24px); }
-  .gmut-tip.docked .gtip { width: auto; box-shadow: 0 0 18px #000; }
   /* The legend, with the share tools in a row below it, stays on the window's bottom edge while the screen
      scrolls under it. Sticky, it keeps its row: at the page's end it is back in its place, so it covers nothing
      there. Its tooltip fill runs the window's full width (the shadow, cut to its height). Over the side panels'
@@ -373,7 +376,8 @@ input[type="text"], textarea { cursor: text; }
 .glegend-group:empty { display: none; }
 .gbtn { display: inline-flex; align-items: center; gap: calc(8 * var(--u1)); white-space: nowrap; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; }
 button.gbtn:hover .glabel { color: var(--game-hold); }
-.gkey { display: inline-grid; place-items: center; min-width: calc(30 * var(--u1)); height: calc(32 * var(--u1)); padding-inline: calc(7 * var(--u1)); position: relative; color: var(--game-key); font-size: calc(20 * var(--u1)); line-height: 1; isolation: isolate; }
+/* The Mutations button holds like the orb (ui/legend.js): no text selection or callout on a long press. */
+button.gbtn { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }.gkey { display: inline-grid; place-items: center; min-width: calc(30 * var(--u1)); height: calc(32 * var(--u1)); padding-inline: calc(7 * var(--u1)); position: relative; color: var(--game-key); font-size: calc(20 * var(--u1)); line-height: 1; isolation: isolate; }
 .gkey::before { content: ""; position: absolute; inset: 0; z-index: -1; background: #191919; -webkit-mask: url("assets/ui/legend/key.svg") center / 100% 100% no-repeat; mask: url("assets/ui/legend/key.svg") center / 100% 100% no-repeat; }
 .glabel { color: var(--game-label); font-size: calc(22 * var(--u1)); }
 .ghold { color: var(--game-hold); }

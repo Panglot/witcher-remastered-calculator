@@ -325,7 +325,7 @@ export function createPanels(art, pieces) {
     // Both texts at the game's x, centred on the orb's middle (the planner's choice: the game's fields sit higher).
     const texts = name ? `<g class="gorb-texts" data-patch-key="orb-texts" transform="translate(0 ${fmt(ay + cy)})">`
       + field(nameAt, esc(name), "gorb-name", stack ? `;--stack-room:${fmt(nameAt.matrix[4] + nameAt.text.box[2] - sx0)}px` : "")
-      + field({ ...E.tfMutationDescription, matrix: [1, 0, 0, 1, E.tfMutationDescription.matrix[4], 0] }, esc(description), "gorb-desc")
+      + (description ? field({ ...E.tfMutationDescription, matrix: [1, 0, 0, 1, E.tfMutationDescription.matrix[4], 0] }, esc(description), "gorb-desc") : "")
       + (stack && description ? wide() : "") + `</g>` : "";
     // The key cap on the orb's centre, as the legend draws it (styles.css, .gkey), one game px a unit.
     const cap = key ? `<foreignObject class="gorb-key" data-patch-key="orb-key" x="${fmt(cx - ORB_KEY_BOX / 2)}" y="${fmt(cy - ORB_KEY_BOX / 2)}" width="${ORB_KEY_BOX}" height="${ORB_KEY_BOX}">`
@@ -334,7 +334,7 @@ export function createPanels(art, pieces) {
     const reach = cls.split(" ").includes("ghost") ? ORB_GHOST_R : ORB_R;
     const circle = (c, r, more = "") => `<circle class="${c}" r="${r}"${more}/>`;
     return `<g class="${classes("gmove gorb", cls)}" style="transform:${cssMatrix(at)}${gside(1)}"${attrs}>`
-      + texts + placed(E.mcMutationAnimation, `<g transform="translate(${fmt(cx)} ${fmt(cy)})">${circle("gorb-hit", reach)}</g>`
+      + texts + placed(E.mcMutationAnimation, `<g transform="translate(${fmt(cx)} ${fmt(cy)})">${circle("ghit gorb-hit", reach)}</g>`
         + `<g class="gorb-art">${pieces.orb(color)}</g>`
         + `<g transform="translate(${fmt(cx)} ${fmt(cy)})">${circle("gorb-ghost", ORB_GHOST_R)}${circle("gorb-ring", reach === ORB_R ? ORB_RING_R : reach, ` pathLength="1"`)}</g>` + cap)
       + `</g>`;

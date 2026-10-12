@@ -5,10 +5,11 @@
 // the Esc menu (ui/menu.js), like Esc; "Statistics" toggles the Statistics panel
 // (ui/statistics.js), like D; "Skill sets" the Skill sets panel (ui/skillSets.js), like S; "Builds"
 // the Builds panel (ui/builds.js), like B; "Search" asks for a search (ui/search.js), like Ctrl+F;
-// "Mutations", shown while the build has mutations, opens the Mutations panel (ui/mutationsPanel.js), like C. Remove
+// "Mutations" opens the Mutations panel (ui/mutationsPanel.js), like C; without mutations it is
+// "[Hold] Add mutations", like holding C. Remove
 // point, Equip and Unequip are buttons for the selection, like their mouse buttons and keys. Apply
 // mode hides the legend while its popup is up.
-import { $ } from "./dom.js";
+import { $, isLongPress } from "./dom.js";
 import { confirmPopup } from "./popup.js";
 import { MUTAGEN_TAB } from "../core/catalog.js";
 import { MUTATIONS_KEY } from "./slots.js";
@@ -21,8 +22,11 @@ const STATS = { key: "D", label: "Statistics", action: "stats" };
 const SKILL_SETS = { key: "S", label: "Skill sets", action: "skillSets" };
 // The Builds side panel (ui/builds.js).
 const BUILDS = { key: "B", label: "Builds", action: "builds" };
-// The Mutations panel (ui/mutationsPanel.js), while the build has mutations.
+// The Mutations panel (ui/mutationsPanel.js), while the build has mutations; without them C held
+// adds them (ui/slots.js), and the button adds them on a click or a hold. Held with mutations, it
+// asks to remove them, like the orb and C.
 const MUTATIONS = { key: MUTATIONS_KEY, label: "Mutations", action: "mutations" };
+const ADD_MUTATIONS = { key: MUTATIONS_KEY, prefix: "[Hold]", label: "Add mutations", action: "addMutations" };
 // The skill search popup (ui/search.js).
 const SEARCH = { key: "Ctrl+F", label: "Search", action: "search" };
 // Left button or E, held (ui/tree.js, ui/slots.js).
@@ -35,7 +39,7 @@ const EQUIP = { mouse: "left", clicks: 2, key: "Space", label: "Equip", action: 
 const REMOVE = { mouse: "right", label: "Remove point", action: "remove" };
 const UNEQUIP_MUTAGEN = { mouse: "right", label: "Unequip", action: "unequipMutagen" };
 // Two groups: the selection's skill controls (Reset abilities always last), then the general ones (Menu last).
-const GENERAL = [STATS, SKILL_SETS, BUILDS, SEARCH, MENU];
+const GENERAL = [STATS, SKILL_SETS, BUILDS, ADD_MUTATIONS, SEARCH, MENU];
 const WITH_MUTATIONS = [STATS, SKILL_SETS, BUILDS, MUTATIONS, SEARCH, MENU];
 // One set of item lists per general group, so a redraw can compare lists by identity.
 const itemSet = general => {
@@ -89,6 +93,7 @@ export function mountLegend(app) {
     builds: () => app.views.builds.toggle(),
     search: () => app.views.search.open(),
     mutations: () => app.views.mutations.open(),
+    addMutations() { app.mutations.setOn(state, true); app.msg = ""; app.render(); },
     remove() {
       if (!state.sel) return;
       const r = planner.removePoint(state, state.sel, { cascade: app.cascade() });
@@ -108,8 +113,15 @@ export function mountLegend(app) {
       if (id) done(planner.unequipMutagen(state, id));
     }
   };
+  // The Mutations buttons work like the orb (ui/slots.js): a hold adds or removes mutations.
+  const MUTATION_ACTIONS = new Set(["mutations", "addMutations"]);
+  const mutationButtonOf = e => { const b = e.target.closest && e.target.closest("[data-action]"); return b && MUTATION_ACTIONS.has(b.dataset.action) ? b : null; };
+  el.addEventListener("pointerdown", e => { const b = mutationButtonOf(e); if (b) app.views.slots.pressMutations(e, b); });
+  // A touch long-press is the hold, not the browser's menu.
+  el.addEventListener("contextmenu", e => { if (isLongPress(e) && mutationButtonOf(e)) e.preventDefault(); });
   el.addEventListener("click", e => {
     const b = e.target.closest("[data-action]");
+    if (mutationButtonOf(e) && app.views.slots.tookHold()) return;
     if (b && ACTIONS[b.dataset.action]) ACTIONS[b.dataset.action]();
   });
   app.hotkeys.add(e => {

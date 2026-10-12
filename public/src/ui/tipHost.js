@@ -1,23 +1,25 @@
 // A game-style tooltip host: one tooltip element over an area that follows the pointer, or the
 // keyboard focus, onto any part of the area with one of the given data attributes, and sits at that
 // part's bottom-right corner like the game's (flipped left or above when it would leave the area).
+// The corner is its hit box's (.ghit) when it has one, not its art's, whose glow reaches far past it.
+// With no room on either side (a phone) it sits centred under the part, or over it, as wide as the
+// area at most (.fill).
 // The planner screen has one (ui/tooltip.js), the Esc menu another (ui/menu.js).
 //
 // kinds: { [name]: part => html } by data attribute (data-<name>), first match wins.
 // places: data attributes, by dataset name, that tell apart parts with the same tooltip (two empty
 // sockets, two hints with the same text).
 // shown: false hides the tooltip (no game art yet, an item being dragged).
-// dock: an element to dock the tooltip in instead (the Mutations panel's tall layout), else null: it runs
-// across that element's width at its top or bottom edge, whichever is farther from the part, so it
-// covers neither the part nor anything beside it.
+// A part with data-tap-opens opens something on a tap (the orb with mutations): a touch on it, or the
+// focus it keeps or gets back when what it opened closes, shows no tooltip, so none is left over it.
 // The target is kept as its panel (the closest [data-panel], else the area) and a selector, so it
 // outlives redraws of the part; render() rebuilds the tooltip for whatever is there now.
 
 /**
  * @param {{ area: HTMLElement, el: HTMLElement, kinds: Record<string, (part: HTMLElement) => string>,
- *   places?: string[], shown?: () => boolean, dock?: () => HTMLElement | null }} o
+ *   places?: string[], shown?: () => boolean }} o
  */
-export function createTipHost({ area, el, kinds, places = [], shown = () => true, dock = () => null }) {
+export function createTipHost({ area, el, kinds, places = [], shown = () => true }) {
   const SELECTOR = Object.keys(kinds).map(k => `[data-${k}]`).join(", ");
   const kindOf = part => Object.keys(kinds).find(k => k in part.dataset);
   let target = null;
@@ -36,29 +38,35 @@ export function createTipHost({ area, el, kinds, places = [], shown = () => true
     target = next; render();
   }
 
-  area.addEventListener("pointerover", e => follow(e.target.closest(SELECTOR)));
+  // Whether the last pointer was a touch, till a key is pressed.
+  let touch = false;
+  const quiet = part => part && touch && "tapOpens" in part.dataset ? null : part;
+  area.addEventListener("pointerover", e => { touch = e.pointerType === "touch"; follow(quiet(e.target.closest(SELECTOR))); });
   area.addEventListener("pointerleave", () => follow(null));
-  area.addEventListener("focusin", e => follow(e.target.closest(SELECTOR)));
+  document.addEventListener("keydown", () => { touch = false; }, true);
+  area.addEventListener("focusin", e => follow(quiet(e.target.closest(SELECTOR))));
   area.addEventListener("focusout", e => { if (!area.contains(e.relatedTarget)) follow(null); });
 
   function place(part) {
-    const s = area.getBoundingClientRect(), r = part.getBoundingClientRect(), d = dock();
-    el.classList.toggle("docked", !!d);
-    if (d) {
-      const v = d.getBoundingClientRect(), low = r.top + r.height / 2 > v.top + v.height / 2;
-      el.style.left = `${v.left - s.left}px`;
-      el.style.width = `${v.width}px`;
-      el.style.top = `${(low ? v.top : v.bottom - el.offsetHeight) - s.top}px`;
-      return;
-    }
+    const s = area.getBoundingClientRect(), r = (part.querySelector(".ghit") || part).getBoundingClientRect();
     el.style.width = "";
+    el.classList.toggle("fill", el.offsetWidth > s.width);
+    if (el.offsetWidth > s.width) el.style.width = `${s.width}px`;
     const w = el.offsetWidth, h = el.offsetHeight;
-    const left = r.right - s.left + w > s.width ? r.left - s.left - w : r.right - s.left;
-    // Flipped above the part when it would run past the bottom of the area or the window.
-    const bottom = Math.min(s.bottom, window.innerHeight);
-    const top = r.bottom + h > bottom ? r.top - h : r.bottom;
+    // The part in the area's coordinates, and the bottom it may not pass: the area's or the window's.
+    const x0 = r.left - s.left, x1 = r.right - s.left, y0 = r.top - s.top, y1 = r.bottom - s.top;
+    const bottom = Math.min(s.bottom, window.innerHeight) - s.top;
+    let left, top;
+    if (x1 + w <= s.width || x0 - w >= 0) {
+      left = x1 + w <= s.width ? x1 : x0 - w;
+      top = y1 + h > bottom ? y0 - h : y1;
+    } else {
+      left = Math.min(Math.max(0, (x0 + x1 - w) / 2), s.width - w);
+      // Under, else over, else on the side with more room.
+      top = y1 + h <= bottom ? y1 : y0 - h >= 0 ? y0 - h : bottom - y1 >= y0 ? y1 : y0 - h;
+    }
     el.style.left = `${Math.max(0, left)}px`;
-    el.style.top = `${Math.max(0, top - s.top)}px`;
+    el.style.top = `${Math.max(0, top)}px`;
   }
 
   function render() {

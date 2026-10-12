@@ -1,5 +1,5 @@
 // The Mutations panel (MutationPanelRef): a full-screen modal layer (ui/layers.js) over the planner,
-// opened from the orb in the slot panel or with C while the build has mutations (core/mutations.js),
+// opened from the orb in the slot panel or with C (both in ui/slots.js) while the build has mutations (core/mutations.js),
 // closed with C or Esc. It draws with the game art (gamePanels.mutationPanel) and has its own tooltip
 // (ui/tipHost.js) and key legend.
 // Like the skill tree: pressing a mutation selects it; holding the left button or E researches it
@@ -8,8 +8,8 @@
 // it deactivates the active mutation, else unresearches it, taking what needs it too with the
 // cascade removal setting (their backgrounds fade out; ui/cascade.js previews what would go).
 // Strengthened Synapses shows its stage. Phones and portrait screens get the planner's tall layout
-// (ui/mutationLayouts.js), switched as the window changes, with the tooltip docked across the nodes'
-// area, away from the part (ui/tipHost.js). The background covers the whole screen in both (.gbackdrop).
+// (ui/mutationLayouts.js), switched as the window changes. The background covers the whole screen
+// in both (.gbackdrop).
 import { esc, isLongPress, keyTarget, patchHtml, afterAnimation, STACKED_QUERY } from "./dom.js";
 import { createCascade } from "./cascade.js";
 import { createHold } from "./hold.js";
@@ -161,12 +161,6 @@ export function mountMutations(app) {
     return false;
   }
 
-  // C opens the panel while the build has mutations.
-  app.hotkeys.add(e => {
-    if (e.repeat || e.key.toLowerCase() !== MUTATIONS_KEY.toLowerCase() || !mutations.isOn(state) || app.apply) return false;
-    open();
-    return true;
-  });
 
   const tips = createTipHost({
     area: root, el: root.querySelector(".gmut-tip"),
@@ -174,8 +168,7 @@ export function mountMutations(app) {
       mutation: part => mutationTip(app, part.dataset.mutation, part.dataset.mutation === sel ? app.msg : ""),
       master: () => masterTip(app)
     },
-    shown: () => !!app.game && isOpen(),
-    dock: () => stacked.matches ? view : null
+    shown: () => !!app.game && isOpen()
   });
 
   // Legend items: the selection's actions, then Close.

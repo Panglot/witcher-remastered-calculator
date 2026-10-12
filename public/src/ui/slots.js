@@ -15,7 +15,8 @@
 // Mutations (core/mutations.js): the orb in the panel's centre. Without mutations it shows only on
 // hover; holding the left button on it adds mutations to the build and the panel moves into the
 // game's mutation layout (gamePanels.mutagenPanel). With mutations a click opens the Mutations panel
-// (ui/mutationsPanel.js) and a hold asks whether to remove them, moving the panel back. It has no
+// (ui/mutationsPanel.js) and a hold asks whether to remove them, moving the panel back. The C key
+// does the same: a tap opens, a hold adds or removes. It has no
 // selection. The mutation sockets take part like the others, with their own gate (core/slotKinds.js):
 // closed ones show the lock, open ones the active mutation's colours (the game's colour border).
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
@@ -41,6 +42,8 @@ const lockedTipAttrs = (name, points) => ` data-hint="Unlocks at ${points} point
 // The orb's tooltip without mutations, and its key (the game's C, ui/mutationsPanel.js).
 const ORB_TIP = { title: "Mutations", add: "Hold to add mutations to the build" };
 export const MUTATIONS_KEY = "C";
+// The orb's shortest hold, whatever the hold time setting.
+const ORB_MIN_HOLD_MS = 200;
 // Mutation colours in the order the game names its colour borders (characterMenuDupe.ws: Red, Green, Blue).
 const BORDER_ORDER = ["red", "green", "blue"];
 
@@ -115,11 +118,11 @@ export function mountSlots(app) {
   const raise = h => act(h, () => h.kind.raise(state, itemOf(h)));
 
   // The orb: a hold adds mutations, or with them asks to remove them; a click opens them.
-  const orbHold = createHold(() => app.settings.holdMs);
+  // A tap and a hold do different things here, so the hold can't be instant even with holdMs 0.
+  const orbHold = createHold(() => Math.max(app.settings.holdMs, ORB_MIN_HOLD_MS));
   let orbHeld = false, asking = false;
   const orbOf = e => e.target.closest && e.target.closest("[data-orb]");
   async function orbHoldDone() {
-    orbHeld = true;
     if (!mutations.isOn(state)) { mutations.setOn(state, true); app.msg = ""; app.render(); return; }
     if (asking || !app.game) return;
     asking = true;
@@ -132,12 +135,33 @@ export function mountSlots(app) {
     asking = false;
     if (yes) { mutations.setOn(state, false); app.msg = ""; app.render(); }
   }
-  el.addEventListener("pointerdown", e => {
-    const g = orbOf(e);
-    if (!g || e.button !== 0 || app.apply) return;
+  // A press on the orb or on the legend's Mutations button (ui/legend.js) starts the hold, shown
+  // on the orb either way. The click that ends a finished hold isn't a click (tookHold).
+  function pressMutations(e, pressed) {
+    const orb = el.querySelector("[data-orb]");
+    if (e.button !== 0 || app.apply || !orb) return;
     orbHeld = false;
-    orbHold.press(e, g, orbHoldDone);
+    orbHold.press(e, pressed, () => { orbHeld = true; orbHoldDone(); }, orb);
+  }
+  const tookHold = () => { const held = orbHeld; orbHeld = false; return held; };
+  el.addEventListener("pointerdown", e => { const g = orbOf(e); if (g) pressMutations(e, g); });
+  // C works like the orb: a hold adds or removes mutations, a tap opens them. The tap counts on
+  // release, so a hold doesn't open the panel first. While it is open, C closes it (ui/mutationsPanel.js).
+  let keyTap = false;
+  const isMutationsKey = e => e.key.toLowerCase() === MUTATIONS_KEY.toLowerCase();
+  app.hotkeys.add(e => {
+    if (e.repeat || !isMutationsKey(e) || app.apply) return false;
+    const g = el.querySelector("[data-orb]"); if (!g) return false;
+    keyTap = true;
+    orbHold.key(e, g, () => { keyTap = false; orbHoldDone(); });
+    return true;
   });
+  document.addEventListener("keyup", e => {
+    if (!keyTap || !isMutationsKey(e)) return;
+    keyTap = false;
+    if (mutations.isOn(state) && !app.apply) app.views.mutations.open();
+  });
+  window.addEventListener("blur", () => { keyTap = false; });
 
   el.addEventListener("pointerdown", e => {
     const h = holderOf(e); if (!h || e.button !== 0 || app.apply || !itemOf(h)) return;
@@ -147,8 +171,7 @@ export function mountSlots(app) {
   });
   el.addEventListener("click", e => {
     if (orbOf(e)) {
-      // The click that ends a hold isn't a click.
-      if (orbHeld) { orbHeld = false; return; }
+      if (tookHold()) return;
       if (mutations.isOn(state) && !app.apply) app.views.mutations.open();
       return;
     }
@@ -261,9 +284,10 @@ export function mountSlots(app) {
     return Array.from({ length: slots.mutation }, (_, k) => ({ ...socketView(slots.base + k, lit, frames), allowed, flip: k >= slots.mutation / 2 }));
   }
 
-  // The orb: a ghost without mutations; with them the active mutation's colour, and in the Classic
-  // look its name, description and key cap (C) beside it (the Modern look puts the texts in its
-  // tooltip and leaves the key to the legend).
+  // The orb: a ghost without mutations; with them the active mutation's colour and name beside it,
+  // and in the Classic look its description beside it and the key cap (C) on it too (the Modern look
+  // puts the description in its tooltip and leaves the key to the legend). A tap on it opens the
+  // Mutations panel, so a touch shows no tooltip (ui/tipHost.js, data-tap-opens).
   function orbView() {
     if (!mutations.isOn(state)) {
       return { color: "default", cls: "ghost", attrs: ` data-orb tabindex="0" role="button" aria-label="${esc(`${ORB_TIP.title}: ${ORB_TIP.add}`)}" data-hint="${esc(ORB_TIP.add)}" data-hint-title="${esc(ORB_TIP.title)}"` };
@@ -273,8 +297,8 @@ export function mountSlots(app) {
     const tip = m && !classic ? ` data-mutation="${id}"` : ` data-orbtip`;
     return {
       color: m ? mutationArtColor(m.colors) : "default", key: classic ? MUTATIONS_KEY : "",
-      name: m && classic ? m.name : "", description: m && classic ? mutationText(m) : "",
-      attrs: ` data-orb${tip} tabindex="0" role="button" aria-label="${esc(m ? `Mutations, ${m.name} active` : "Mutations")}"`
+      name: m ? m.name : "", description: m && classic ? mutationText(m) : "",
+      attrs: ` data-orb${tip} data-tap-opens tabindex="0" role="button" aria-label="${esc(m ? `Mutations, ${m.name} active` : "Mutations")}"`
     };
   }
 
@@ -301,5 +325,5 @@ export function mountSlots(app) {
   // Locks show by the slotLocking setting, the orb's texts by the mutation look.
   function settingChanged(key) { if (key === "slotLocking" || key === "mutationLook") app.render(); }
 
-  return { render, focus, showDrop, holderAt, lockNotice, settingChanged };
+  return { render, focus, showDrop, holderAt, lockNotice, settingChanged, pressMutations, tookHold };
 }
