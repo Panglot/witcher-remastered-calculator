@@ -1,0 +1,154 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "MutationItemRef",
+ "children": {
+  "mcEquippedIndicator": {
+   "character": 327,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -0.1,
+    -1.5
+   ]
+  },
+  "mcResearchCompleteAnim": {
+   "character": 331,
+   "class": "mcResearchComplete_Anim_132",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -0.35,
+    -8.05
+   ]
+  },
+  "mcFlashAnimation": {
+   "character": 336,
+   "class": "dataChangedFeedback_2",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -353.25,
+    -226.75
+   ]
+  },
+  "mcMutagenColor": {
+   "character": 347,
+   "class": "MutationItem_tempBackground_134",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -0.2,
+    -0.8
+   ]
+  },
+  "mcMutagenColorAnim": {
+   "character": 347,
+   "class": "MutationItem_tempBackground_134",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -0.2,
+    -0.8
+   ],
+   "cxform": {
+    "mult": [
+     1.0,
+     1.0,
+     1.0,
+     0.30078125
+    ],
+    "add": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "mcStateSelectedActive": {
+   "character": 351,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -0.2,
+    3.2
+   ]
+  },
+  "mcIconBackground": {
+   "character": 367,
+   "class": "mc_icon_background_137",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0,
+    39.85
+   ]
+  },
+  "mcProgressbar": {
+   "character": 229,
+   "class": "MutationItem_progressbar",
+   "matrix": [
+    2.14453,
+    0.0,
+    0.0,
+    2.14453,
+    -0.35,
+    38.85
+   ]
+  },
+  "mcFakeProgressbar": {
+   "character": 229,
+   "class": "MutationItem_progressbar",
+   "matrix": [
+    2.14453,
+    0.0,
+    0.0,
+    2.14453,
+    -0.4,
+    38.8
+   ],
+   "cxform": {
+    "mult": [
+     1.0,
+     1.0,
+     1.0,
+     0.80078125
+    ],
+    "add": [
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  "mcHitArea": {
+   "character": 369,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -1.05,
+    -0.65
+   ]
+  }
+ }
+}

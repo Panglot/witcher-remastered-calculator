@@ -1,10 +1,14 @@
 // Build format: what gets packed into share codes and export files.
 // Build data: { p: { skillId: rank }, s: slot ids (null = empty), m: mutagen id per group ("" = none), b: point budget,
-//   g?: progress { l: level, w: places of power, o: other points, ng?: 1 in NG+, c?: 1 for a custom total }, n?: name }
+//   g?: progress { l: level, w: places of power, o: other points, ng?: 1 in NG+, c?: 1 for a custom total }, n?: name,
+//   u?: mutations { r: researched ids, e?: the active one } (core/mutations.js) }
 // Codes without g were made when the budget was only typed in: they load as a custom total (core/budget.js).
+// Codes without u have no mutations; made before mutation slots, their s lists only the group slots.
 // A code is CODE_PREFIX + base64(UTF-8 JSON). Codes made before names were added are plain ASCII
 // JSON, so they decode the same way. A share link is the page's address with the code in the
 // SHARE_PARAM query parameter; anything that takes a code also takes a link.
+
+import { createMutations, noMutations } from "./mutations.js";
 
 export const CODE_PREFIX = "W3R1.";
 export const MAX_NAME_LENGTH = 60;
@@ -16,9 +20,19 @@ export function isBuildData(d) {
   return !!d && typeof d === "object" && !!d.p && typeof d.p === "object";
 }
 
-/** True when the build holds nothing worth asking about before it is replaced: no points, mutagens or name. */
+/** True when the build holds nothing worth asking about before it is replaced: no points, mutagens, mutations or name. */
 export function isEmptyBuild(state) {
-  return !Object.keys(state.pts || {}).length && !(state.mut || []).some(Boolean) && !state.name;
+  return !Object.keys(state.pts || {}).length && !(state.mut || []).some(Boolean) && !(state.mutations && state.mutations.on) && !state.name;
+}
+
+/**
+ * A stored slot list at the catalog's length, `keep(id)` deciding which ids stay: the group slots
+ * alone (saved before mutation slots) get empty mutation slots; any other length is all empty.
+ */
+export function slotList(catalog, list, keep = () => true) {
+  const { base, total } = catalog.slots;
+  if (!Array.isArray(list) || (list.length !== base && list.length !== total)) return Array(total).fill(null);
+  return list.concat(Array(total - list.length).fill(null)).map(x => x && keep(x) ? x : null);
 }
 
 export function toBuildData(state) {
@@ -28,6 +42,8 @@ export function toBuildData(state) {
   if (custom) g.c = 1;
   const d = { p: state.pts, s: state.slots, m: state.mut, b: state.budget, g };
   if (state.name) d.n = state.name;
+  const u = state.mutations;
+  if (u && u.on) d.u = u.equipped ? { r: u.researched, e: u.equipped } : { r: u.researched };
   return d;
 }
 
@@ -39,8 +55,12 @@ export function applyBuildData(catalog, state, d) {
   const p = {};
   Object.keys(d.p).forEach(k => { const v = Math.max(0, Math.min(maxRank, d.p[k] | 0)); if (nodes[k] && v) p[k] = v; });
   state.pts = p;
-  state.slots = Array.isArray(d.s) && d.s.length === slots.total ? d.s.map(x => (x && nodes[x] && p[x]) ? x : null) : Array(slots.total).fill(null);
+  state.slots = slotList(catalog, d.s, x => !!nodes[x] && !!p[x]);
   state.mut = Array.isArray(d.m) && d.m.length === slots.groups ? d.m.map(mutagenId) : Array(slots.groups).fill("");
+  const muts = createMutations(catalog);
+  const u = d.u && typeof d.u === "object" ? d.u : null;
+  state.mutations = u ? muts.normalize({ on: true, researched: u.r, equipped: u.e }) : noMutations();
+  muts.fitSlots(state);
   const typed = typeof d.b === "number" && d.b >= 0 ? Math.floor(d.b) : state.budget;
   const g = d.g && typeof d.g === "object" ? d.g : null;
   state.progress = catalog.budget.normalize(g && { level: g.l, places: g.w, other: g.o, ngPlus: !!g.ng, custom: !!g.c }, typed);
@@ -65,8 +85,19 @@ export function decodeBuildCode(text) {
   if (at < 0) return null;
   const b64 = compact.slice(at + CODE_PREFIX.length).match(/^[A-Za-z0-9+/]+=*/);
   if (!b64) return null;
+  // With whitespace gone, words after the code run into it ("CODE have fun" -> "CODEhavefun"): drop
+  // characters from the end until it decodes. A code without = padding has no other end mark.
+  for (let end = b64[0].length; end > 0 && b64[0].length - end <= MAX_TRAILING; end--) {
+    const d = parseCode(b64[0].slice(0, end));
+    if (d) return d;
+  }
+  return null;
+}
+// Letters after a code tried away before giving up.
+const MAX_TRAILING = 200;
+function parseCode(b64) {
   try {
-    const d = JSON.parse(fromBase64(b64[0]));
+    const d = JSON.parse(fromBase64(b64));
     return isBuildData(d) ? d : null;
   } catch (e) { return null; }
 }

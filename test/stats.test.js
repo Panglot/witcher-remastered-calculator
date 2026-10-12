@@ -29,7 +29,7 @@ const stats = createStats(cat, createPlanner(cat));
 const build = o => ({ pts: {}, slots: [null, null, null, null], mut: ["", ""], budget: 4, ...o });
 
 test("points: total, spent and left, negative when overspent", () => {
-  assert.deepEqual(stats.points(build({ pts: { r: 2, x: 1 } })), { total: 4, spent: 3, slots: 0, left: 1, bySlots: false });
+  assert.deepEqual(stats.points(build({ pts: { r: 2, x: 1 } })), { total: 4, spent: 3, skills: 3, mutations: 0, slots: 0, left: 1, bySlots: false });
   assert.equal(stats.points(build({ pts: { r: 3, a: 2 } })).left, -1);
 });
 

@@ -1485,6 +1485,595 @@
    ],
    "note": "root.mcPointIcon"
   },
+  "mutations/mutation_1.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_1.png",
+   "size": [
+    64,
+    64
+   ],
+   "note": "Mutation icons (geralt_mutations.xml iconPath), drawn in the node's icon background"
+  },
+  "mutations/mutation_2.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_2.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_3.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_3.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_4.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_4.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_5.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_5.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_6.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_6.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_7.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_7.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_8.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_8.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_9.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_9.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_10.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_10.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_11.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_11.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/mutation_12.png": {
+   "from": "cache",
+   "path": "dlc/bob/data/gameplay/gui_new/icons/mutations/mutation_12.png",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "mutations/panel-bg.jpg": {
+   "from": "render",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 310,
+   "size": [
+    1920,
+    1080
+   ],
+   "at": [
+    984.95,
+    532.85
+   ],
+   "fill": "#000000",
+   "note": "MutationPanelRef.mcMutationBackground (silhouette, vignette and cells) at frame 1, placed at its panel position"
+  },
+  "mutations/orb-default.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 371,
+   "shape": 372,
+   "size": [
+    203,
+    205
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -42.5,
+    -46.5
+   ],
+   "note": "mc_background_color frames: the orb of Strengthened Synapses and the equipped mutation display, by the equipped mutation's colour (MutationItemRenderer.COLOR_MAP)"
+  },
+  "mutations/orb-green.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 379,
+   "shape": 380,
+   "size": [
+    203,
+    205
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -42.5,
+    -46.5
+   ]
+  },
+  "mutations/orb-blue.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 382,
+   "shape": 383,
+   "size": [
+    203,
+    205
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -42.5,
+    -46.5
+   ]
+  },
+  "mutations/orb-yellow.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 384,
+   "shape": 385,
+   "size": [
+    203,
+    205
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -42.5,
+    -46.5
+   ]
+  },
+  "mutations/orb-red.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 386,
+   "shape": 387,
+   "size": [
+    203,
+    205
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -42.5,
+    -46.5
+   ]
+  },
+  "mutations/cell.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 373,
+   "shape": 374,
+   "size": [
+    44,
+    44
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ],
+   "note": "The orb's drifting cells (sprite 381), tinted by layout/mutation-cells.json"
+  },
+  "mutations/cell-big.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 376,
+   "shape": 377,
+   "size": [
+    41,
+    40
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ]
+  },
+  "mutations/node-green.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 337,
+   "shape": 338,
+   "size": [
+    150,
+    149
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -73.75,
+    -75.75
+   ],
+   "note": "MutationItem_tempBackground (mcMutagenColor): a mutation node's colour disc; gray while its requirements aren't researched"
+  },
+  "mutations/node-blue.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 339,
+   "shape": 340,
+   "size": [
+    150,
+    149
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -73.75,
+    -75.75
+   ]
+  },
+  "mutations/node-yellow.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 341,
+   "shape": 342,
+   "size": [
+    150,
+    149
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -73.75,
+    -75.75
+   ]
+  },
+  "mutations/node-red.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 343,
+   "shape": 344,
+   "size": [
+    150,
+    149
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -73.75,
+    -75.75
+   ]
+  },
+  "mutations/node-gray.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 345,
+   "shape": 346,
+   "size": [
+    150,
+    149
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -73.85,
+    -75.7
+   ]
+  },
+  "mutations/icon-bg-green.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 352,
+   "shape": 353,
+   "size": [
+    61,
+    61
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -30.5,
+    -30.5
+   ],
+   "note": "mc_icon_background (mcIconBackground): the disc under a node's icon; gray is also Strengthened Synapses' stage disc"
+  },
+  "mutations/icon-bg-blue.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 359,
+   "shape": 360,
+   "size": [
+    61,
+    61
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -30.5,
+    -30.5
+   ]
+  },
+  "mutations/icon-bg-yellow.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 361,
+   "shape": 362,
+   "size": [
+    61,
+    61
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -30.5,
+    -30.5
+   ]
+  },
+  "mutations/icon-bg-red.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 363,
+   "shape": 364,
+   "size": [
+    61,
+    61
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -30.5,
+    -30.5
+   ]
+  },
+  "mutations/icon-bg-gray.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 365,
+   "shape": 366,
+   "size": [
+    61,
+    61
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -30.5,
+    -30.5
+   ]
+  },
+  "mutations/icon-equipped.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 355,
+   "shape": 356,
+   "size": [
+    59,
+    59
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -29.5,
+    -29.5
+   ],
+   "note": "mcIconBackground.mcEquipped: shown under the icon of the equipped mutation"
+  },
+  "mutations/equipped.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 323,
+   "shape": 324,
+   "size": [
+    250,
+    251
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -125.0,
+    -125.5
+   ],
+   "note": "MutationItem_equippedIndicator: ring around the equipped mutation, tinted per colour (gameArt.js, MUTATION_ART)"
+  },
+  "mutations/selected.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 348,
+   "shape": 349,
+   "size": [
+    152,
+    152
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -75.85,
+    -75.85
+   ],
+   "note": "MutationItemRef.mcStateSelectedActive"
+  },
+  "mutations/master-selected.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 391,
+   "shape": 392,
+   "size": [
+    188,
+    188
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -93.75,
+    -94.3
+   ],
+   "note": "MasterMutationItemRef.mcStateSelectedActive"
+  },
+  "mutations/connector-gray.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 312,
+   "shape": 313,
+   "size": [
+    300,
+    26
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -150.0,
+    -13.0
+   ],
+   "note": "mc_connector: the line between two mutations, in the colour of the mutation it leads from once researched (MutationItemRenderer.updateConnectors)"
+  },
+  "mutations/connector-blue.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 314,
+   "shape": 315,
+   "size": [
+    300,
+    26
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -150.0,
+    -13.0
+   ]
+  },
+  "mutations/connector-yellow.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 316,
+   "shape": 317,
+   "size": [
+    300,
+    26
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -150.0,
+    -13.0
+   ]
+  },
+  "mutations/connector-red.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 318,
+   "shape": 319,
+   "size": [
+    300,
+    26
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -150.0,
+    -13.0
+   ]
+  },
+  "mutations/connector-green.png": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 320,
+   "shape": 321,
+   "size": [
+    300,
+    26
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -150.0,
+    -13.0
+   ]
+  },
   "layout/screen.json": {
    "from": "placements",
    "movie": "panel_character_dupe.redswf",
@@ -1540,6 +2129,72 @@
    },
    "children": 15,
    "note": "frame: slots/frame.svg (sprite 615), unnamed in the game"
+  },
+  "layout/mutagen-slots-mutation.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 711,
+   "children": 36,
+   "note": "mcSlotsMutation: the slot groups in mutation mode, with the 4 mutation sockets (bonusSocket1-4) and no dividers"
+  },
+  "layout/mutation-panel.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 403,
+   "children": 43,
+   "note": "MutationPanelRef: mcMutationN is the node of mutation MUTATION_NODES[N] (gameArt.js), from its mutationId"
+  },
+  "layout/mutation-node.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 370,
+   "children": 10
+  },
+  "layout/mutation-master.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 400,
+   "children": 6
+  },
+  "layout/mutation-orb.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 389,
+   "children": 2,
+   "note": "the orb's background and its glow copy (mcColor); background frame 2 adds the cells (layout/mutation-cells.json)"
+  },
+  "layout/mutation-cells.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 381,
+   "names": {
+    "1": "cell1",
+    "3": "cell2",
+    "5": "cell3",
+    "7": "cell4"
+   },
+   "children": 4,
+   "note": "the orb's cells at frame 1, with their tints; placed in mc_background_color at (33.05, 54.95)"
+  },
+  "layout/mutation-orb-default.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 388,
+   "names": {
+    "2": "cell1",
+    "4": "cell2",
+    "6": "cell3",
+    "8": "cell4"
+   },
+   "children": 4,
+   "note": "mc_background_color frame 1 (no active mutation): the orb's cells in grey, standing still"
+  },
+  "layout/equipped-mutation.json": {
+   "from": "placements",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 602,
+   "children": 4,
+   "note": "EquippedMutationItemRef: the orb in the slot panel's centre in mutation mode (root.mcMasterMutation)"
   },
   "layout/pip.json": {
    "from": "placements",

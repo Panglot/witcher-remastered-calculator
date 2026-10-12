@@ -34,6 +34,19 @@ import { decodeBuildCode } from "./build.js";
  */
 
 /**
+ * @typedef {Object} Mutation  See data/mutations.js.
+ * @property {string} id
+ * @property {string} name
+ * @property {string[]} colors  Skill colours (trees' `mutagen`) its mutation slots take.
+ * @property {{ points: number, red: number, green: number, blue: number }} cost  To research it.
+ * @property {string[]} requires  Mutations to research first.
+ * @property {string} icon      Names mutations/<icon>.png.
+ * @property {string} text      Description template with {placeholders}.
+ * @property {Record<string, number|null>} values  The placeholders' numbers (null: unknown).
+ * @property {string[]} dynamic  Character stats the numbers read (the base character is used).
+ */
+
+/**
  * @typedef {Object} Mutagen  See data/mutagens.js.
  * @property {string} id
  * @property {string} name
@@ -54,7 +67,8 @@ export const MUTAGEN_TAB = "mutagens";
  * @param {{ rules: object, trees: Record<string, object>, skillSets: object[], mutagens?: object,
  *   skillText?: Record<string, object>, totals?: object, builds?: string[] }} data  skillText: extracted
  *   text by game id (data/skillText.js). totals: what adds up to the build-wide totals (data/totals.js).
- *   builds: build codes (data/builds.js).
+ *   builds: build codes (data/builds.js). mutations: the Blood and Wine mutations (data/mutations.js);
+ *   without them a build has no mutation slots.
  */
 export function createCatalog(data) {
   const { rules, trees, skillSets } = data;
@@ -152,10 +166,30 @@ export function createCatalog(data) {
     else problems.push(`${where} has a source with no skill, mutagen or passive.`);
   }));
 
-  const slots = { groups: rules.slotGroups, perGroup: rules.slotsPerGroup, total: rules.slotGroups * rules.slotsPerGroup };
-  // Points that open each socket and diamond (core/slotLocks.js). Test data without them: all open.
-  slots.unlocks = rules.slotUnlocks || { sockets: Array(slots.total).fill(0), mutagens: Array(slots.groups).fill(0) };
-  if (slots.unlocks.sockets.length !== slots.total) problems.push(`slotUnlocks has ${slots.unlocks.sockets.length} sockets, not ${slots.total}.`);
+  // Mutations (data/mutations.js): by id, in the game's order. A requirement must be listed, and a
+  // mutation's colours must be tree colours (its slots take those trees' skills).
+  const mutationData = Object.assign({ stages: [], labels: {}, master: null, items: [] }, data.mutations);
+  const treeColors = new Set(order.map(t => trees[t].mutagen).filter(Boolean));
+  /** @type {Record<string, Mutation>} */
+  const mutationItems = {};
+  mutationData.items.forEach(m => {
+    if (Object.hasOwn(mutationItems, m.id)) problems.push(`Duplicate mutation id "${m.id}".`);
+    mutationItems[m.id] = Object.assign({ requires: [], colors: [], values: {}, dynamic: [], text: "" }, m);
+  });
+  Object.values(mutationItems).forEach(m => {
+    m.requires.filter(r => !Object.hasOwn(mutationItems, r)).forEach(r => problems.push(`Mutation "${m.id}" requires unknown mutation "${r}".`));
+    m.colors.filter(c => !treeColors.has(c)).forEach(c => problems.push(`Mutation "${m.id}" has colour "${c}", which no tree has.`));
+  });
+  const mutations = { items: mutationItems, order: mutationData.items.map(m => m.id), stages: mutationData.stages,
+    labels: mutationData.labels, master: mutationData.master };
+
+  // Sockets: the slot groups' (base), then one mutation slot per Strengthened Synapses stage, like the
+  // game's slots 13 to 16 (core/mutations.js).
+  const base = rules.slotGroups * rules.slotsPerGroup;
+  const slots = { groups: rules.slotGroups, perGroup: rules.slotsPerGroup, base, mutation: mutations.stages.length, total: base + mutations.stages.length };
+  // Points that open each group socket and diamond (core/slotLocks.js). Test data without them: all open.
+  slots.unlocks = rules.slotUnlocks || { sockets: Array(slots.base).fill(0), mutagens: Array(slots.groups).fill(0) };
+  if (slots.unlocks.sockets.length !== slots.base) problems.push(`slotUnlocks has ${slots.unlocks.sockets.length} sockets, not ${slots.base}.`);
   if (slots.unlocks.mutagens.length !== slots.groups) problems.push(`slotUnlocks has ${slots.unlocks.mutagens.length} mutagens, not ${slots.groups}.`);
 
   // Builds (data/builds.js): each code decoded once, for its name, points and slotted skills per
@@ -172,7 +206,7 @@ export function createCatalog(data) {
     Object.keys(d.p).filter(id => !nodes[id]).forEach(id => problems.push(`${where} lists unknown skill "${id}".`));
     const rank = id => nodes[id] ? Math.max(0, Math.min(rules.maxRank, d.p[id] | 0)) : 0;
     const points = Object.keys(d.p).reduce((sum, id) => sum + rank(id), 0);
-    const inSlots = Array.isArray(d.s) && d.s.length === slots.total ? d.s.filter(id => Object.hasOwn(d.p, id) && rank(id)) : [];
+    const inSlots = Array.isArray(d.s) && (d.s.length === slots.base || d.s.length === slots.total) ? d.s.filter(id => Object.hasOwn(d.p, id) && rank(id)) : [];
     const slotted = Object.fromEntries(order.map(t => [t, inSlots.filter(id => nodes[id].tree === t).length]).filter(([, n]) => n));
     builds.push({ code, name, points, slotted });
   });
@@ -180,7 +214,7 @@ export function createCatalog(data) {
   return {
     rules, trees, skillSets: sets, order, nodes, edges, slots, problems,
     maxRank: rules.maxRank,
-    mutagens, mutagenId, totals, builds,
+    mutagens, mutagenId, totals, builds, mutations,
     // The points budget (core/budget.js). Test data without rules.points: level 1 and nothing else.
     budget: createBudget(rules.points || { maxLevel: 1, placesOfPower: 0, items: [] }),
     // Planner tabs: the trees, then the mutagen inventory.

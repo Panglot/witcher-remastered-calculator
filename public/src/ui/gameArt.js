@@ -5,7 +5,9 @@
 
 const BASE = "assets/ui";
 const LAYOUTS = ["screen", "tree-panel", "tree-node", "tab", "tooltip", "legend-button",
-  "mutagen-panel", "mutagen-slots", "mutagen-socket", "mutagen-diamond", "pip"];
+  "mutagen-panel", "mutagen-slots", "mutagen-socket", "mutagen-diamond", "pip",
+  "mutagen-slots-mutation", "equipped-mutation", "mutation-orb", "mutation-orb-default", "mutation-cells",
+  "mutation-panel", "mutation-node", "mutation-master"];
 
 // Vector files have no size in the manifest. `origin` is where the piece's own (0, 0) sits inside
 // the file: place the file at -origin and the piece lands where its layout matrix puts it.
@@ -34,6 +36,9 @@ export const dropdownArrowMask = id =>
   `<mask id="${id}"><image href="${artUrl("icons/dropdown-arrow.png")}" ${arrowBox} preserveAspectRatio="none"/></mask>`;
 /** The arrow, masked by the dropdownArrowMask with id `maskId`, filled with the current fill. */
 export const dropdownArrow = maskId => `<rect ${arrowBox} mask="url(#${maskId})"/>`;
+
+// The order the planner lists greater mutagen colours in, the trees' order (combat, signs, alchemy).
+export const MUTAGEN_COLOR_ORDER = ["red", "blue", "green"];
 
 // Game colour label, skill icon folder and stat icon (STAT_GLYPHS) per planner tree. The stat icons
 // are the ones the character stats popup (CharacterStatsPopup.ws) gives its categories of that
@@ -106,6 +111,27 @@ export const MUTAGEN_ART = {
 // Every colour frame places its glyph shape at its own offset over the shield.
 export const BONUS_BAR = [-4, 4, 280, 64];
 export const BONUS_GLYPH_AT = { sword: [6, 5], sign: [4.75, 1.45], plus: [4.95, 4.85], person: [4.95, 4.85] };
+
+// Mutations (Blood and Wine). A mutation's art colour (MutationItemRenderer.COLOR_MAP): its one colour,
+// or yellow for the mutations with two or three. Strengthened Synapses' orb takes the active mutation's,
+// and "default" (grey cells) with none.
+export const mutationArtColor = colors => colors.length === 1 ? colors[0] : "yellow";
+// The Mutations panel's nodes (MutationPanelRef, mcMutation1-12) by the mutation each shows: the
+// node's mutationId (MutationPanelRef.__setProp_mcMutationN). Nodes 3 and 8 swap, the rest match.
+export const MUTATION_NODES = { 1: 1, 2: 2, 3: 8, 4: 4, 5: 5, 6: 6, 7: 7, 8: 3, 9: 9, 10: 10, 11: 11, 12: 12 };
+// Where the panel sits on the screen (MenuCharacterDupe.mcMutationPanel: MUT_PANEL_DEF_X / Y).
+export const MUTATION_PANEL_AT = [-23.6, 8.55];
+// The ring around the active mutation (mutations/equipped.png, MutationItem_equippedIndicator): a grey
+// ring tinted per colour frame, colour = colour * mult + add.
+export const EQUIPPED_TINT = { mult: 0.3203125, add: { green: [53, 173, 0], blue: [0, 56, 139], yellow: [173, 101, 0], red: [141, 0, 0] } };
+// A node's states (MutationItemRenderer.updateMutationData): an unresearched node's disc at
+// DISABLED_ALPHA_COLOR and icon at DISABLED_ALPHA_ICON; the active one's disc scaled up.
+// baseR: the disc art's solid part (its alpha falls off from 45 to 55 px), under which the planner puts
+// an opaque base. holdR: the hold ring, on the disc's black rim (r 52 to 57).
+export const MUTATION_NODE = { discAlpha: 0.7, iconAlpha: 0.3, equippedScale: 1.15, baseR: 52, holdR: 55 };
+// In mutation mode the game moves the groups' bonus labels (ModuleSkillsSocketsDupe.repositionMutagenBonuses):
+// the left groups' 15 px left, the top groups' 45 px up, the bottom groups' 67.85 px down. By group (1 to 4): [dx, dy].
+export const BONUS_MUTATION_SHIFT = { 1: [-15, -45], 2: [0, -45], 3: [-15, 67.85], 4: [0, 67.85] };
 
 // Mutagen divider line (slots/divider.svg: sprite 601 > shape 600), as [x, y, w, h] around its origin.
 // Drawn as a rect, not the SVG file: a rotated 1px-wide <image> is resampled and comes out fainter.

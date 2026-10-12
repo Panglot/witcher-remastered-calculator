@@ -3,22 +3,26 @@
 // frames the selection, then the general controls in a group of their own. "Reset abilities" is a
 // button and the R key, both asking first in the game's message popup (ui/popup.js). "Menu" opens
 // the Esc menu (ui/menu.js), like Esc; "Statistics" toggles the Statistics panel
-// (ui/statistics.js), like C; "Skill sets" the Skill sets panel (ui/skillSets.js), like S; "Builds"
-// the Builds panel (ui/builds.js), like B; "Search" asks for a search (ui/search.js), like Ctrl+F. Remove
+// (ui/statistics.js), like D; "Skill sets" the Skill sets panel (ui/skillSets.js), like S; "Builds"
+// the Builds panel (ui/builds.js), like B; "Search" asks for a search (ui/search.js), like Ctrl+F;
+// "Mutations", shown while the build has mutations, opens the Mutations panel (ui/mutationsPanel.js), like C. Remove
 // point, Equip and Unequip are buttons for the selection, like their mouse buttons and keys. Apply
 // mode hides the legend while its popup is up.
 import { $ } from "./dom.js";
 import { confirmPopup } from "./popup.js";
 import { MUTAGEN_TAB } from "../core/catalog.js";
+import { MUTATIONS_KEY } from "./slots.js";
 
 const RESET = { key: "R", label: "Reset abilities", action: "reset" };
 const MENU = { key: "Esc", label: "Menu", action: "menu" };
 // The Statistics side panel (ui/statistics.js).
-const STATS = { key: "C", label: "Statistics", action: "stats" };
+const STATS = { key: "D", label: "Statistics", action: "stats" };
 // The Skill sets side panel (ui/skillSets.js).
 const SKILL_SETS = { key: "S", label: "Skill sets", action: "skillSets" };
 // The Builds side panel (ui/builds.js).
 const BUILDS = { key: "B", label: "Builds", action: "builds" };
+// The Mutations panel (ui/mutationsPanel.js), while the build has mutations.
+const MUTATIONS = { key: MUTATIONS_KEY, label: "Mutations", action: "mutations" };
 // The skill search popup (ui/search.js).
 const SEARCH = { key: "Ctrl+F", label: "Search", action: "search" };
 // Left button or E, held (ui/tree.js, ui/slots.js).
@@ -32,14 +36,19 @@ const REMOVE = { mouse: "right", label: "Remove point", action: "remove" };
 const UNEQUIP_MUTAGEN = { mouse: "right", label: "Unequip", action: "unequipMutagen" };
 // Two groups: the selection's skill controls (Reset abilities always last), then the general ones (Menu last).
 const GENERAL = [STATS, SKILL_SETS, BUILDS, SEARCH, MENU];
-const skillGroup = (...items) => [[...items, RESET], GENERAL];
-const ITEMS = {
-  unlearned: skillGroup(ACQUIRE),
-  learned: skillGroup(ACQUIRE, REMOVE, EQUIP),
-  socket: skillGroup(ACQUIRE, UNEQUIP),
-  mutagens: skillGroup(EQUIP, UNEQUIP_MUTAGEN),
-  diamond: skillGroup(UNEQUIP)
+const WITH_MUTATIONS = [STATS, SKILL_SETS, BUILDS, MUTATIONS, SEARCH, MENU];
+// One set of item lists per general group, so a redraw can compare lists by identity.
+const itemSet = general => {
+  const skillGroup = (...items) => [[...items, RESET], general];
+  return {
+    unlearned: skillGroup(ACQUIRE),
+    learned: skillGroup(ACQUIRE, REMOVE, EQUIP),
+    socket: skillGroup(ACQUIRE, UNEQUIP),
+    mutagens: skillGroup(EQUIP, UNEQUIP_MUTAGEN),
+    diamond: skillGroup(UNEQUIP)
+  };
 };
+const ITEMS_PLAIN = itemSet(GENERAL), ITEMS_MUTATIONS = itemSet(WITH_MUTATIONS);
 
 export function mountLegend(app) {
   const { planner, state, kinds } = app;
@@ -47,17 +56,20 @@ export function mountLegend(app) {
   let drawn = null, asking = false;
 
   function itemsFor() {
+    const ITEMS = app.mutations.isOn(state) ? ITEMS_MUTATIONS : ITEMS_PLAIN;
     if (state.tab === MUTAGEN_TAB) return kinds.mutagen.heldAt(state) != null ? ITEMS.diamond : ITEMS.mutagens;
     if (kinds.skill.heldAt(state) != null) return ITEMS.socket;
     return state.sel && planner.rank(state, state.sel) > 0 ? ITEMS.learned : ITEMS.unlearned;
   }
 
   async function reset() {
-    if (asking || !app.game || (!Object.keys(state.pts).length && !state.mut.some(Boolean))) return;
+    if (asking || !app.game || (!Object.keys(state.pts).length && !state.mut.some(Boolean) && !app.mutations.researchedCount(state))) return;
     asking = true;
     const yes = await confirmPopup(app, {
       title: "Reset abilities",
-      text: "Reset all abilities and refund spent skill points? All skills and mutagens will be unequipped."
+      text: app.mutations.isOn(state)
+        ? "Reset all abilities and mutation research and refund spent skill points? All skills, mutagens and the active mutation will be unequipped."
+        : "Reset all abilities and refund spent skill points? All skills and mutagens will be unequipped."
     });
     asking = false;
     if (!yes) return;
@@ -76,7 +88,13 @@ export function mountLegend(app) {
     skillSets: () => app.views.skillSets.toggle(),
     builds: () => app.views.builds.toggle(),
     search: () => app.views.search.open(),
-    remove() { if (state.sel) done(planner.removePoint(state, state.sel)); },
+    mutations: () => app.views.mutations.open(),
+    remove() {
+      if (!state.sel) return;
+      const r = planner.removePoint(state, state.sel, { cascade: app.cascade() });
+      app.views.tree.took(r);
+      done(r);
+    },
     equip() {
       const name = shownKind(), id = kinds[name].selected(state);
       if (id) app.views.apply.start(name, id);

@@ -5,7 +5,7 @@
 // Stacking order and offsets follow docs/game-assets.md. Values marked "by eye" are not in the
 // game files we read; they were matched to the screenshots in docs/reference/.
 import { esc } from "./dom.js";
-import { artUrl, mutagenIcon, BACKDROP_FILL, DIVIDER, DROP_TARGET, INVENTORY, LOCKED_BORDER_ALPHA, MUTAGEN_ART, dropdownArrow, dropdownArrowMask, OVER_GLOW, SCREEN, SKILL_FILL, SOCKET } from "./gameArt.js";
+import { artUrl, mutagenIcon, BACKDROP_FILL, DIVIDER, DROP_TARGET, EQUIPPED_TINT, INVENTORY, LOCKED_BORDER_ALPHA, MUTAGEN_ART, MUTATION_NODE, dropdownArrow, dropdownArrowMask, OVER_GLOW, SCREEN, SKILL_FILL, SOCKET } from "./gameArt.js";
 
 export const fmt = n => +n.toFixed(2);
 export const matrix = m => `matrix(${m.map(fmt).join(" ")})`;
@@ -21,7 +21,7 @@ const ICON_INSET = 4;
 // slots/selected.svg (shape 511, 73.4 x 69.15), which their layout matrices stretch to a square.
 const NODE_SELECTED_SCALE = 0.25;
 const SLOT_SELECTED = "slots/selected.svg";
-const DIAMOND_FRAME = "mutagens/diamond-frame.svg";
+export const DIAMOND_FRAME = "mutagens/diamond-frame.svg";
 // Open (available, unlearned) skills: the colour fill under node/equipped-overlay.png's vignette
 // at OPEN_VIGNETTE alpha and a black shade at OPEN_SHADE alpha. Both fitted to an in-game
 // screenshot of an open red skill (fill pixels within about 1 level of brightness).
@@ -155,12 +155,14 @@ export function createPieces(art) {
    * @param {{ icon: string, color: string, state: "locked" | "open" | "learned",
    *   rank?: number, core?: boolean, selected?: boolean }} o
    */
-  function treeNode({ icon: file, color, state, rank = 0, core = false, selected = false }) {
+  function treeNode({ icon: file, color, state, rank = 0, core = false, selected = false, fading = false }) {
     const L = art.layout("tree-node");
     const learned = state === "learned";
     const edge = learned ? color : "grey";
     const edgeAlpha = state === "locked" ? ` opacity="${LOCKED_BORDER_ALPHA}"` : "";
     return NODE_FILL[state](color)
+      // Planner-only: a skill a cascade just took keeps a ghost of its learned fill, fading out (ui/cascade.js).
+      + (fading ? `<g class="gfade">${NODE_FILL.learned(color)}</g>` : "")
       + icon(file, ICON_ALPHA[state])
       + (state === "locked" ? "" : BUY_BLOCK)
       + img(core ? coreBorder(edge) : `node/border-${edge}.png`, 0, 0, 0.5, edgeAlpha)
@@ -184,13 +186,15 @@ export function createPieces(art) {
    * A locked one shows the lock; with a skill in it, the skill under the lock warning (lockWarn).
    * `allowed` (e.g. "red-green") marks a slot that takes only those skill colours and shows the
    * edge glow `slots/glow-<allowed>`: SlotSkillSocket shows mcColorBorder only for data.colorBorder,
-   * never for a skill matching its group's mutagen (that only lights the connectors).
-   * @param {{ icon?: string, color?: string, rank?: number, locked?: boolean, allowed?: string, selected?: boolean }} o
+   * never for a skill matching its group's mutagen (that only lights the connectors). The glow's
+   * lines run along the socket's bottom edge; `flip` puts them along the top (the game's _Top
+   * frames: the same art, flipped).
+   * @param {{ icon?: string, color?: string, rank?: number, locked?: boolean, allowed?: string, flip?: boolean, selected?: boolean }} o
    */
-  function socket({ icon: file, color, rank = 0, locked = false, allowed = "", selected = false }) {
+  function socket({ icon: file, color, rank = 0, locked = false, allowed = "", flip = false, selected = false }) {
     const L = art.layout("mutagen-socket");
     let out = placed(L.frame, img("slots/frame.svg", 0, 0));
-    if (allowed) out += placed(L.mcColorBorder, imgAt(`slots/glow-${allowed}.png`, 0, 0));
+    if (allowed) out += placed(L.mcColorBorder, imgAt(`slots/glow-${allowed}.png`, 0, 0, 1, flip ? ` transform="scale(1 -1)"` : ""));
     if (locked && !file) out += placed(L.iconLock, img("slots/lock.svg", 0, 0));
     else out += dropFrame(L.mcStateDropTarget);
     if (file) {
@@ -326,5 +330,94 @@ export function createPieces(art) {
       + `<g fill="${STEP.ink}" transform="rotate(${STEP_TURN[step]})">${dropdownArrow(STEP_ARROW_ID)}</g></g></g>`;
   }
 
-  return { box, img, imgAt, piece, treeNode, stepButton, socket, diamond, item, divider, connector, tab, backdrop, text };
+  // A layout child's colour transform as a filter (tintDefs draws it).
+  const tintOf = cx => cx ? ` filter="url(#${tintId(cx.mult, cx.add)})"` : "";
+
+  /**
+   * The Mutations orb (MasterMutationItem_mutationAnimation) at its origin, as both the equipped
+   * mutation display and Strengthened Synapses draw it: the colour frame's background with its faint,
+   * larger copy behind (mcColor), and the cells. With no active mutation ("default") the cells are
+   * grey and still; otherwise they are tinted and drift (styles.css, .gcell). The orb bobs (.gorb-bob).
+   * @param {"default" | "red" | "green" | "blue" | "yellow"} color
+   */
+  function orb(color) {
+    const O = art.layout("mutation-orb");
+    const cells = color === "default" ? cellsOf(art.layout("mutation-orb-default"), false)
+      : `<g transform="translate(33.05 54.95)">${cellsOf(art.layout("mutation-cells"), true)}</g>`;
+    const frame = inner => filled(`mutations/orb-${color}.png`) + inner;
+    return `<g transform="translate(-62.5 -65.5)"><g class="gorb-bob">`
+      + placed(O.mcColor, frame(""), ` opacity="${fmt(O.mcColor.cxform.mult[3])}"`)
+      + placed(O.background, frame(cells)) + `</g></g>`;
+  }
+  // The orb's cells: cell1 to cell4 of a cells layout with their tints; cell4 is the bigger art.
+  // Drifting ones get class "gcell gcell<n>".
+  const cellsOf = (L, drift) => ["cell1", "cell2", "cell3", "cell4"].map((k, i) =>
+    placed(L[k], filled(i === 3 ? "mutations/cell-big.png" : "mutations/cell.png"),
+      (drift ? ` class="gcell gcell${i + 1}"` : "") + tintOf(L[k].cxform))).join("");
+
+  /**
+   * A mutation in the Mutations panel (MutationItemRef) at its centre: its colour disc, the disc's
+   * turning copy once researched, the ring and icon backing while it is the active one, the icon on
+   * its backing disc, the hold ring (planner-only, styles.css .gmhold) and the selection frame (shown
+   * by CSS on .gmnode.selected). Grey while its requirements aren't researched; dimmed until
+   * researched (MUTATION_NODE).
+   * @param {{ icon: string, color: string, enabled: boolean, researched: boolean, equipped: boolean }} o
+   *   color: its art colour (gameArt.js, mutationArtColor)
+   */
+  function mutationNode({ icon: file, color, enabled, researched, equipped, fading = false }) {
+    const L = art.layout("mutation-node");
+    const disc = enabled ? color : "gray";
+    const discArt = filled(`mutations/node-${disc}.png`);
+    const scale = equipped ? ` transform="scale(${MUTATION_NODE.equippedScale})"` : "";
+    const [iw, ih] = art.size(file), [, , , , bx, by] = L.mcIconBackground.matrix;
+    // Back to front as the game stacks them (MutationItemRef depths): the active ring (1), the disc (9),
+    // its turning copy (11), the selection frame (13), the icon backing (15), then the icon on top
+    // (MutationItemRenderer.handleIconLoaded); the hold ring and the cascade mask are planner-only.
+    // MutationItem_equippedIndicator (0.8, -3.8) and its ring sprite (0.2, 4.4) sit inside mcEquippedIndicator.
+    return (equipped ? placed(L.mcEquippedIndicator, `<g transform="translate(1 0.6)" filter="url(#${equippedTintId(color)})">${filled("mutations/equipped.png")}</g>`) : "")
+      // Planner-only: an opaque base under the disc, whose art is see-through (alpha 0.55 to 0.77, less while
+      // dimmed), so the connectors' tips that reach under it don't show through.
+      + placed(L.mcMutagenColor, `<circle r="${fmt(MUTATION_NODE.baseR * (equipped ? MUTATION_NODE.equippedScale : 1))}" fill="#000"/>`)
+      + placed(L.mcMutagenColor, `<g${scale}>${discArt}</g>`, researched ? "" : ` opacity="${MUTATION_NODE.discAlpha}"`)
+      + (researched ? placed(L.mcMutagenColorAnim, `<g class="gmspin">${discArt}</g>`, ` opacity="${fmt(L.mcMutagenColorAnim.cxform.mult[3])}"`) : "")
+      // Planner-only: a mutation a cascade just took keeps a ghost of its researched disc, fading out (ui/cascade.js).
+      + (fading ? placed(L.mcMutagenColor, `<g class="gfade">${filled(`mutations/node-${color}.png`)}</g>`) : "")
+      + selectedFrame(L.mcStateSelectedActive, `<g transform="translate(0.85 -3.65)">${filled("mutations/selected.png")}</g>`)
+      + placed(L.mcIconBackground, filled(`mutations/icon-bg-${disc}.png`) + (equipped ? `<g transform="translate(-0.1 -0.15)">${filled("mutations/icon-equipped.png")}</g>` : ""))
+      + glowable(box(file, bx - iw / 2, by - ih / 2, iw, ih, researched && enabled ? "" : ` opacity="${MUTATION_NODE.iconAlpha}"`))
+      + placed(L.mcMutagenColor, `<circle class="gmhold" r="${MUTATION_NODE.holdR}" pathLength="1"/>`) + `<circle class="gcascade-mask" r="70"/>`;
+  }
+
+  /** A connector between two mutations (mc_connector) in a colour frame, centred on its origin. */
+  const mutationConnector = color => filled(`mutations/connector-${color}.png`);
+
+  /**
+   * The colour transform filters the mutation art needs (the orb's cells, the active mutation's
+   * ring), to put once in an always-rendered <svg> on the page once the art has loaded.
+   */
+  function tintDefs() {
+    const cells = [art.layout("mutation-orb-default"), art.layout("mutation-cells")]
+      .flatMap(L => Object.values(L).map(c => c.cxform).filter(Boolean));
+    const m = EQUIPPED_TINT.mult;
+    const rings = Object.values(EQUIPPED_TINT.add).map(add => ({ mult: [m, m, m, 1], add: [...add, 0] }));
+    const seen = new Set();
+    return [...cells, ...rings].map(cx => {
+      const id = tintId(cx.mult, cx.add);
+      if (seen.has(id)) return "";
+      seen.add(id);
+      const [r, g, b] = cx.mult, [ar, ag, ab] = cx.add.map(v => fmt(v / 255));
+      return `<filter id="${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="${r} 0 0 0 ${ar} 0 ${g} 0 0 ${ag} 0 0 ${b} 0 ${ab} 0 0 0 1 0"/></filter>`;
+    }).join("");
+  }
+  // The active mutation's ring tint for its art colour.
+  function equippedTintId(color) {
+    const m = EQUIPPED_TINT.mult;
+    return tintId([m, m, m, 1], [...(EQUIPPED_TINT.add[color] || EQUIPPED_TINT.add.yellow), 0]);
+  }
+
+  return { box, img, imgAt, piece, treeNode, stepButton, socket, diamond, item, divider, connector, tab, backdrop, text,
+    orb, mutationNode, mutationConnector, tintDefs };
 }
+
+// A colour transform's filter id: the same numbers give the same id.
+const tintId = (mult, add) => `gtint-${[...mult.slice(0, 3).map(v => Math.round(v * 1000)), ...add.slice(0, 3)].join("-")}`;

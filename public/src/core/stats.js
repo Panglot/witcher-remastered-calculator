@@ -14,9 +14,12 @@
  * @typedef {{ id: string, label: string, unit: string, color: string, value: number, max: number, parts: TotalPart[] }} Total
  *   value: what always applies; max: with every condition met (the same when nothing is conditional).
  *   parts: the ones that always apply first.
- * @typedef {{ total: number, spent: number, slots: number, left: number, bySlots: boolean }} Points
- *   slots: the total the slots in use need to be open (0 without locks); left: points left to
- *   spend, negative for the points needed; bySlots: the slots, not the skills, set what is needed.
+ * @typedef {{ total: number, spent: number, skills: number, mutations: number, slots: number, left: number, bySlots: boolean }} Points
+ *   spent: on skills and mutation research, split into skills and mutations; slots: the total the slots in use need to be open (0
+ *   without locks); left: points left to spend, negative for the points needed; bySlots: the slots,
+ *   not the skills, set what is needed.
+ * @typedef {{ researched: number, points: number, red: number, green: number, blue: number }} MutationCost
+ *   what the researched mutations cost: skill points and greater mutagens per colour.
  */
 import { LOCK_NONE } from "./slotLocks.js";
 
@@ -24,8 +27,9 @@ import { LOCK_NONE } from "./slotLocks.js";
  * @param {ReturnType<import("./catalog.js").createCatalog>} catalog
  * @param {ReturnType<import("./planner.js").createPlanner>} planner
  * @param {ReturnType<import("./slotLocks.js").createSlotLocks>} [locks]  without them slots need nothing
+ * @param {ReturnType<import("./mutations.js").createMutations>} [mutations]  without it research costs nothing
  */
-export function createStats(catalog, planner, locks = null) {
+export function createStats(catalog, planner, locks = null, mutations = null) {
   const { nodes, order, trees, mutagens, slots, totals: totalsData } = catalog;
   const round = v => Math.round(v * 10) / 10;
 
@@ -36,10 +40,11 @@ export function createStats(catalog, planner, locks = null) {
    * @returns {Points}
    */
   function points(b, mode = LOCK_NONE) {
-    const spent = planner.spentAll(b), total = b.budget;
+    const skills = planner.spentAll(b), research = mutations ? mutations.cost(b).points : 0;
+    const spent = skills + research, total = b.budget;
     const slots = locks && mode !== LOCK_NONE ? locks.required(b) : 0;
     const short = slots > total;
-    return { total, spent, slots, left: short ? total - Math.max(spent, slots) : total - spent, bySlots: short && slots > spent };
+    return { total, spent, skills, mutations: research, slots, left: short ? total - Math.max(spent, slots) : total - spent, bySlots: short && slots > spent };
   }
 
   /** @returns {MutagenBonus | null} The equipped mutagens of one colour, summed and grouped by kind. */
@@ -110,10 +115,16 @@ export function createStats(catalog, planner, locks = null) {
     });
   }
 
-  /** Everything the Statistics panel shows. */
-  function summary(b) {
-    return { points: points(b), totals: totals(b), trees: order.map(t => tree(b, t)) };
+  /** @returns {MutationCost | null} What the researched mutations cost; null when none is researched. */
+  function mutationCost(b) {
+    if (!mutations || !mutations.researchedCount(b)) return null;
+    return { researched: mutations.researchedCount(b), ...mutations.cost(b) };
   }
 
-  return { points, mutagenBonus, totals, tree, summary };
+  /** Everything the Statistics panel shows. */
+  function summary(b) {
+    return { points: points(b), totals: totals(b), trees: order.map(t => tree(b, t)), mutations: mutationCost(b) };
+  }
+
+  return { points, mutagenBonus, totals, tree, mutationCost, summary };
 }

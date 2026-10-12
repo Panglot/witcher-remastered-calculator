@@ -8,6 +8,8 @@
 // planner's other keys do nothing and Tab is held, so focus stays on the picked holder.
 // A holder that is locked in hard mode can't be picked or filled (core/slotKinds.js, blockedAt):
 // a toast says when it opens (ui/slots.js, lockNotice), and apply mode doesn't start when every one is.
+// A mutation slot that refuses the item (core/slotKinds.js, refusalAt: closed, or the wrong colour)
+// can't be picked or filled either; a toast says why.
 import { $ } from "./dom.js";
 import { VIEWS } from "./gamePanels.js";
 import { CONFIRM_KEYS, CONFIRM_LABELS } from "./popup.js";
@@ -65,9 +67,11 @@ export function mountApplyMode(app) {
     app.views.slots.lockNotice(kind, i);
     end(kind, id);
   }
-  // Holder i of the kind being equipped is locked in hard mode: says when it opens.
+  // Holder i of the kind being equipped refuses the item, or is locked in hard mode: says why, or when it opens.
   function refused(i) {
-    const { kind } = app.apply;
+    const { kind, id } = app.apply;
+    const why = kinds[kind].refusalAt(state, i, id);
+    if (why) { app.toast.show(why, { tone: "bad" }); return true; }
     if (!kinds[kind].blockedAt(state, i)) return false;
     app.views.slots.lockNotice(kind, i);
     return true;

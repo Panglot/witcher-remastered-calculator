@@ -34,7 +34,7 @@ const ABOUT = [
   "Selecting a Skill set highlights skills that fit a common theme, so you can easily pick complementing ones. A full build usually combines three or four.",
   "The Statistics panel shows the accumulated values of everything active in your build, and is where you set the available skill points and the build name.",
   "There are buttons for saving your build as a code or file, loading a build from a code or file, or sharing it as a link. Various hotkeys work like the ones in the game, plus some additional ones.",
-  "Blood and Wine mutations are not included yet, but are planned to be added eventually.",
+  "Blood and Wine mutations are included: hold the orb in the middle of the slots to add them to your build, then click it (or press C) to research and activate them.",
   "The interface art, layout, skill descriptions and numbers come directly from the game files.",
   "Feedback, bug reports and ideas are welcome: on Discord at @" + CONTACT_DISCORD + ", or as an issue on the source code page.",
   "Visits are counted with GoatCounter, without cookies or personal data.",
@@ -61,7 +61,7 @@ export function mountMenu(app) {
             ]
         },
         settings: {
-            title: "Settings", options: [OPTIONS.holdMs, OPTIONS.background, OPTIONS.skillText, OPTIONS.slotLocking], items: [
+            title: "Settings", options: [OPTIONS.holdMs, OPTIONS.background, OPTIONS.skillText, OPTIONS.mutationLook, OPTIONS.slotLocking, OPTIONS.removal], items: [
                 { label: "Reset all data", run: resetAllData }
             ]
         },

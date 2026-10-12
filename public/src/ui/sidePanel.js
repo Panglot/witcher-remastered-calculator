@@ -13,7 +13,7 @@
 //
 // Switching follows the game's screen change: the covered part fades out while the card rises the
 // last fifth of its height into place and fades in; closing plays it the other way round.
-import { esc, patchHtml } from "./dom.js";
+import { esc, patchHtml, afterAnimation } from "./dom.js";
 import { artUrl, dropdownArrow, dropdownArrowMask, STAT_GLYPHS, STAT_ICON } from "./gameArt.js";
 import { optionRowsHtml } from "./options.js";
 
@@ -99,12 +99,14 @@ export const barList = bars => `<div class="gside-bars">${bars.map(bar).join("")
  * A row with `attrs` is a button (the caller wires it); `pressed` marks a toggled one.
  * `aside` is a muted note after the label ("up to +95%"); `details` are value and label lines under
  * it, on the same columns, for what makes up the value. `color` (a game colour label) puts a band
- * behind the value and label line, like the slot groups' bonus labels.
+ * behind the value and label line, like the slot groups' bonus labels. `inline` puts the rows side
+ * by side on one line, in equal columns (rows without details).
  * @param {{ value: string, label: string, aside?: string, details?: { value: string, label: string }[], color?: string,
  *   attrs?: string, pressed?: boolean }[]} rows
+ * @param {{ inline?: boolean }} [opts]
  */
-export function statRows(rows) {
-  return `<div class="gstats">${rows.map(r => {
+export function statRows(rows, { inline = false } = {}) {
+  return `<div class="gstats${inline ? " gstats-inline" : ""}">${rows.map(r => {
     const aside = r.aside ? ` <span class="gstat-aside">${esc(r.aside)}</span>` : "";
     // Each detail fills the next line of the row's subgrid: its value under the values, its label under the labels.
     const details = (r.details || []).map(d => `<span class="gstat-value gstat-detail">${esc(d.value)}</span>`
@@ -232,15 +234,6 @@ export function createSidePanel(app, { name, title, area, cover, key, hint, titl
   for (const el of [root, cover]) {
     el.addEventListener("animationend", e => {
       if (e.target === el && e.animationName === "gside-rise") el.classList.remove("gside-enter", "gside-uncover");
-    });
-  }
-  // Runs `fn` once the element's animation ends, or now if it has none (reduced motion).
-  function afterAnimation(el, fn) {
-    if (getComputedStyle(el).animationName === "none") { fn(); return; }
-    el.addEventListener("animationend", function done(e) {
-      if (e.target !== el) return;
-      el.removeEventListener("animationend", done);
-      fn();
     });
   }
 

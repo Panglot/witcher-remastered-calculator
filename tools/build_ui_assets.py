@@ -14,6 +14,9 @@ The recipe (tools/asset-recipe.json) maps every output file to where it comes fr
   {"from": "svg", "movie": "<alias>", "sprite": 665, "frame": "SC_Red"}   one sprite frame (number or label), via FFDec
   {"from": "cursor", "exe": "bin/x64_dx12/witcher3.exe", "id": 12}   RT_CURSOR resource of the game executable
   {"from": "skills", "exclude_trees": ["None"]}                skill icons + skills.json (output is a folder)
+  {"from": "render", "movie": "<alias>", "sprite": 310, "size": [1920, 1080], "at": [960, 540]}
+      a sprite's bitmap layers composited on a canvas (tools/render_movie.py), its origin at "at";
+      optional "fill": "#000000" paints the canvas first (for a JPEG)
   {"from": "placements", "movie": "<alias>", "sprite": 710}    JSON of a sprite's named children: matrix, text style
       optional "names": {"5": "frame"}                         names for unnamed children, by depth
       optional "frame": "selected_up"                          the frame to read (number or label, default 1)
@@ -42,6 +45,7 @@ from PIL import Image, ImageChops, ImageColor, ImageDraw
 from extract_skill_icons import main as extract_skills
 from game_files import TextureCache, content_path, exe_cursor
 from gfx_movie import GameMovies, TWIPS
+from render_movie import render_sprite
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_RECIPE = os.path.join(HERE, 'asset-recipe.json')
@@ -240,6 +244,18 @@ class CacheSource:
         return save_image(ctx.texture_cache.image(src['path'].replace('/', '\\')), dest)
 
 
+class RenderSource:
+    """A sprite's bitmap layers composited at frame 1, for art the game builds from several slices
+    (render_movie.py: vectors, text and colour offsets are left out)."""
+
+    def build(self, ctx, src, dest):
+        w, h = src['size']
+        canvas = Image.new('RGBA', (w, h), ImageColor.getcolor(src['fill'], 'RGBA') if 'fill' in src else (0, 0, 0, 0))
+        x, y = src.get('at', (0, 0))
+        render_sprite(ctx.movies, ctx.movie_path(src['movie']), src['sprite'], canvas, (1, 0, 0, 1, x, y))
+        return save_image(canvas, dest)
+
+
 class SvgSource:
     """Vector art via FFDec. prepare() batches every svg source so FFDec runs once per movie and kind.
     FFDec writes width and height but no viewBox, so the art draws at its own size, clipped, in a box of
@@ -334,6 +350,7 @@ class PlacementsSource:
 HANDLERS = {
     'atlas': AtlasSource,
     'cache': CacheSource,
+    'render': RenderSource,
     'svg': SvgSource,
     'cursor': CursorSource,
     'skills': SkillsSource,

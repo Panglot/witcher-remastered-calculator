@@ -130,6 +130,7 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `skills/` | `<tree>/<skill id>.png` (137) + `skills.json` (`skill`, `tree`, `core`, `iconPath`, `file`) |
 | `slots/` | `fill-<color>`, `glow-<colors>`, `divider-ornament` (PNG), `frame.svg`, `lock.svg`, `divider.svg` |
 | `mutagens/` | `item-<color>-<lesser/normal/greater>.png`, `diamond-frame.svg`, `connectors/corner-<color>.svg`, `connectors/line-<colors>.svg` |
+| `mutations/` | `mutation_<n>.png` (icons), `panel-bg.jpg`, `orb-<default/red/green/blue/yellow>.png`, `cell.png`, `cell-big.png`, `node-<color/gray>.png`, `icon-bg-<color/gray>.png`, `icon-equipped.png`, `equipped.png`, `selected.png`, `master-selected.png`, `connector-<color/gray>.png` (see [Mutations](#mutations)) |
 | `bonus/` | `bar-<color>.png`, `shield.png`, `glyph-<sword/sign/plus/person>.png` |
 | `stats/` | `shield.png`, `icon-<attack-steel/spell-power/toxicity/additional>.png` (from `panel_inventory`, in `startup.bundle`) |
 | `tooltip/` | `header.png`, `header-frame.png` |
@@ -148,9 +149,8 @@ Skill icons are 64x64 glyphs on transparency, no frame. The cache also holds ~20
 ### Left out on purpose
 
 - Controller button glyphs (Xbox/PS/Switch/Steam): keyboard and mouse only. Easy to add later from the same atlases.
-- Mutation art (Mutations panel background and silhouette, mutation orbs, research progress, `MutationTooltip*`): mutations are out of scope for now.
+- Mutation research art (progress bars, the research popup and its resource list, the research-complete and "data changed" flashes): the planner researches a mutation whole, with no partial progress.
 - `panel_character` and `panel_character_perks`, and the old `CharacterTabbedListModuleRef` inside `_dupe`: older versions of the same screen. Its tree header bars (`mcTabBackgrounds`) are never placed by the live screen.
-- `mc_background_color` (the big coloured orbs): the equipped Mutation display in the screen centre. The diamond shows the mutagen's inventory icon instead (`SlotSkillMutagen.loadIcon`).
 - Mutagen decoction potion icons (`mutagen_potions/`) and the `unique` / base mutagen icons: not used by skill mutagens.
 
 Possible follow-up: the tree backgrounds are 1212x1406 PNGs with alpha (0.8 to 2 MB each, 7 MB total). WebP would cut that a lot; the builder already picks the format from the output extension, as it does for `.jpg`.
@@ -493,6 +493,73 @@ Frame labels on the pieces, saved as `mutagens/connectors/{corner,line}-<color>.
 - `SkillSlotConnector.currentColor = "SC_..."` switches the frame. A change plays a draw-in: the previous color stays on `lineStatic`, and the new color on `lineAnim` is revealed by a growing clip mask.
 - Timing at 40 fps: corner frames `start` 2 to `complete` 15 (~0.33s), line frames 2 to 6 (~0.1s).
 - Which connectors light up was checked against an in-game screenshot only (the logic in `ModuleSkillsSocketsDupe` and `PlayerAbilityManager.ws` was not read). A socket's connector takes the group color when the equipped skill's color matches the mutagen. The group connector is colored when at least one socket in the group matches. For example, a blue mutagen with three blue skills lights all four pieces; a green mutagen with one green skill in the bottom slot lights that corner and the group line.
+
+## Mutations
+
+Rules in `core/mutations.js`, data in `public/data/mutations.js`. Regenerate the data with
+`python tools/extract_mutations.py "$G" public/data/mutations.js` (~5 s): it reads the `<mutations>` definition in
+`dlc\bob\data\gameplay\abilities\geralt_mutations.xml` (`bob.bundle`) the way `PlayerAbilityManager.ws`
+(`LoadMutationDataFromXML`) does, and runs the game's `GetMutationLocalizedDescription` (`playerWitcher.ws`) with
+`wscript.py`, like the skill text. Checked in the 5.01 files, 2026-10-11.
+
+### Rules (`PlayerAbilityManager.ws`)
+
+- Research costs skill points and greater mutagens (1 research point of its colour each,
+  `mutation_research_points_<color>` in `def_item_ingredients.xml`) and needs every `required_mutations` entry
+  researched (`CanResearchMutation`). The game takes points a bit at a time; a mutation counts at 100%
+  (`IsMutationResearched`). All 12 cost 49 skill points and 18 red, 15 blue, 16 green greater mutagens.
+- One researched mutation is active at a time (`CanEquipMutation`); Strengthened Synapses (`mutationMaster`) can't be.
+- Strengthened Synapses' stage: how many of `mutationsRequiredForSlot1..4` (2, 4, 8, 12, on the `Mutation Master`
+  ability) the researched count reaches (`GetMasterMutationStage`). Each stage opens one of slots 13 to 16
+  (group 5, `unlockedOnLevel="999999"` in `geralt_skills.xml`), only while a mutation is active
+  (`UpdateMutationSkillSlotsLocks`); with none, they lock and are emptied.
+- A mutation's colours are the mutagen colours of its cost (`GetMutationColors`); its slots take skills of those
+  colours (`UpdateMutationSkillSlots`), so never General skills. Switching takes out skills that don't fit.
+- Points spent on research count toward the regular slot unlocks (total points: free + spent + mutation points).
+- Character-dependent numbers (Sign intensity 100%, Toxicity 0 of a max of 100 from `ConGeralt`) are listed in
+  `dynamic`; Cat Eyes' crossbow damage depends on the crossbow and bolts, so its two numbers are null ("?" in the planner).
+
+### Slot panel in mutation mode (`ModuleSkillsSocketsDupe`, `MenuCharacterDupe`)
+
+- `mutationMode` swaps `mcSlotsNormal` (sprite 710) for `mcSlotsMutation` (sprite 711, `layout/mutagen-slots-mutation.json`,
+  at (342.2, 21.95) in the module) at once, with no tween: the groups move apart, the diamonds out, and the 4 mutation
+  sockets (`bonusSocket1-4`) form a centre column. The mutation layout has no dividers or ornament.
+  `repositionMutagenBonuses` moves the left groups' bonus labels 15 px left, the top ones 45 px up and the bottom ones
+  67.85 px down. The planner slides between the layouts (`gamePanels.mutagenPanel`, styles.css `.gmove`).
+- The mutation sockets' colour lines are the socket's edge glow (`mcColorBorder`, sprite 641,
+  `slots/glow-<colors>.png`): `<Colors>_Bottom` for slots 13 and 14, `_Top` (the same art flipped vertically) for 15
+  and 16 (`characterMenuDupe.ws`, `UpdateAppliedSkills`), shown on all four while a mutation is active.
+- The orb in the centre (`mcMasterMutation`, `EquippedMutationItemRef`, `layout/equipped-mutation.json`): the active
+  mutation's name right of `tfState` and its description in `tfMutationDescription`, both hidden with none active
+  (`hideDescription`). The C button on it isn't clickable (`btnMutationMode.clickable = false`); a click or tap on the
+  orb opens the panel (`handleMasterMutationTapOrClick`). It has no tooltip.
+
+### The orb (`MasterMutationItem_mutationAnimation`, sprite 390)
+
+- `mc_background_color` (sprite 388) has a frame per colour: `default`, `green`, `blue`, `yellow`, `red`
+  (`mutations/orb-<color>.png`). The active mutation picks it by `MutationItemRenderer.COLOR_MAP`: its one colour, or
+  `yellow` for the mutations with two or three (1, 5, 7, 9, 11, 12); `default` with none.
+- Frame 1 places four grey, still cells (`layout/mutation-orb-default.json`); the colour frames keep sprite 381 instead:
+  four cells, one plain, one purple, one green and the big one (`layout/mutation-cells.json`, with their colour
+  transforms), drifting 1 to 3 px over 59 frames. Sprite 389 bobs the whole orb about 2 px over 102 frames and puts a
+  1.27x copy at alpha 0.2 behind it (`mcColor`, `layout/mutation-orb.json`). `state0-4` restart the animation.
+
+### Mutations panel (`MutationPanelRef`, sprite 403, `layout/mutation-panel.json`)
+
+- Full screen, at (-23.6, 8.55) (`MUT_PANEL_DEF_X/Y`). `mutations/panel-bg.jpg` is `mcMutationBackground` (sprite 310)
+  rendered at frame 1 in panel units by the builder's `render` source.
+- `mcMutationN.mutationId` (`MutationPanelRef.__setProp_mcMutationN`) maps nodes to mutations: N, except node 3 shows
+  mutation 8 and node 8 mutation 3 (`MUTATION_NODES` in `gameArt.js`). `mcMutation13` is Strengthened Synapses.
+- A connector `mcMutConnectorA_B` belongs to node A (`mutationRendererName`) and takes A's art colour once A is
+  researched, grey before; the three `mcMasterMutationConnector`s take the active mutation's colour (grey with none).
+- A node (`MutationItemRef`, `layout/mutation-node.json`): the colour disc (`node-<color>`, grey while its requirements
+  aren't researched, alpha 0.7 until researched), its copy at alpha 0.3 turning 0.5 degrees a frame once researched,
+  the icon on `icon-bg-<color>` (alpha 0.3 until researched), and while active the tinted ring (`equipped.png`, one
+  colour transform per colour), the icon backing (`icon-equipped.png`) and the disc at 1.15x.
+- Strengthened Synapses (`MasterMutationItemRef`, `layout/mutation-master.json`): the orb, its stage as a roman numeral
+  on `icon-bg-gray` (`tfAdditionalState`), or the lock at stage 0. Its tooltip uses `mutation_master_mutation_*`.
+- The tooltip (`MutationTooltip.populateData`): name, description, "ALLOWS USE OF:" with the trees, the research cost
+  while it can be researched, "REQUIREMENTS" while it can't, then the action button.
 
 ## Skill text
 

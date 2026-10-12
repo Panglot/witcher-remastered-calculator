@@ -69,7 +69,7 @@
   <!-- The Character screen: each panel at its game position, drawn by ui/tree.js, points.js,
        slots.js and legend.js once the game art has loaded; ui/tooltip.js floats over it. The side
        panels (ui/sidePanel.js) add their cards and toggles here, the share tools (ui/buildRail.js)
-       their column right of the slots.
+       their row over the legend.
        Apply mode (ui/applyMode.js) darkens the page and the [data-masked] parts, lifts the item
        being equipped over them and shows its popup over the page's middle, above the mask. -->
   <div class="apply-mask" id="applyMask" hidden></div>
@@ -79,9 +79,9 @@
     <div class="screen-lift" id="applyLift" aria-hidden="true" hidden></div>
     <div class="screen-points" id="points" data-panel data-masked></div>
     <div class="screen-slots" id="slotsPanel" data-panel></div>
-    <!-- The legend and the build's share tools (ui/buildRail.js): on wide screens each in its own place
-         (the tools in the right margin), on phones together in the bar pinned to the window's bottom,
-         with the fan content notice (ui/pageInfo.js) under them. -->
+    <!-- The legend and the build's share tools (ui/buildRail.js): on wide screens the tools in a row over the
+         legend, on phones together in the bar pinned to the window's bottom, with the fan content notice
+         (ui/pageInfo.js) under them. -->
     <div class="screen-dock">
       <div class="screen-legend" id="legend" data-masked></div>
       <div class="screen-rail" id="buildRail" data-panel data-masked></div>

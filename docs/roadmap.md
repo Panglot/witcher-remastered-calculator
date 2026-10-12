@@ -6,26 +6,19 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 
 | # | Item | Left |
 | --- | --- | --- |
-| 1 | Blood and Wine mutations (later) | Everything |
+| 1 | Full asset rebuild fails | Find the cause |
 
-## 1. Blood and Wine mutations (later)
+## 1. Full asset rebuild fails
 
-**Goal:** the Mutations system from the Blood and Wine expansion: research mutations, equip one, and get the extra skill slots that researched mutations unlock.
+**Goal:** `python tools/build_ui_assets.py "<game folder>" public/assets/ui` rebuilds the whole set again.
 
-**What's already there:**
-- The Mutations tree background (`tree/bg-mutations.png`, the 5th frame of the tree panel) is in the asset set.
-- The rest of the Mutations panel art was left out on purpose: silhouette, vignette, mutation orbs, research progress, `MutationTooltip*`. See "Out of scope" in [game-assets.md](game-assets.md).
+**Found while adding the mutation art (2026-10-11):**
 
-**Needed:**
-- **Data:** each mutation's effect, research cost (skill points and mutagens) and which mutations it needs first. Also how many researched mutations open each extra slot. Take all of it from the game files, like the skill text (`tools/extract_skill_text.py`).
-- **Assets:** a recipe pass for the Mutations panel art and the mutation icons in `tools/build_ui_assets.py`.
-- **Rules:**
-  - Research spends skill points, so it shares the budget with the trees.
-  - The extra slots are more sockets, so the planner needs a variable slot count (now a fixed `slotGroups × slotsPerGroup`).
-  - Only skills matching the equipped mutation's color can go in the extra slots (to confirm in-game).
-- **UI:** in-game it's a separate panel, so it fits as its own screen or a 5th tree tab, on the layer manager (`ui/layers.js`).
-- **Build data:** researched and equipped mutations as new optional fields, so old codes still load.
+- A full run stops with `KeyError: 694` in `AtlasSource.build`: an `"image": 694` entry in `tools/asset-recipe.json` names a movie texture the current game files don't have under that id (likely a game patch renumbered it).
+- In the same run, `tree/separator.png` came out different from the committed file.
+- The mutation art was built with a recipe holding only its own entries, so nothing committed changed.
 
-**Recommendation:** build the extra sockets on the slot locks (`core/slotLocks.js`): in the game they are slots 13 to 16 of `geralt_skills.xml`, opened by mutation research instead of points (see "Slot unlocks" in [game-assets.md](game-assets.md)). The data side can reuse the skill text extraction tool.
+**Left:**
 
-**To decide:** does the build track which mutations are researched (and their cost in points), or only the one equipped?
+- Find the current texture id for `menu/sheet.png` (`"image": 694`, the Esc menu's torn sheet in `panel_ingamemenu.redswf`), e.g. with `tools/map_ui_atlas.py`.
+- Compare the new `tree/separator.png` with the committed one, and keep whichever matches the game.

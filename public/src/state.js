@@ -1,5 +1,8 @@
 // Page state and its copy in localStorage, so a refresh keeps the build you're working on.
 // The key is versioned: change it only if the stored shape changes incompatibly.
+import { slotList } from "./core/build.js";
+import { createMutations, noMutations } from "./core/mutations.js";
+
 const STORE_KEY = "w3r-skill-planner-v1";
 
 export function defaultState(catalog) {
@@ -7,7 +10,9 @@ export function defaultState(catalog) {
   const progress = budget.defaults();
   return {
     // Build (see core/build.js). budget: the points the build has, from progress (core/budget.js).
+    // mutations: see core/mutations.js.
     pts: {}, slots: Array(slots.total).fill(null), mut: Array(slots.groups).fill(""), budget: budget.totalOf(progress), progress, name: "",
+    mutations: noMutations(),
     // View. sel / selMut: selected skill / mutagen; selSlot / selGroup: the socket / diamond it was
     // picked from, null when picked in its panel (core/slotKinds.js). search: the skill search's
     // query (ui/search.js), "" for none.
@@ -35,6 +40,11 @@ export function loadState(catalog) {
   // Saved before mutagen sizes, `mut` held colours.
   state.mut = Array.isArray(state.mut) && state.mut.length === catalog.slots.groups
     ? state.mut.map(catalog.mutagenId) : Array(catalog.slots.groups).fill("");
+  // Saved before mutation slots, `slots` held only the group slots.
+  state.slots = slotList(catalog, state.slots, id => !!catalog.nodes[id]);
+  const muts = createMutations(catalog);
+  state.mutations = muts.normalize(state.mutations);
+  muts.fitSlots(state);
   return state;
 }
 

@@ -82,19 +82,20 @@ input[type="text"], textarea { cursor: text; }
 
 /* Planner screen (ui/tree.js, points.js, slots.js, legend.js, tooltip.js): the Character screen's
    panels side by side at their game positions. Column widths are the panels' widths in game px
-   (VIEWS in ui/gamePanels.js): tree 616.35, gap 125, slots 971.35, adding up to the 1712.7 between
-   the game's content edges. So one game px is --gpx wide in every panel. Phones stack the panels.
+   (VIEWS in ui/gamePanels.js): tree 616.35, gap 125, slots 937, adding up to 1678.35. The frame keeps the
+   same 8 px past the content on both sides (the tree's edge at x 111.7, the right bonus labels' end at 1774),
+   so the panels sit centred. So one game px is --gpx wide in every panel. Phones stack the panels.
    The gap is a length (--gap): the game's 125 px when the window is 16:9 or wider. Narrower windows
    (the screen capped by the width) take it out of the gap first: it shrinks by --gap-take of the
    width missing for the full screen (--short), down to --gap-min, so the panels keep more of their size. */
 .screen {
   --fit-h: (100dvh - var(--wrap-top));
   --gap-take: .15; --gap-min: 24px;
-  --short: max(0px, var(--fit-h) * 1712.7 / var(--screen-h) - (100vw - 2 * var(--game-edge)));
+  --short: max(0px, var(--fit-h) * 1678.35 / var(--screen-h) - (100vw - 2 * var(--game-edge)));
   --gap: max(var(--gap-min), var(--fit-h) * 125 / var(--screen-h) - var(--gap-take) * var(--short));
-  --gpx: calc((100cqw - var(--gap)) / 1587.7);
+  --gpx: calc((100cqw - var(--gap)) / 1553.35);
   container-type: inline-size; position: relative; display: grid; align-items: start;
-  grid-template-columns: minmax(0, 616.35fr) var(--gap) minmax(0, 971.35fr);
+  grid-template-columns: minmax(0, 616.35fr) var(--gap) minmax(0, 937fr);
   grid-template-areas: ". . ." "tree . slots" "points . slots" ". . ." "legend legend legend";
   /* Fit the viewport height too: the screen is about 932 game px tall (panels y 130 to 970, then the
      legend row with its padding), so it is never wider than that height allows. Centred when capped.
@@ -102,18 +103,18 @@ input[type="text"], textarea { cursor: text; }
      fills the window's height: the panels are centred in the room above the legend, which stays on the
      window's bottom edge, like the game letterboxed on a 4:3 or 16:10 monitor. */
   --screen-h: 932;
-  width: min(100%, var(--fit-h) * 1587.7 / var(--screen-h) + var(--gap)); justify-self: center;
+  width: min(100%, var(--fit-h) * 1553.35 / var(--screen-h) + var(--gap)); justify-self: center;
   min-height: calc(100dvh - var(--wrap-top)); grid-template-rows: 1fr auto auto 1fr auto;
 }
 .screen-tree { grid-area: tree; }
 .screen-points { grid-area: points; }
 .screen-slots { grid-area: slots; }
-/* The share tools (ui/buildRail.js): a column centred on the slots area's height, its icons' right edge on the
-   screen's right edge, mirroring the tree panel's left edge (both one --game-edge from the window, more when the
-   screen is capped by the window's height and centred). The icon is 30 px in a 62 px button, so the button
-   reaches 16 px past that edge. Absolutely placed in the slots area, so it takes no room. */
-.screen-rail { grid-area: slots; position: absolute; right: calc(-16 * var(--gpx)); top: 0; bottom: 0; display: grid; place-items: center; --u: max(.6px, var(--gpx)); }
-.gbuild-rail { display: flex; flex-direction: column; }
+/* The share tools (ui/buildRail.js): a row centred over the legend, as in the phone bar, clear of the slot panel's
+   centre (the active mutation's texts). Its bottom on the legend's text (the legend's top padding), so it hangs into
+   the room above the legend instead of taking its own: absolutely placed in the legend area. */
+.screen-rail { grid-area: legend; position: absolute; --u: max(.6px, var(--gpx));
+  left: 50%; top: calc(30 * var(--gpx)); translate: -50% -100%; z-index: 2; display: grid; place-items: center; }
+.gbuild-rail { display: flex; }
 /* The game centres the legend at y 1023, about 30px under the points row. Text never goes below ~13px.
    24px under it keeps it off the window's bottom edge (counted in --screen-h). */
 .screen-legend { grid-area: legend; --u: max(.6px, var(--gpx)); padding-block: calc(30 * var(--gpx)) calc(24 * var(--gpx)); }
@@ -190,6 +191,101 @@ input[type="text"], textarea { cursor: text; }
 .gtab.found .gtab-icon { animation: gpulse 0.8s ease-in-out infinite; }
 @keyframes shake { 25% { translate: -3px 0; } 75% { translate: 3px 0; } }
 @media (prefers-reduced-motion: reduce) { .gnode.shake, .gsel { animation: none; } }
+/* Cascade removal (ui/cascade.js): a faint black mask over what removing the hovered or selected item would take, */
+.gcascade-mask { fill: #000; opacity: 0; pointer-events: none; transition: opacity .15s; }
+.doomed .gcascade-mask { opacity: .25; }
+/* and the lit background of what a cascade took fading out, as if its light went off. */
+.gfade { animation: gfade-out .9s ease-out forwards; pointer-events: none; }
+/* It starts below full: the ghost sits over the item's new, see-through fill, so at full they add up brighter than lit. */
+@keyframes gfade-out { from { opacity: .8; } to { opacity: 0; } }
+
+/* Mutation mode of the slot panel (gamePanels.mutagenPanel). Every part is placed by a CSS transform, so a switch of
+   layout slides the parts to their new places; the dividers fade out, then the mutation sockets and the orb fade in.
+   The game switches at once: the timing is ours (by eye). */
+.gmove { transition: transform .7s cubic-bezier(.2, .7, .3, 1), translate .7s cubic-bezier(.2, .7, .3, 1); }
+.gdividers { transition: opacity .3s ease-out; }
+.gslots-mut .gdividers { opacity: 0; }
+/* A bonus label's shift (gamePanels.bonusLabel): the game's here, the stacked one on phones. */
+.gbonus { transform: translate(var(--dx), var(--dy)); }
+.gmsocks { opacity: 0; visibility: hidden; transition: opacity .25s ease-in, visibility 0s linear .25s; }
+.gslots-mut .gmsocks { opacity: 1; visibility: visible; transition: opacity .5s ease-out .4s, visibility 0s; }
+/* The orb (gamePanels.mutationOrb): without mutations only its ghost shows, on hover or focus; holding fills the ring
+   (ui/hold.js), starting at the top. */
+.gorb { cursor: var(--cursor-pointer); outline: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
+/* Only the hit circle takes the pointer: the art (see-through on the ghost, but still hit by its image
+   boxes, the 1.27x copy included) and the texts would cover the nearest sockets and their drops. */
+.gorb * { pointer-events: none; }
+.gorb .gorb-hit { fill: transparent; pointer-events: auto; }
+.gorb-art, .gorb-key { transition: opacity .5s ease-out .4s; }
+.gorb.ghost .gorb-art, .gorb.ghost .gorb-key { opacity: 0; transition: opacity .25s ease-in; }
+.gorb-ghost { fill: rgba(255, 255, 255, .04); stroke: rgba(255, 255, 255, .3); stroke-width: 1.5; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.gorb.ghost:is(:hover, :focus-visible, .holding) .gorb-ghost { opacity: 1; }
+.gorb:not(.ghost) .gorb-ghost { display: none; }
+.gorb-ring, .gmhold { fill: none; stroke: var(--game-hold); stroke-width: 3; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; rotate: -90deg; pointer-events: none; }
+.gorb.holding .gorb-ring, .gmnode.holding .gmhold { opacity: 1; animation: gring var(--hold) linear forwards; }
+@keyframes gring { to { stroke-dashoffset: 0; } }
+.gorb:not(.ghost):focus-visible .gorb-hit { stroke: var(--mark); stroke-width: 2; }
+.gorb-keycap { --u1: 1px; display: grid; place-items: center; width: 100%; height: 100%; font-family: var(--font-game); pointer-events: none; }
+/* The active mutation's name and description beside the orb (the Classic look): white game text, the name right-aligned
+   to the orb, both centred on their line. */
+.gorb-name, .gorb-desc { display: flex; align-items: center; height: 100%; color: #fff; font-family: var(--font-game); line-height: 1.15; }
+.gorb-name { justify-content: flex-end; text-align: right; }
+/* Each text on a dark box with a thin double frame, like the game's (by eye from a screenshot). */
+.gorb-box { display: inline-block; max-width: 100%; box-sizing: border-box; padding: 12px 16px; background: rgba(10, 10, 10, .88);
+  border: 1px solid #514a43; box-shadow: inset 0 0 0 3px #0a0a0a, inset 0 0 0 4px #2e2a26; }
+.gorb-texts { animation: gfade-in .4s ease-out; }
+/* The stacked layout's copy of the description under the orb (gamePanels.mutationOrb): laid out but hidden
+   elsewhere, so its height is always known. Centred across the crop. */
+.gorb-wide { visibility: hidden; }
+.gorb-desc-wide { color: #fff; font-family: var(--font-game); line-height: 1.15; text-align: center; }
+.gorb-desc-wide .gorb-box { text-align: left; }
+@keyframes gfade-in { from { opacity: 0; } }
+/* The orb's motion (MasterMutationItem_mutationAnimation): the whole orb bobs a few px over its 102 frames (3.4 s at
+   30 fps) and the cells drift over their 59 (about 2 s), each by its own amounts from the game's timelines.
+   `translate` adds to the SVG transform attribute, so the layout placement stays. */
+.gorb-bob { animation: gorb-bob 3.4s ease-in-out infinite alternate; }
+@keyframes gorb-bob { to { translate: 2.1px 3.5px; } }
+.gcell { animation: 2s ease-in-out infinite alternate; }
+.gcell1 { animation-name: gcell1; }
+.gcell2 { animation-name: gcell2; animation-duration: 1.6s; }
+.gcell3 { animation-name: gcell3; animation-duration: 1.3s; }
+.gcell4 { animation-name: gcell4; }
+@keyframes gcell1 { to { translate: -.5px -1.2px; } }
+@keyframes gcell2 { to { translate: 0 -2.8px; } }
+@keyframes gcell3 { to { translate: 0 -3.1px; } }
+@keyframes gcell4 { to { translate: .15px -2.1px; } }
+
+/* The Mutations panel (ui/mutationsPanel.js): over everything, the game screen fitted to the window above its legend. */
+.gmut { --u: max(.6px, min(100vw / 1920, 100vh / 1080)); position: fixed; inset: 0; z-index: 10; display: grid; grid-template-rows: minmax(0, 1fr) auto; background: #000; outline: none; overflow: hidden; }
+/* Opening slides the screen up over the planner like the side cards (gside-rise, gside-show), by a shorter
+   distance for its full height. Showing it (hidden removed) restarts the animation on every open. */
+.gmut { animation: gmut-rise .32s var(--ease-expo-out), gside-show .16s linear; }
+@keyframes gmut-rise { from { translate: 0 calc(60 * var(--u)); } }
+/* Closing runs it backwards (ui/mutationsPanel.js hides the screen when it ends); the planner takes input at once. */
+.gmut.gmut-leave { animation: gmut-sink .2s ease-in forwards; pointer-events: none; }
+@keyframes gmut-sink { to { translate: 0 calc(60 * var(--u)); opacity: 0; } }
+.gmut-view { min-height: 0; display: grid; }
+/* Fitted whole into the area above the legend (without min-height an SVG grid item would keep its height from its width). */
+.gmut-svg { width: 100%; height: 100%; min-height: 0; }
+/* A game screen's background art (--backdrop) behind everything in its positioned parent, covering it whatever its
+   shape. Overscanned by --backdrop-bleed on every side, so the art's edges stay out of sight (the Mutations
+   background's last 9 rows and first 7 columns are a bright strip). */
+.gbackdrop { position: absolute; z-index: -1; inset: calc(-1 * var(--backdrop-bleed, 1.5%)); background: var(--backdrop) center / cover no-repeat; pointer-events: none; }
+.gmut-legend { padding: calc(10 * var(--u)) 16px calc(24 * var(--u)); }
+.gmut-tip { position: absolute; z-index: 3; pointer-events: none; }
+.gmut-title { fill: #fff; font-family: var(--font-game); }
+.gmut-points { font-family: var(--font-game); }
+.gmut-points-label { fill: var(--game-label); }
+.gmut-points .gpoints-value { fill: #fff; }
+.gmnode { cursor: var(--cursor-pointer); outline: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
+.gmnode:not(.selected) .gsel { display: none; }
+.gmnode:not(.selected):hover .gglow { display: inline; }
+.gmnode:not(.selected):focus-visible .ghit { stroke: var(--mark); stroke-width: 2; }
+.gmnode.shake { animation: shake .3s; }
+/* A researched mutation's disc copy turns half a degree a frame (MutationItemRenderer.handleEnterFrame, 30 fps). */
+.gmspin { animation: gmspin 24s linear infinite; }
+@keyframes gmspin { to { rotate: 360deg; } }
+
 /* Apply mode (ui/applyMode.js, CharacterModeBackground). The mask is black at .85 x .79 = .67 alpha over the
    whole page, fading in over 1s. The screen sits above it, and its masked parts are dimmed by the same
    amount with brightness(), which looks the same as the black layer over them. The popup's buttons stand in
@@ -219,16 +315,33 @@ input[type="text"], textarea { cursor: text; }
 .bad-msg { color: var(--bad); }
 
 /* Stacked: phones, and portrait screens (tablets), where side by side the screen would fill only the top third
-   with tiny pieces. Capped so a tablet's tree still fits its height; centred. Keep in step with the side panels'. */
+   with tiny pieces. Capped so a tablet's tree still fits its height; centred. Keep in step with the side panels' and dom.js (STACKED_QUERY). */
 @media (max-width: 800px), (max-aspect-ratio: 4/5) {
   .screen { --gpx: calc(100cqw / 616.35); width: min(100%, 640px); min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "tree" "points" "slots" "dock"; }
   .page-notice { display: none; }
-  /* The slots at the tree's scale, so a slotted skill is as big as in the tree: the 971.35 px wide view is
-     drawn 971.35 / 616.35 times the area's width and cropped to the tree's 616.35 px, centred on the mutagen
-     grid's divider (screen x 1311.2, so from x 1003.025, 158.025 px into the view). The bonus labels reach
-     past that and are cut at the edges. */
-  .screen-slots { overflow: clip; }
-  .screen-slots > .gsvg { width: calc(971.35 / 616.35 * 100%); max-width: none; margin-left: calc(-158.025 / 616.35 * 100%); }
+  /* The slots at the tree's scale, so a slotted skill is as big as in the tree: the 937 px wide view is
+     drawn 937 / 616.35 times the area's width and cropped to the tree's 616.35 px, centred on the mutagen
+     grid's divider (screen x 1311.2, so from x 1003.025, 158.025 px into the view). The bonus labels would
+     be cut at the edges, so they move above the top groups and below the bottom ones (gamePanels.bonusLabel).
+     The mutation layout spreads the groups to about 16 px past the view's top and 50 past its bottom (with
+     the labels), so there the area grows by that (and the toggle's half below), drawn by the SVG's overflow. */
+  .screen-slots { overflow-x: clip; transition: padding .7s cubic-bezier(.2, .7, .3, 1); }
+  .screen-slots:has(.gslots-mut) { padding-block: calc((18 + var(--orb-gap, 0) / 2) * var(--gpx)) calc((70 + var(--orb-gap, 0) / 2) * var(--gpx)); }
+  .screen-slots > .gsvg { width: calc(937 / 616.35 * 100%); max-width: none; margin-left: calc(-158.025 / 616.35 * 100%); overflow: visible; }
+  .gbonus { transform: translate(var(--sx), var(--sy)); }
+  /* The mutation layout's groups drawn in so their diamonds fit the crop (gamePanels.mutagenPanel, nudge).
+     The orb's description shows under it across the crop instead of beside it, and the top half (the orb and
+     the top groups) and the bottom half move apart by half its room each (--orb-gap, gamePanels.orbTextGap),
+     the area growing by the same. The name keeps inside the crop, wrapping if it must. */
+  .gmove { translate: var(--nx, 0px) calc(var(--gside, 0) * var(--orb-gap, 0) * .5px); }
+  .gorb-desc { display: none; }
+  .gorb-wide { visibility: visible; }
+  .gorb-name .gorb-box { max-width: min(100%, var(--stack-room, 100%)); }
+  /* The Mutations panel's tall layout (ui/mutationLayouts.js) has no room at its sides: the space to the window's
+     edge grows with the window, so a phone gives the nodes nearly all its width. Its tooltip docks across the
+     area (ui/tipHost.js, dock). */
+  .gmut-view { padding-inline: clamp(4px, 3vw - 4px, 24px); }
+  .gmut-tip.docked .gtip { width: auto; box-shadow: 0 0 18px #000; }
   /* The legend, with the share tools in a row below it, stays on the window's bottom edge while the screen
      scrolls under it. Sticky, it keeps its row: at the page's end it is back in its place, so it covers nothing
      there. Its tooltip fill runs the window's full width (the shadow, cut to its height). Over the side panels'
@@ -238,8 +351,7 @@ input[type="text"], textarea { cursor: text; }
   .screen-dock { grid-area: dock; display: block; position: sticky; bottom: 0; z-index: 3; margin-top: calc(14 * max(.6px, var(--gpx)));
     background: var(--game-tooltip); box-shadow: 0 0 0 100vmax var(--game-tooltip); clip-path: inset(0 -100vmax); }
   .screen-legend { padding-block: calc(14 * var(--gpx)) calc(4 * var(--gpx)); }
-  .screen-rail { position: static; padding-bottom: calc(4 * var(--gpx)); }
-  .gbuild-rail { flex-direction: row; }
+  .screen-rail { position: static; translate: none; padding-bottom: calc(4 * var(--gpx)); }
   .dock-notice { display: block; padding: 0 0 calc(10 * var(--gpx)); }
   /* Apply mode hides the legend: here it leaves the bar, which shrinks to the share tools, evenly padded. */
   .page.applying .screen-legend { display: none; }
@@ -257,6 +369,8 @@ input[type="text"], textarea { cursor: text; }
 /* Groups (skill controls, general controls) sit 45px apart, three times the gap between buttons. */
 .glegend { --u1: var(--u, 1px); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: calc(8 * var(--u1)) calc(45 * var(--u1)); height: 100%; font-family: var(--font-game); }
 .glegend-group { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: calc(8 * var(--u1)) calc(15 * var(--u1)); }
+/* An empty group (nothing selected) takes no gap, so the rest stays centred. */
+.glegend-group:empty { display: none; }
 .gbtn { display: inline-flex; align-items: center; gap: calc(8 * var(--u1)); white-space: nowrap; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; }
 button.gbtn:hover .glabel { color: var(--game-hold); }
 .gkey { display: inline-grid; place-items: center; min-width: calc(30 * var(--u1)); height: calc(32 * var(--u1)); padding-inline: calc(7 * var(--u1)); position: relative; color: var(--game-key); font-size: calc(20 * var(--u1)); line-height: 1; isolation: isolate; }
@@ -426,7 +540,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 
 /* The share tools (ui/buildTools.js) as icons the colour of the menu text, white when focused or hovered, with
    the game's hint tooltip: in the Build drawer (ui/buildMenu.js), with the name and code fields, where the
-   focused one has the menu's hover frame, and on the rail right of the slots (ui/buildRail.js). */
+   focused one has the menu's hover frame, and on the rail over the legend (ui/buildRail.js). */
 .gbuild { --u1: var(--u); padding: calc(4 * var(--u)) var(--gmenu-pad) 0; text-align: left; }
 /* The title's underline under the Build item: what follows belongs to it. */
 .gbuild::before { content: ""; display: block; width: calc(150 * var(--u)); height: calc(3 * var(--u)); margin: 0 auto calc(14 * var(--u)); background: url("assets/ui/menu/title-underline.png") 0 0 / 100% 100%; opacity: .39; }
@@ -462,7 +576,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    above POINTS AVAILABLE (screen y 905, 3 px tall), stretched to the card inside its frame's sides; its toggle
    sits on it like the tree's. */
 .gside-slots { grid-row: tree; grid-column: slots; }
-.gside.gside-slots { justify-self: start; margin-left: calc(466.2 / 971.35 * 100% - 303 * var(--u1)); }
+.gside.gside-slots { justify-self: start; margin-left: calc(466.2 / 937 * 100% - 303 * var(--u1)); }
 .gside.gside-slots::after { content: ""; position: absolute; left: calc(12 * var(--u1)); right: calc(12 * var(--u1)); bottom: calc(-8 * var(--gpx)); height: calc(3 * var(--gpx)); background: url("assets/ui/tree/separator.png") 0 0 / 100% 100%; pointer-events: none; }
 /* The close button: the menu hub's (btnCloseMenuX: icons/close.svg, its X white on hover from close-over.svg),
    at the hub's size (56 px art placed at .66 x .65: 37 px), at the header band's right end, vertically centred on
@@ -619,6 +733,11 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gstat-band > .gstat-value:not(.gstat-detail) { grid-row: 1; grid-column: 1; }
 /* On the band, the label in the values' colour so it reads on red or blue; its "up to" note stays in the text colour. */
 .gstat-band > .gstat-label:not(.gstat-detail) { grid-row: 1; grid-column: 2; color: var(--game-list-value); }
+/* Rows side by side (statRows `inline`): equal columns, each row its own value and label grid. The gap
+   clears the band art, which reaches 10 u past a row's left. */
+.gstats-inline { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); column-gap: calc(22 * var(--u1)); }
+.gstats-inline > .gstat { grid-column: auto; grid-template-columns: max-content minmax(0, 1fr); column-gap: calc(18 * var(--u1)); }
+.gstats-inline > .gstat-band + .gstat-band { margin-top: 0; }
 /* Rows that are buttons (the Skill sets panel's sets). */
 .gstat-btn { position: relative; isolation: isolate; margin: 0; padding: calc(2 * var(--u1)) calc(6 * var(--u1)) calc(2 * var(--u1)) 0;
   border: 0; background: none; font: inherit; text-align: left; cursor: var(--cursor-pointer); }
@@ -671,7 +790,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    line above POINTS AVAILABLE (tree/separator.png at screen y 905, 3 px tall: 6.5 px under the tree area's
    bottom at 900). The slots' sits on the Skill sets card's copy of that line, level with the tree's, which is
    also under the mutagen grid's lower divider line (dividerBottom: screen x 1311.2, ending at y 888.75):
-   466.2 px in from the slots area's left at 845, a margin in % of the area's 971.35 px width. Phones stack
+   466.2 px in from the slots area's left at 845, a margin in % of the area's 937 px width. Phones stack
    the areas and centre the slots on that divider, so there it sits mid-width on the slots area's bottom edge
    (970), clear of the divider's end, and on the card's (with its line) when Skill sets is open.
    Its double rim is the close button's frame (icons/close.svg) in the legend mouse button's brown, its fill
@@ -679,7 +798,7 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
    The arrow turns from up (closed) to down (open). Its tooltip is the screen's (data-hint). */
 .gside-toggle-wrap { --u1: max(.6px, var(--gpx)); position: relative; z-index: 2; align-self: end; justify-self: center; translate: 0 50%; }
 .gside-toggle-wrap.gside-tree { justify-self: start; width: calc(606 * var(--u1)); max-width: 100%; display: flex; justify-content: center; pointer-events: none; translate: 0 calc(50% + 6.5 * var(--gpx)); }
-.gside-toggle-wrap.gside-slots { justify-self: start; margin-left: calc(466.2 / 971.35 * 100%); translate: -50% calc(50% + 6.5 * var(--gpx)); }
+.gside-toggle-wrap.gside-slots { justify-self: start; margin-left: calc(466.2 / 937 * 100%); translate: -50% calc(50% + 6.5 * var(--gpx)); }
 @media (max-width: 800px), (max-aspect-ratio: 4/5) {
   .gside-slots { grid-area: slots; }
   /* At least as tall as the tree panel (770 px): the slots area alone is too short for the list, so the row
@@ -771,6 +890,16 @@ button.gbtn:hover .glabel { color: var(--game-hold); }
 .gtip-hint .gtip-text { margin-top: calc(10 * var(--u1)); }
 /* A choice's name at the start of a hint line (a switch's), in the values' colour like the switch rows' names. */
 .gtip-term { color: var(--game-list-value); }
+/* Mutation tooltip (MutationTooltip): "ALLOWS USE OF:" and the trees, each underlined in its colour (the game's colour
+   list), and the requirements, one per line. */
+.gtip-mut { display: grid; margin: calc(12 * var(--u1)) calc(11 * var(--u1)) 0; }
+.gtip-mut .gtip-label { color: var(--game-level); font-size: calc(22 * var(--u1)); }
+.gtip-allows { display: flex; flex-wrap: wrap; gap: calc(6 * var(--u1)) calc(34 * var(--u1)); margin-top: calc(4 * var(--u1)); }
+.gtip-allow { padding: 0 calc(4 * var(--u1)) calc(2 * var(--u1)); border-bottom: calc(3 * var(--u1)) solid; }
+.gtip-allow[data-color="red"] { border-color: #c60000; }
+.gtip-allow[data-color="blue"] { border-color: #0049c6; }
+.gtip-allow[data-color="green"] { border-color: #4a9000; }
+.gtip-req-item { color: var(--game-req); }
 
 /* Toasts (ui/toast.js): bottom centre, over the layers. Each is the message popup's frame (popup/frame.svg,
    its lines only) on the tooltip's fill, with the tooltip's text. Sizes are game px times --u. */

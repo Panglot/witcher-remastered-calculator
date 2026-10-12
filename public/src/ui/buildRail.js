@@ -1,5 +1,4 @@
-// The build's share tools (ui/buildTools.js) stacked in a column right of the slots, in the page's
-// right margin and centred on the slots' height, plus their shortcuts:
+// The build's share tools (ui/buildTools.js) in a row over the legend (styles.css, .screen-rail), plus their shortcuts:
 // - Ctrl+C copies the code (unless text is selected: then the browser copies that),
 // - Ctrl+V opens Load code with its field focused, so the same key press pastes into it,
 // - Ctrl+S exports the file (instead of the browser saving the page).
@@ -26,7 +25,7 @@ export function mountBuildRail(app) {
     finally { busy = false; }
   }
 
-  el.innerHTML = `<div class="gbuild-rail" role="toolbar" aria-orientation="vertical" aria-label="Share and load">${
+  el.innerHTML = `<div class="gbuild-rail" role="toolbar" aria-orientation="horizontal" aria-label="Share and load">${
     TOOLS.map(t => toolButton(t)).join("")}</div>`;
   el.addEventListener("click", e => {
     const b = e.target.closest(TOOL);

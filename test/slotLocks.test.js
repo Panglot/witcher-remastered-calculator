@@ -79,14 +79,14 @@ test("hard: nothing new goes into a locked holder; what is there stays", () => {
 test("points: locked slots in use need points too, and say when they set the number", () => {
   // Spent 2, total 5, socket 1 (10) in use: 10 needed, 5 short, set by the slots.
   const s = state({ slots: [null, "r"] });
-  assert.deepEqual(stats.points(s, LOCK_SOFT), { total: 5, spent: 2, slots: 10, left: -5, bySlots: true });
+  assert.deepEqual(stats.points(s, LOCK_SOFT), { total: 5, spent: 2, skills: 2, mutations: 0, slots: 10, left: -5, bySlots: true });
   // Without locking the slots need nothing.
-  assert.deepEqual(stats.points(s, LOCK_NONE), { total: 5, spent: 2, slots: 0, left: 3, bySlots: false });
+  assert.deepEqual(stats.points(s, LOCK_NONE), { total: 5, spent: 2, skills: 2, mutations: 0, slots: 0, left: 3, bySlots: false });
   // Spent 6, below the slots' 10: still the slots. With only the first diamond (2) in use, the skills.
   const heavy = state({ pts: { r: 3, a: 3 }, slots: [null, "r"], budget: 0 });
-  assert.deepEqual(stats.points(heavy, LOCK_SOFT), { total: 0, spent: 6, slots: 10, left: -10, bySlots: true });
+  assert.deepEqual(stats.points(heavy, LOCK_SOFT), { total: 0, spent: 6, skills: 6, mutations: 0, slots: 10, left: -10, bySlots: true });
   const heavier = state({ pts: { r: 3, a: 3 }, slots: ["r", null], mut: ["red-x", ""], budget: 0 });
-  assert.deepEqual(stats.points(heavier, LOCK_SOFT), { total: 0, spent: 6, slots: 2, left: -6, bySlots: false });
+  assert.deepEqual(stats.points(heavier, LOCK_SOFT), { total: 0, spent: 6, skills: 6, mutations: 0, slots: 2, left: -6, bySlots: false });
   // The total opens every slot in use: only the skills count.
-  assert.deepEqual(stats.points(state({ slots: [null, "r"], budget: 12 }), LOCK_SOFT), { total: 12, spent: 2, slots: 10, left: 10, bySlots: false });
+  assert.deepEqual(stats.points(state({ slots: [null, "r"], budget: 12 }), LOCK_SOFT), { total: 12, spent: 2, skills: 2, mutations: 0, slots: 10, left: 10, bySlots: false });
 });

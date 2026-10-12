@@ -16,22 +16,40 @@ export function syncInput(el, value) {
 export const isLongPress = e => e.pointerType === "touch" || e.pointerType === "pen";
 
 // A touch screen as the main input: the same query as the touch rules in styles.css.
-export const isTouchScreen = () => window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+// The stacked layout's screens: phones and portrait screens. Keep in step with styles.css.
+export const STACKED_QUERY = "(max-width: 800px), (max-aspect-ratio: 4/5)";
+export const isTouchScreen =() => window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
 // Brings el's children in line with `html` in place: a node of the same kind as the new one is kept
 // and given its attributes and text, any other is replaced. Unlike innerHTML, what didn't change
 // stays the same element, so a redraw keeps focus, scroll and the element just tapped (a removed
 // one can move the page on phones).
+// Nodes match by position, so a part that shows only sometimes takes a `data-patch-key`: it then matches
+// only the node with the same key, and the nodes after it keep theirs (otherwise each would take
+// its neighbour's attributes, and a transition on them would animate the swap).
 export function patchHtml(el, html) {
   const t = document.createElement("template");
   t.innerHTML = html;
   patchChildren(el, t.content);
 }
+const keyOf = n => (n.nodeType === Node.ELEMENT_NODE && n.getAttribute("data-patch-key")) || null;
 function patchChildren(el, next) {
   const want = [...next.childNodes];
+  // Keyed nodes that went are removed first, so they don't stand in the way of the nodes after them.
+  const keys = new Set(want.map(keyOf).filter(Boolean));
+  [...el.childNodes].filter(n => keyOf(n) && !keys.has(keyOf(n))).forEach(n => n.remove());
+  const keyed = new Map([...el.childNodes].filter(keyOf).map(n => [keyOf(n), n]));
+  // Before each step the first i children already match the first i wanted.
   want.forEach((n, i) => {
-    const have = el.childNodes[i];
-    if (!have) el.append(n);
+    const have = el.childNodes[i] || null, key = keyOf(n);
+    if (key) {
+      const old = keyed.get(key);
+      if (old && old.nodeName === n.nodeName) { patchNode(old, n); if (old !== have) el.insertBefore(old, have); }
+      else el.insertBefore(n, have);
+    }
+    else if (!have) el.append(n);
+    // A keyed node is never taken for an unkeyed one: it moves on, to be matched later or removed.
+    else if (keyOf(have)) el.insertBefore(n, have);
     else if (have.nodeType === n.nodeType && have.nodeName === n.nodeName) patchNode(have, n);
     else el.replaceChild(n, have);
   });
@@ -116,5 +134,15 @@ export function blockKeyDefaults(keys) {
     if (!set.has(e.key.toLowerCase()) || !isHotkey(e)) return;
     if (onNativeControl(e)) return;
     e.preventDefault();
+  });
+}
+
+// Runs `fn` once the element's own animation ends, or now if it has none.
+export function afterAnimation(el, fn) {
+  if (getComputedStyle(el).animationName === "none") { fn(); return; }
+  el.addEventListener("animationend", function done(e) {
+    if (e.target !== el) return;
+    el.removeEventListener("animationend", done);
+    fn();
   });
 }

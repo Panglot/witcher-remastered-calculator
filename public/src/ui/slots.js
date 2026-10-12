@@ -11,12 +11,22 @@
 // Locked holders (core/slotLocks.js, by the slotLocking setting) show the lock: an empty one with
 // the game's locked tooltip, a full one with the lock warning over its item (gamePieces.js,
 // lockWarn) and a red line in its tooltip (ui/tooltip.js). lockNotice says in a toast when one opens.
+//
+// Mutations (core/mutations.js): the orb in the panel's centre. Without mutations it shows only on
+// hover; holding the left button on it adds mutations to the build and the panel moves into the
+// game's mutation layout (gamePanels.mutagenPanel). With mutations a click opens the Mutations panel
+// (ui/mutationsPanel.js) and a hold asks whether to remove them, moving the panel back. It has no
+// selection. The mutation sockets take part like the others, with their own gate (core/slotKinds.js):
+// closed ones show the lock, open ones the active mutation's colours (the game's colour border).
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
 import { createHold } from "./hold.js";
 import { createReselect } from "./reselect.js";
-import { skillIcon, MUTAGEN_ART, TREE_ART } from "./gameArt.js";
+import { confirmPopup } from "./popup.js";
+import { skillIcon, mutationArtColor, MUTAGEN_ART, TREE_ART } from "./gameArt.js";
 import { VIEWS } from "./gamePanels.js";
 import { highlightedSkills } from "../core/skillSets.js";
+import { mutationText } from "../core/mutations.js";
+import { MUTATION_LOOK_MODERN } from "../settings.js";
 
 // Holder attribute -> slot kind name. Sockets carry data-slot, diamonds data-group.
 const HOLDERS = { slot: "skill", group: "mutagen" };
@@ -28,9 +38,14 @@ const emptyTipAttrs = name => ` data-hint="${esc(EMPTY_TIP.text[name])}" data-hi
 // skill_slot_unlock_description says "Ability Points acquired").
 const LOCKED_TIP = { skill: "Locked slot", mutagen: "Locked mutagen slot" };
 const lockedTipAttrs = (name, points) => ` data-hint="Unlocks at ${points} points." data-hint-title="${esc(LOCKED_TIP[name])}"`;
+// The orb's tooltip without mutations, and its key (the game's C, ui/mutationsPanel.js).
+const ORB_TIP = { title: "Mutations", add: "Hold to add mutations to the build" };
+export const MUTATIONS_KEY = "C";
+// Mutation colours in the order the game names its colour borders (characterMenuDupe.ws: Red, Green, Blue).
+const BORDER_ORDER = ["red", "green", "blue"];
 
 export function mountSlots(app) {
-  const { catalog, planner, state, kinds } = app;
+  const { catalog, planner, state, kinds, mutations } = app;
   const { nodes, maxRank, mutagens, slots } = catalog;
   const el = $("slotsPanel");
   const hold = createHold(() => app.settings.holdMs);
@@ -49,14 +64,23 @@ export function mountSlots(app) {
   // In apply mode only holders of the kind being equipped take part.
   const aimable = h => app.apply && h.name === app.apply.kind;
 
-  const lockedAt = (name, i) => kinds[name].lockedAt(state, i);
-  const tipAttrs = (name, i) => lockedAt(name, i) ? lockedTipAttrs(name, kinds[name].unlockAt(i)) : emptyTipAttrs(name);
+  // A mutation socket is locked while it is closed (core/mutations.js), the others by points.
+  const lockedAt = (name, i) => name === "skill" && mutations.isMutationSlot(i) ? !mutations.slotOpen(state, i) : kinds[name].lockedAt(state, i);
+  function tipAttrs(name, i) {
+    if (name === "skill" && mutations.isMutationSlot(i) && lockedAt(name, i)) {
+      const need = catalog.mutations.stages[i - slots.base];
+      const text = mutations.equipped(state) ? catalog.mutations.labels.masterLocked.replace("$I$", need) : "Activate a mutation to use this slot.";
+      return ` data-hint="${esc(text)}" data-hint-title="${esc(LOCKED_TIP.skill)}"`;
+    }
+    return lockedAt(name, i) ? lockedTipAttrs(name, kinds[name].unlockAt(i)) : emptyTipAttrs(name);
+  }
 
   /**
    * After an item went into holder i, or failed to: a toast when the holder is locked. Hard mode
    * refused it (a failure toast with when it opens); soft mode took it (what opening it needs).
    */
   function lockNotice(name, i) {
+    if (name === "skill" && mutations.isMutationSlot(i)) return;
     if (!lockedAt(name, i)) return;
     const points = kinds[name].unlockAt(i);
     if (kinds[name].blockedAt(state, i)) app.toast.show(`Unlocks at ${points} points`, { tone: "bad" });
@@ -90,6 +114,31 @@ export function mountSlots(app) {
   const unequip = h => act(h, () => h.kind.clear(state, h.i));
   const raise = h => act(h, () => h.kind.raise(state, itemOf(h)));
 
+  // The orb: a hold adds mutations, or with them asks to remove them; a click opens them.
+  const orbHold = createHold(() => app.settings.holdMs);
+  let orbHeld = false, asking = false;
+  const orbOf = e => e.target.closest && e.target.closest("[data-orb]");
+  async function orbHoldDone() {
+    orbHeld = true;
+    if (!mutations.isOn(state)) { mutations.setOn(state, true); app.msg = ""; app.render(); return; }
+    if (asking || !app.game) return;
+    asking = true;
+    const researched = mutations.researchedCount(state);
+    const yes = await confirmPopup(app, {
+      title: "Remove mutations",
+      text: researched ? `Remove mutations from the build? ${researched === 1 ? "The researched mutation" : `All ${researched} researched mutations`} will be unresearched and their skill points refunded.`
+        : "Remove mutations from the build?"
+    });
+    asking = false;
+    if (yes) { mutations.setOn(state, false); app.msg = ""; app.render(); }
+  }
+  el.addEventListener("pointerdown", e => {
+    const g = orbOf(e);
+    if (!g || e.button !== 0 || app.apply) return;
+    orbHeld = false;
+    orbHold.press(e, g, orbHoldDone);
+  });
+
   el.addEventListener("pointerdown", e => {
     const h = holderOf(e); if (!h || e.button !== 0 || app.apply || !itemOf(h)) return;
     reselect.press(h.kind.framedAt(state, h.i));
@@ -97,6 +146,12 @@ export function mountSlots(app) {
     if (h.kind.canRaise(state, itemOf(h))) hold.press(e, h.g, () => { reselect.held(); raise(h); });
   });
   el.addEventListener("click", e => {
+    if (orbOf(e)) {
+      // The click that ends a hold isn't a click.
+      if (orbHeld) { orbHeld = false; return; }
+      if (mutations.isOn(state) && !app.apply) app.views.mutations.open();
+      return;
+    }
     const h = holderOf(e); if (!h) return;
     if (app.apply) { if (aimable(h) && app.views.apply.aim(h.i)) frame(h.g); return; }
     if (itemOf(h)) {
@@ -111,12 +166,14 @@ export function mountSlots(app) {
     if (itemOf(h)) unequip(h);
   });
   el.addEventListener("contextmenu", e => {
+    if (orbOf(e)) { e.preventDefault(); return; }
     const h = holderOf(e); if (!h) return;
     e.preventDefault();
     // A long press is the hold, not a right-click; nor does the right button take the skill out mid-hold.
     if (!app.apply && !isLongPress(e) && !hold.active() && itemOf(h)) unequip(h);
   });
   el.addEventListener("keydown", e => {
+    if (orbOf(e) && e.key === "Enter") { e.preventDefault(); orbHeld = false; orbOf(e).dispatchEvent(new MouseEvent("click", { bubbles: true })); return; }
     const h = holderOf(e); if (!h) return;
     if (e.key === "Enter") { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
     else if ((e.key === "Delete" || e.key === "Backspace") && !app.apply && itemOf(h)) { e.preventDefault(); unequip(h); }
@@ -170,7 +227,7 @@ export function mountSlots(app) {
   function socketView(index, lit, { marked, found }) {
     const id = state.slots[index], locked = lockedAt("skill", index);
     if (!id) {
-      const label = locked ? `Locked slot, unlocks at ${kinds.skill.unlockAt(index)} points.` : emptyLabel("slot", "skill");
+      const label = locked ? (mutations.isMutationSlot(index) ? "Locked mutation slot." : `Locked slot, unlocks at ${kinds.skill.unlockAt(index)} points.`) : emptyLabel("slot", "skill");
       return { ...holderView("skill", index, lit), locked, attrs: ` data-slot="${index}"${tipAttrs("skill", index)} tabindex="0" role="button" aria-label="${esc(label)}"` };
     }
     const n = nodes[id], rank = planner.rank(state, id);
@@ -196,6 +253,31 @@ export function mountSlots(app) {
     };
   }
 
+  // The mutation sockets: closed ones locked; all of them show the active mutation's colours, the
+  // first two along their bottom edge and the last two along their top, facing the orb
+  // (characterMenuDupe.ws: _Bottom for slots 13 and 14, _Top for 15 and 16).
+  function mutationSocketViews(lit, frames) {
+    const colors = mutations.colors(state), allowed = BORDER_ORDER.filter(c => colors.includes(c)).join("-");
+    return Array.from({ length: slots.mutation }, (_, k) => ({ ...socketView(slots.base + k, lit, frames), allowed, flip: k >= slots.mutation / 2 }));
+  }
+
+  // The orb: a ghost without mutations; with them the active mutation's colour, and in the Classic
+  // look its name, description and key cap (C) beside it (the Modern look puts the texts in its
+  // tooltip and leaves the key to the legend).
+  function orbView() {
+    if (!mutations.isOn(state)) {
+      return { color: "default", cls: "ghost", attrs: ` data-orb tabindex="0" role="button" aria-label="${esc(`${ORB_TIP.title}: ${ORB_TIP.add}`)}" data-hint="${esc(ORB_TIP.add)}" data-hint-title="${esc(ORB_TIP.title)}"` };
+    }
+    const id = mutations.equipped(state), m = id && catalog.mutations.items[id];
+    const classic = app.settings.mutationLook !== MUTATION_LOOK_MODERN;
+    const tip = m && !classic ? ` data-mutation="${id}"` : ` data-orbtip`;
+    return {
+      color: m ? mutationArtColor(m.colors) : "default", key: classic ? MUTATIONS_KEY : "",
+      name: m && classic ? m.name : "", description: m && classic ? mutationText(m) : "",
+      attrs: ` data-orb${tip} tabindex="0" role="button" aria-label="${esc(m ? `Mutations, ${m.name} active` : "Mutations")}"`
+    };
+  }
+
   function render() {
     if (!app.game) return;
     const lit = app.dropTargets.targets();
@@ -203,16 +285,21 @@ export function mountSlots(app) {
     // framed as in the tree (ui/tree.js) and the inventory.
     const frames = { marked: highlightedSkills(catalog, state.skillSets, app.settings.skillSetsMatchAll), found: app.found() };
     const groups = Array.from({ length: slots.groups }, (_, g) => groupView(g, lit, frames));
-    // In place, like the tree (ui/tree.js, render), so a focused holder stays.
-    patchHtml(el, app.game.panels.svg(VIEWS.slots, app.game.panels.mutagenPanel({ groups }),
+    const mutation = slots.mutation ? { on: mutations.isOn(state), sockets: mutationSocketViews(lit, frames), orb: orbView() } : null;
+    // In place, like the tree (ui/tree.js, render), so a focused holder stays and a switch of layout animates.
+    patchHtml(el, app.game.panels.svg(VIEWS.slots, app.game.panels.mutagenPanel({ groups, mutation }),
       ` role="group" aria-label="Skill slots and mutagens"`));
+    app.game.panels.orbTextGap(el);
   }
+
+  // The rows make room for the orb's description by its drawn height, which changes once the game font is in.
+  document.fonts.ready.then(() => app.game && app.game.panels.orbTextGap(el));
 
   // Mutagen colours must have game art; a new one in data/mutagens.js needs MUTAGEN_ART first.
   Object.values(mutagens).filter(m => !MUTAGEN_ART[m.color]).forEach(m => console.error(`No game art for mutagen colour "${m.color}" (${m.id}).`));
 
-  // Locks show by the slotLocking setting.
-  function settingChanged(key) { if (key === "slotLocking") app.render(); }
+  // Locks show by the slotLocking setting, the orb's texts by the mutation look.
+  function settingChanged(key) { if (key === "slotLocking" || key === "mutationLook") app.render(); }
 
   return { render, focus, showDrop, holderAt, lockNotice, settingChanged };
 }

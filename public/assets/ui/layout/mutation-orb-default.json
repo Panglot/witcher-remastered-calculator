@@ -1,0 +1,110 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "mc_background_color_85",
+ "children": {
+  "cell1": {
+   "character": 375,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    46.5,
+    22.6
+   ],
+   "cxform": {
+    "mult": [
+     0.23828125,
+     0.23828125,
+     0.23828125,
+     1.0
+    ],
+    "add": [
+     39,
+     39,
+     39,
+     0
+    ]
+   }
+  },
+  "cell2": {
+   "character": 375,
+   "class": null,
+   "matrix": [
+    0.60907,
+    0.0,
+    0.0,
+    0.60907,
+    63.7,
+    63.5
+   ],
+   "cxform": {
+    "mult": [
+     0.23828125,
+     0.23828125,
+     0.23828125,
+     1.0
+    ],
+    "add": [
+     39,
+     39,
+     39,
+     0
+    ]
+   }
+  },
+  "cell3": {
+   "character": 375,
+   "class": null,
+   "matrix": [
+    0.60907,
+    0.0,
+    0.0,
+    0.60907,
+    24.55,
+    32.15
+   ],
+   "cxform": {
+    "mult": [
+     0.23828125,
+     0.23828125,
+     0.23828125,
+     1.0
+    ],
+    "add": [
+     39,
+     39,
+     39,
+     0
+    ]
+   }
+  },
+  "cell4": {
+   "character": 378,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    30.05,
+    56.45
+   ],
+   "cxform": {
+    "mult": [
+     0.23828125,
+     0.23828125,
+     0.23828125,
+     1.0
+    ],
+    "add": [
+     39,
+     39,
+     39,
+     0
+    ]
+   }
+  }
+ }
+}

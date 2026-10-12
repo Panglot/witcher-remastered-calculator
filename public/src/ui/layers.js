@@ -1,7 +1,7 @@
 // The layer manager: one stack of everything open over the planner, so Esc, keys, focus and what
 // stays usable work the same way for each. The newest layer is on top, whatever its kind.
 //
-// A layer is { name, modal, live?, keys?, escape? }:
+// A layer is { name, modal, live?, keys?, escape?, rightBack? }:
 // - modal: popups and the Esc menu. While one is the top modal layer, everything but its live()
 //   elements is inert, the planner's page-wide keys are off, and the right mouse button backs out
 //   of it like Esc (the game's B). Non-modal layers (side panels, a drag) only take part in the
@@ -12,6 +12,8 @@
 //   layer that doesn't take a key still keeps it from the layers and planner keys below it.
 // - escape(): what Esc does while it is on top (the menu going back from a submenu); by default
 //   Esc closes it.
+// - rightBack: false keeps the right mouse button from backing out of a modal layer that uses it
+//   itself (the Mutations panel, ui/mutationsPanel.js). The browser's menu still stays shut.
 // Layers draw themselves (mask, frame, content). One appended to the page later sits above the
 // earlier ones at the same z-index, so open order is also drawing order.
 import { isLongPress } from "./dom.js";
@@ -60,10 +62,10 @@ export function createLayers({ setInert = () => {}, focused = () => null } = {})
     return !!idleEscape && idleEscape() !== false;
   }
 
-  /** The right mouse button: backs out of the top layer like Esc, if that layer is modal. True if it did. */
+  /** The right mouse button: backs out of the top layer like Esc, if that layer is modal and lets it. True if it did. */
   function back() {
     const t = top();
-    if (!t || !t.modal) return false;
+    if (!t || !t.modal || t.rightBack === false) return false;
     escape();
     return true;
   }

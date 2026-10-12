@@ -65,7 +65,12 @@ export function mountDrag(app) {
     swallowClick();
     end();
     const onKind = h && h.name === drag.kind && h.i !== drag.from;
-    if (!into) { if (onKind) app.views.slots.lockNotice(h.name, h.i); return; }
+    if (!into) {
+      // A mutation slot says why it refuses the item; a locked slot when it opens.
+      const why = onKind && kinds[drag.kind].refusalAt(state, h.i, drag.id);
+      if (why) app.toast.show(why, { tone: "bad" }); else if (onKind) app.views.slots.lockNotice(h.name, h.i);
+      return;
+    }
     const kind = kinds[drag.kind];
     app.msg = kind.move(state, drag.id, drag.from, h.i).msg;
     app.views.slots.lockNotice(drag.kind, h.i);

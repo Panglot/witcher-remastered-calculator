@@ -6,6 +6,8 @@ import { createTipHost } from "./tipHost.js";
 import { rankText, allRanksParts } from "../core/skillText.js";
 import { SKILL_TEXT_MODERN } from "../settings.js";
 import { setLabels } from "../core/skillSets.js";
+import { mutationText } from "../core/mutations.js";
+import { MUTAGEN_COLOR_ORDER } from "./gameArt.js";
 
 // Rounds away float noise in passive bonus totals (0.1 + 0.2).
 const tidy = n => Math.round(n * 10) / 10;
@@ -28,6 +30,37 @@ export const hintTip = (app, part) => app.game.panels.hintTooltip({
   title: part.dataset.hintTitle, text: part.dataset.hint, terms: part.dataset.hintTerms?.split("|"),
   note: part.dataset.hintNote, noteBad: "hintNoteBad" in part.dataset
 });
+
+// Greater mutagens by colour, as research costs list them.
+const MUTAGEN_NAMES = { red: "Greater red mutagen", green: "Greater green mutagen", blue: "Greater blue mutagen" };
+const plural = (n, word) => `${word}${n === 1 ? "" : "s"}`;
+
+/**
+ * A mutation's tooltip, as the game's Mutations panel shows it (gamePanels.mutationTooltip): the
+ * trees its slots take; the cost while it can be researched, the mutations it needs while it can't.
+ * `note`: a line under it (why an action was refused).
+ */
+export function mutationTip(app, id, note = "") {
+  const { catalog, mutations, state } = app, { items, labels } = catalog.mutations, m = items[id];
+  const enabled = mutations.requirementsMet(state, id), researched = mutations.isResearched(state, id);
+  const allows = catalog.order.filter(t => m.colors.includes(catalog.trees[t].mutagen))
+    .map(t => ({ label: catalog.trees[t].name, color: catalog.trees[t].mutagen }));
+  const cost = enabled && !researched ? [{ value: String(m.cost.points), label: plural(m.cost.points, "Skill point") }]
+    .concat(MUTAGEN_COLOR_ORDER.filter(c => m.cost[c]).map(c => ({ value: String(m.cost[c]), label: plural(m.cost[c], MUTAGEN_NAMES[c]) }))) : [];
+  return app.game.panels.mutationTooltip({
+    name: m.name, text: mutationText(m), allowsLabel: labels.allows, allows, cost,
+    requirementsLabel: labels.requirements, requirements: enabled ? [] : m.requires.map(r => items[r].name), note
+  });
+}
+
+/** Strengthened Synapses' tooltip: its stage, the slots it opens and what the next stage needs (characterMenuDupe.ws). */
+export function masterTip(app) {
+  const { catalog, mutations, state } = app, { master, labels, stages } = catalog.mutations;
+  const stage = mutations.stage(state), next = mutations.nextStage(state);
+  const lines = stage === 0 ? [labels.masterLocked.replace("$I$", stages[0])]
+    : [labels.masterSlots.replace("$I$", stage), ...(next != null ? [labels.masterNext.replace("$I$", next)] : [])];
+  return app.game.panels.mutationTooltip({ name: master.name, text: next != null ? labels.masterImprove : master.text, lines });
+}
 
 export function mountTooltip(app) {
   const { catalog, planner, state } = app;
@@ -74,13 +107,17 @@ export function mountTooltip(app) {
     });
   }
 
+  // The orb with mutations (ui/slots.js), without the active one's tooltip (the Classic look, or none active).
+  const orbTip = () => app.game.panels.hintTooltip({ title: "Mutations", text: "Click to open the mutations. Hold to remove them from the build." });
+
   // Tooltip kinds by data attribute: data-tip is a skill id, data-mutagen a mutagen id (with
-  // data-group when it sits in a group), data-hint plain text under the optional data-hint-title.
+  // data-group when it sits in a group), data-mutation a mutation id, data-orbtip the orb's hint,
+  // data-hint plain text under the optional data-hint-title.
   // On a touch screen apply mode shows none: each tap to pick a holder would cover the slots with one.
   return createTipHost({
     area: $("screen"), el: $("tooltip"),
-    kinds: { tip: skillTip, mutagen: mutagenTip, hint: part => hintTip(app, part) },
-    places: ["group", "slot"],
+    kinds: { tip: skillTip, mutagen: mutagenTip, mutation: part => mutationTip(app, part.dataset.mutation), orbtip: orbTip, hint: part => hintTip(app, part) },
+    places: ["group", "slot", "hintTitle"],
     shown: () => !!app.game && !app.drag && !(app.apply && isTouchScreen())
   });
 }

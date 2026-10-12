@@ -53,36 +53,41 @@ def strip_comments(xml):
     return re.sub(r'<!--.*?-->', '', xml, flags=re.S)
 
 
-def read_abilities(game_dir):
-    """{ability: {attribute: (min, max)}} as AttributeValues, from every gameplay/abilities XML."""
-    bundle = content_path(game_dir, 'bundles', 'xml.bundle')
+def read_abilities(game_dir, sources=(('xml.bundle', ABILITY_DIR),)):
+    """{ability: {attribute: (min, max)}} as AttributeValues, from every abilities XML of `sources`:
+    (bundle, folder) pairs, gameplay/abilities in xml.bundle by default."""
     abilities, untyped, skills_xml, bad = {}, set(), None, []
-    for entry in read_bundle_toc(bundle):
-        if not (entry[0].startswith(ABILITY_DIR) and entry[0].endswith('.xml')):
-            continue
-        xml = strip_comments(read_bundle_file(bundle, entry).decode('utf-8', errors='replace'))
-        if entry[0] == SKILLS_XML:
-            skills_xml = xml
-        for name, body in re.findall(r'<ability\s+name="([^"]+)"[^>]*>(.*?)</ability>', xml, flags=re.S):
-            attrs = abilities.setdefault(name, {})
-            for attr, props in re.findall(r'<(\w+)\s+([^>]*?)/>', body):
-                p = dict(re.findall(r'(\w+)="([^"]*)"', props))
-                if 'min' not in p and 'max' not in p:
-                    continue
-                if 'type' not in p:
-                    untyped.add('%s.%s' % (name, attr))
-                field = VALUE_FIELD.get(p.get('type', 'base'), 'valueBase')
-                try:
-                    lo = float(p.get('min', p.get('max')))
-                    hi = float(p.get('max', lo))
-                except ValueError:
-                    bad.append('%s.%s has an unreadable number (%s)' % (name, attr, props.strip()))
-                    continue
-                # One attribute can be listed once per type (add, mult, base): they combine.
-                pair = attrs.setdefault(attr, (AttributeValue(src=(attr,)), AttributeValue(src=(attr,))))
-                for av, v in zip(pair, (lo, hi)):
-                    setattr(av, field, getattr(av, field) + v)
+    for bundle_name, folder in sources:
+        bundle = content_path(game_dir, 'bundles', bundle_name)
+        for entry in read_bundle_toc(bundle):
+            if entry[0].startswith(folder) and entry[0].endswith('.xml'):
+                xml = strip_comments(read_bundle_file(bundle, entry).decode('utf-8', errors='replace'))
+                skills_xml = read_ability_xml(entry[0], xml, abilities, untyped, bad) or skills_xml
     return abilities, skills_xml, untyped, bad
+
+
+def read_ability_xml(path, xml, abilities, untyped, bad):
+    """Adds one abilities XML's abilities to `abilities`; returns the XML if it is geralt_skills.xml."""
+    for name, body in re.findall(r'<ability\s+name="([^"]+)"[^>]*>(.*?)</ability>', xml, flags=re.S):
+        attrs = abilities.setdefault(name, {})
+        for attr, props in re.findall(r'<(\w+)\s+([^>]*?)/>', body):
+            p = dict(re.findall(r'(\w+)="([^"]*)"', props))
+            if 'min' not in p and 'max' not in p:
+                continue
+            if 'type' not in p:
+                untyped.add('%s.%s' % (name, attr))
+            field = VALUE_FIELD.get(p.get('type', 'base'), 'valueBase')
+            try:
+                lo = float(p.get('min', p.get('max')))
+                hi = float(p.get('max', lo))
+            except ValueError:
+                bad.append('%s.%s has an unreadable number (%s)' % (name, attr, props.strip()))
+                continue
+            # One attribute can be listed once per type (add, mult, base): they combine.
+            pair = attrs.setdefault(attr, (AttributeValue(src=(attr,)), AttributeValue(src=(attr,))))
+            for av, v in zip(pair, (lo, hi)):
+                setattr(av, field, getattr(av, field) + v)
+    return xml if path == SKILLS_XML else None
 
 
 def read_tree_skills(skills_xml):
@@ -96,9 +101,10 @@ def read_tree_skills(skills_xml):
 
 
 class SkillTooltips:
-    def __init__(self, game_dir, lang):
+    def __init__(self, game_dir, lang, ability_sources=(('xml.bundle', ABILITY_DIR),)):
+        """ability_sources: the (bundle, folder) pairs abilities are read from (read_abilities)."""
         self.strings = W3Strings(content_path(game_dir, '%s.w3strings' % lang))
-        self.abilities, skills_xml, self.untyped, self.bad_numbers = read_abilities(game_dir)
+        self.abilities, skills_xml, self.untyped, self.bad_numbers = read_abilities(game_dir, ability_sources)
         self.skills = read_tree_skills(skills_xml)
         self.index = ScriptIndex(content_path(game_dir, 'scripts'))
         self.warnings = []

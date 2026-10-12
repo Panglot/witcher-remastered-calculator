@@ -17,6 +17,16 @@ export const BACKGROUND_CYCLE = "cycle";
 export const SKILL_TEXT_CLASSIC = "classic";
 export const SKILL_TEXT_MODERN = "modern";
 
+// Taking out a skill point or a mutation that others need (core/planner.js removePoint,
+// core/mutations.js unresearch): refused until those are removed, or removed together with them.
+export const REMOVAL_BLOCK = "block";
+export const REMOVAL_CASCADE = "cascade";
+
+// The active mutation in the slot panel (ui/slots.js): the game's name and description beside the
+// orb, or the orb alone with both in its tooltip.
+export const MUTATION_LOOK_CLASSIC = "classic";
+export const MUTATION_LOOK_MODERN = "modern";
+
 export function defaultSettings() {
   return {
     // Open accordion sections per side panel: { [panel name]: section ids }. Closed by default.
@@ -32,7 +42,11 @@ export function defaultSettings() {
     skillSetsMatchAll: false,
     skillSetsInTooltip: false,
     // How slot locks act (core/slotLocks.js): LOCK_NONE, LOCK_SOFT or LOCK_HARD.
-    slotLocking: LOCK_SOFT
+    slotLocking: LOCK_SOFT,
+    // REMOVAL_BLOCK or REMOVAL_CASCADE.
+    removal: REMOVAL_CASCADE,
+    // MUTATION_LOOK_CLASSIC or MUTATION_LOOK_MODERN.
+    mutationLook: MUTATION_LOOK_CLASSIC
   };
 }
 
@@ -65,6 +79,16 @@ export const OPTIONS = {
     key: "slotLocking", label: "Slot locking", offFirst: true,
     hint: "Soft locked slots still take skills and mutagens, but display the requirements.\nHard locked slots do not allow slotting, as in the game.",
     choices: [{ value: LOCK_NONE, label: "No locking" }, { value: LOCK_SOFT, label: "Soft" }, { value: LOCK_HARD, label: "Hard" }]
+  },
+  removal: {
+    key: "removal", label: "Skills removal cascade",
+    hint: "Off stops you from removing skills that are needed for others.\nOn allows you to remove any skill and skills requiring it will auto remove.",
+    choices: [{ value: REMOVAL_BLOCK, label: "Off" }, { value: REMOVAL_CASCADE, label: "On" }]
+  },
+  mutationLook: {
+    key: "mutationLook", label: "Mutation look",
+    hint: "Classic shows the active mutation's name and description beside it, as in the game.\nModern shows them in its tooltip.",
+    choices: [{ value: MUTATION_LOOK_CLASSIC, label: "Classic" }, { value: MUTATION_LOOK_MODERN, label: "Modern" }]
   }
 };
 

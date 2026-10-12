@@ -1,5 +1,5 @@
 // Skill-tree rules: unlocking, ranks, slots and mutagen bonuses.
-// Pure: every function works on a plain build object { pts, slots, mut } and the catalog.
+// Pure: every function works on a plain build object { pts, slots, mut, mutations? } and the catalog.
 // `mut` holds one mutagen id per slot group ("" = none); a mutagen can fill any number of groups.
 // Actions mutate the build and return { ok, msg }; msg explains a refusal and is "" on success.
 // Skills in slots and mutagens in groups have matching actions (canEquip, equip, clear), so
@@ -38,8 +38,11 @@ export function createPlanner(catalog) {
 
   // A point can go in (the game starts its hold fill only then).
   const canAddPoint = (b, id) => rank(b, id) < maxRank && isOpen(b, id);
-  // A point can come out: the skill has one, and taking its last leaves no skill cut off.
-  const canRemovePoint = (b, id) => rank(b, id) > 1 || (rank(b, id) === 1 && !strandedIfRemoved(b, id).length);
+  // A point can come out: the skill has one, and taking its last leaves no skill cut off (with
+  // `cascade`, the skills cut off come out with it).
+  const canRemovePoint = (b, id, { cascade = false } = {}) => rank(b, id) > 1 || (rank(b, id) === 1 && (cascade || !strandedIfRemoved(b, id).length));
+  // The skills a cascade would take with the next point out of `id`: only its last point cuts any off.
+  const cascadeOf = (b, id) => rank(b, id) === 1 ? strandedIfRemoved(b, id) : [];
 
   function addPoint(b, id) {
     if (rank(b, id) >= maxRank) return refuse(`${nodes[id].name} is already at rank ${maxRank}.`);
@@ -48,22 +51,28 @@ export function createPlanner(catalog) {
     return done;
   }
 
-  function removePoint(b, id) {
-    if (rank(b, id) === 0) return refuse("");
-    if (rank(b, id) > 1) { b.pts[id] = rank(b, id) - 1; return done; }
+  /**
+   * Takes a point out. The last point of a skill that others hang from is refused, or with `cascade`
+   * takes every skill cut off with it (the cascade removal setting, settings.js). `removed` lists the
+   * skills that lost all their points.
+   */
+  function removePoint(b, id, { cascade = false } = {}) {
+    if (rank(b, id) === 0) return { ...refuse(""), removed: [] };
+    if (rank(b, id) > 1) { b.pts[id] = rank(b, id) - 1; return { ...done, removed: [] }; }
     const stranded = strandedIfRemoved(b, id);
-    if (stranded.length) return refuse(`Can't remove the last point: ${stranded.map(k => nodes[k].name).join(", ")} would lose its connection. Remove those first.`);
-    delete b.pts[id];
-    b.slots = b.slots.map(s => s === id ? null : s);
-    return done;
+    if (stranded.length && !cascade) return { ...refuse(`Can't remove the last point: ${stranded.map(k => nodes[k].name).join(", ")} would lose its connection. Remove those first.`), removed: [] };
+    const removed = [id, ...stranded];
+    removed.forEach(k => { delete b.pts[k]; });
+    b.slots = b.slots.map(s => removed.includes(s) ? null : s);
+    return { ...done, removed };
   }
 
   function toggleSlot(b, id) {
     const at = b.slots.indexOf(id);
     if (at >= 0) { b.slots[at] = null; return done; }
     if (rank(b, id) === 0) return refuse("Put at least one point in a skill before slotting it.");
-    const free = b.slots.indexOf(null);
-    if (free < 0) return refuse(`All ${slots.total} slots are full. Clear one first.`);
+    const free = b.slots.slice(0, slots.base).indexOf(null);
+    if (free < 0) return refuse(`All ${slots.base} slots are full. Clear one first.`);
     b.slots[free] = id;
     return done;
   }
@@ -91,11 +100,13 @@ export function createPlanner(catalog) {
     return done;
   }
 
-  // Full reset: refunds every point and unequips every skill and mutagen.
+  // Full reset: refunds every point (research included) and unequips every skill, mutagen and
+  // mutation. Mutations stay part of the build (core/mutations.js, on).
   function clearAll(b) {
     b.pts = {};
     b.slots = Array(slots.total).fill(null);
     b.mut = Array(slots.groups).fill("");
+    if (b.mutations) b.mutations = { ...b.mutations, researched: [], equipped: "" };
     return done;
   }
 
@@ -153,7 +164,7 @@ export function createPlanner(catalog) {
   }
 
   return {
-    rank, isOpen, canAddPoint, canRemovePoint, isSlotted, spentIn, spentAll, strandedIfRemoved,
+    rank, isOpen, canAddPoint, canRemovePoint, cascadeOf, isSlotted, spentIn, spentAll, strandedIfRemoved,
     addPoint, removePoint, toggleSlot, canEquipSkill, equipSkill, clearSlot, clearTree, clearAll,
     canEquipMutagen, equipMutagen, clearMutagen, unequipMutagen, groupSlots, groupBonus, passiveValue,
     skillNumber, synergyPercent

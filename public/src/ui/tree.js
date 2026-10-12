@@ -3,11 +3,14 @@
 // shows the inventory (ui/mutagenList.js).
 // Skills: pressing selects, and clicking the selected one again deselects it, unless a second
 // click follows (ui/reselect.js); holding the left button or E (on the focused or selected skill) adds a
-// point, as the game's "[Hold] Acquire Ability" does (ui/hold.js); right-click removes one. Space or
+// point, as the game's "[Hold] Acquire Ability" does (ui/hold.js); right-click removes one (the last
+// point of a skill others need: refused, or with the cascade removal setting taken with them, their
+// backgrounds fading out; ui/cascade.js previews what would go). Space or
 // a double-click on a learned skill equips it through apply mode (ui/applyMode.js). With a skill
 // focused, Enter selects or deselects and + / - change rank. On touch screens, arrow buttons on a skill's sides
 // take a point out (left, down) or put one in (right, up); styles.css shows them only there.
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
+import { createCascade } from "./cascade.js";
 import { createHold } from "./hold.js";
 import { createReselect } from "./reselect.js";
 import { skillIcon, TREE_ART } from "./gameArt.js";
@@ -91,6 +94,8 @@ export function mountTree(app) {
 
   return {
     render,
+    // Hands a removal's result to the cascade's fade (ui/cascade.js), before the redraw.
+    took: r => skills.took(r),
     liftView: (kind, id) => byKind[kind].liftView(id),
     icon: (kind, id) => byKind[kind].icon(id),
     focus: (kind, id) => byKind[kind].focus(id)
@@ -114,13 +119,22 @@ function createSkillTree(app, el) {
     const g = nodeEl(id);
     if (g) { g.classList.remove("shake"); void g.getBBox(); g.classList.add("shake"); }
   }
-  // Runs a planner action on a skill, redraws, keeps focus, and shakes the node if it was refused with a reason.
+  // Runs a planner action on a skill, redraws (fading out what a cascade took), keeps focus, and
+  // shakes the node if it was refused with a reason.
   function act(id, action) {
     selectNode(id);
     const r = action(state, id);
+    cascade.took(r);
     app.msg = r.msg; app.render(); focusNode(id);
     if (!r.ok && r.msg) shake(id);
   }
+  // What removing the hovered or selected skill would take (ui/cascade.js).
+  const cascade = createCascade({
+    el, selector: ".gnode[data-id]", idOf: g => g.dataset.id, on: app.cascade,
+    takes: id => planner.cascadeOf(state, id), selected: () => kind.selected(state)
+  });
+  // Removing a point follows the removal setting (settings.js).
+  const removePoint = (s, id) => planner.removePoint(s, id, { cascade: app.cascade() });
   const skillOf = e => { const g = e.target.closest("[data-id]"); return g && g.dataset.id; };
   // Selects, or with on false deselects, in place (no tree redraw), so the pressed element stays
   // under the pointer.
@@ -130,6 +144,7 @@ function createSkillTree(app, el) {
     el.querySelectorAll(".gnode.selected").forEach(n => n.classList.remove("selected"));
     if (on) g.classList.add("selected");
     ["slots", "legend", "tooltip"].forEach(v => app.views[v].render()); app.save();
+    cascade.refresh();
   }
   const reselect = createReselect();
   const framed = id => kind.framedInPanel(state, id);
@@ -146,11 +161,11 @@ function createSkillTree(app, el) {
   function steps(id) {
     const label = what => ` data-step="${what}" data-step-id="${id}" role="button" aria-label="${what === "add" ? "Add a point to" : "Remove a point from"} ${esc(nodes[id].name)}"`;
     return {
-      remove: planner.canRemovePoint(state, id) ? label("remove") : null,
+      remove: planner.canRemovePoint(state, id, { cascade: app.cascade() }) ? label("remove") : null,
       add: planner.canAddPoint(state, id) ? label("add") : null
     };
   }
-  const STEP_ACTIONS = { add: planner.addPoint, remove: planner.removePoint };
+  const STEP_ACTIONS = { add: planner.addPoint, remove: removePoint };
 
   /** @returns {import("./gamePanels.js").NodeView} */
   function nodeView(n) {
@@ -195,6 +210,7 @@ function createSkillTree(app, el) {
       const id = b.dataset.stepId;
       selectNode(id);
       const r = STEP_ACTIONS[b.dataset.step](state, id);
+      cascade.took(r);
       app.msg = r.msg; app.render();
       if (!r.ok && r.msg) shake(id);
     },
@@ -203,7 +219,7 @@ function createSkillTree(app, el) {
       const id = skillOf(e); if (!id) return;
       e.preventDefault();
       // A long press is the hold, not a right-click; nor does the right button remove a point mid-hold.
-      if (!isLongPress(e) && !hold.active()) act(id, planner.removePoint);
+      if (!isLongPress(e) && !hold.active()) act(id, removePoint);
     },
     hotkey(e) {
       const key = e.key.toLowerCase();
@@ -226,19 +242,20 @@ function createSkillTree(app, el) {
         app.msg = ""; app.render(); focusNode(id);
       }
       else if (e.key === "+" || e.key === "=") { e.preventDefault(); act(id, planner.addPoint); }
-      else if (e.key === "-" || e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); act(id, planner.removePoint); }
+      else if (e.key === "-" || e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); act(id, removePoint); }
     },
     liftView: id => ({ color: TREE_ART[nodes[id].tree].color, node: nodeView(nodes[id]) }),
     icon: id => skillIcon(nodes[id].tree, nodes[id].game),
     focus: focusNode,
+    took: r => cascade.took(r),
     panel() {
       const T = catalog.trees[state.tab];
       const list = catalog.skillsIn(state.tab);
       const index = Object.fromEntries(list.map((n, i) => [n.id, i]));
-      const marked = highlighted(), found = app.found().skill;
+      const marked = highlighted(), found = app.found().skill, c = cascade.view();
       const grid = {
         color: TREE_ART[state.tab].color,
-        nodes: list.map(n => ({ ...nodeView(n), marked: marked.get(n.id) || 0, found: found.has(n.id), steps: steps(n.id) })),
+        nodes: list.map(n => ({ ...nodeView(n), cls: c.cls(n.id), fading: c.fading(n.id), marked: marked.get(n.id) || 0, found: found.has(n.id), steps: steps(n.id) })),
         links: edges.filter(([a]) => nodes[a].tree === state.tab)
           .map(([a, b]) => ({ a: index[a], b: index[b], state: linkState(a, b) }))
       };

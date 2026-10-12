@@ -8,10 +8,11 @@ import { createCatalog } from "./core/catalog.js";
 import { createPlanner } from "./core/planner.js";
 import { createSlotKinds } from "./core/slotKinds.js";
 import { createSlotLocks } from "./core/slotLocks.js";
+import { createMutations } from "./core/mutations.js";
 import { createSearch } from "./core/search.js";
 import { createStats } from "./core/stats.js";
 import { loadState, saveState } from "./state.js";
-import { loadSettings, saveSettings } from "./settings.js";
+import { loadSettings, saveSettings, REMOVAL_CASCADE } from "./settings.js";
 import { $, esc, blockKeyDefaults, createHotkeys, syncAnimations, PLANNER_KEYS } from "./ui/dom.js";
 import { loadArt } from "./ui/gameArt.js";
 import { createPieces, glowFilters, stepDefs } from "./ui/gamePieces.js";
@@ -29,6 +30,7 @@ import { mountStatistics } from "./ui/statistics.js";
 import { mountSkillSets } from "./ui/skillSets.js";
 import { mountBuilds } from "./ui/builds.js";
 import { mountSearch } from "./ui/search.js";
+import { mountMutations } from "./ui/mutationsPanel.js";
 import { createBuildShare } from "./ui/share.js";
 import { mountMenu } from "./ui/menu.js";
 import { mountBuildRail } from "./ui/buildRail.js";
@@ -45,16 +47,21 @@ const planner = createPlanner(catalog);
 const layers = createPageLayers();
 const search = createSearch(catalog);
 const locks = createSlotLocks(catalog);
+const mutations = createMutations(catalog);
 const app = {
   catalog,
   planner,
+  // Blood and Wine mutations (core/mutations.js): research, the active one, the mutation slots.
+  mutations,
+  // Removing a skill point or mutation others need takes them too (the removal setting).
+  cascade: () => app.settings.removal === REMOVAL_CASCADE,
   // Slot locks by the build's points (core/slotLocks.js); how they act is the slotLocking setting.
   locks,
   lockMode: () => app.settings.slotLocking,
   // Skills and mutagens as slot kinds: one set of slotting and selection rules for both, locks included.
-  kinds: createSlotKinds(catalog, planner, { locks, mode: () => app.lockMode() }),
+  kinds: createSlotKinds(catalog, planner, { locks, mode: () => app.lockMode(), mutations }),
   // What the build adds up to (core/stats.js); points(state, app.lockMode()) counts the locked slots in use.
-  stats: createStats(catalog, planner, locks),
+  stats: createStats(catalog, planner, locks, mutations),
   state: loadState(catalog),
   // The skills and mutagens a search query matches (core/search.js), by default the open search's (ui/search.js).
   found: (query = app.state.search) => search.find(query),
@@ -108,18 +115,20 @@ app.views = {
   tree: mountTree(app),
   points: mountPoints(app),
   slots: mountSlots(app),
-  // The share tools right of the slots, with Ctrl+C, Ctrl+V and Ctrl+S.
+  // The share tools over the legend, with Ctrl+C, Ctrl+V and Ctrl+S.
   rail: mountBuildRail(app),
   apply: mountApplyMode(app),
   drag: mountDrag(app),
   legend: mountLegend(app),
-  // Side panels (C over the tree; S and B over the slots, one at a time).
+  // Side panels (D over the tree; S and B over the slots, one at a time).
   stats: mountStatistics(app),
   skillSets: mountSkillSets(app),
   builds: mountBuilds(app),
   // Ctrl+F and the legend's Search: frames the skills and mutagens a query matches.
   search: mountSearch(app),
   tooltip: mountTooltip(app),
+  // The Mutations panel (C, or a click on the orb), over everything else.
+  mutations: mountMutations(app),
   // The Esc menu; Esc with nothing open opens it.
   menu: mountMenu(app)
 };
@@ -145,6 +154,8 @@ $("gameDefs").innerHTML = glowFilters() + statIconFilters() + stepDefs();
 loadArt().then(art => {
   const pieces = createPieces(art);
   app.game = { art, pieces, panels: createPanels(art, pieces) };
+  // The mutation art's colour transforms, read from the layouts just loaded.
+  $("gameDefs").insertAdjacentHTML("beforeend", pieces.tintDefs());
   app.render();
   // A share link opened in the browser loads its build (asking first over a non-empty one).
   createBuildShare(app).loadFromAddress();

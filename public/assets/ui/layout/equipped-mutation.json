@@ -1,0 +1,76 @@
+{
+ "_about": "Units: px. matrix = SVG matrix(a, b, c, d, tx, ty) of the child in its parent. cxform: color = color * mult + add (alpha mult 0-1). text.size: font size in px, text.color: #rrggbbaa.",
+ "sprite": "EquippedMutationItemRef",
+ "children": {
+  "mcMutationAnimation": {
+   "character": 390,
+   "class": "MasterMutationItem_mutationAnimation_83",
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    2.2,
+    0.2
+   ]
+  },
+  "tfMutationDescription": {
+   "character": 598,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    135.2,
+    -51.95
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     418.0,
+     85.5
+    ],
+    "size": 20.0,
+    "color": "#fffffffc",
+    "align": "left"
+   }
+  },
+  "tfState": {
+   "character": 599,
+   "class": null,
+   "matrix": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -521.95,
+    -58.0
+   ],
+   "text": {
+    "box": [
+     -2.0,
+     -2.0,
+     396.45,
+     32.55
+    ],
+    "size": 24.0,
+    "color": "#ffffffff",
+    "align": "right"
+   }
+  },
+  "btnMutationMode": {
+   "character": 213,
+   "class": "InputFeedbackButtonRef",
+   "matrix": [
+    1.2,
+    0.0,
+    0.0,
+    1.19997,
+    -345.75,
+    9.05
+   ]
+  }
+ }
+}

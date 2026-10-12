@@ -1,14 +1,15 @@
 // The Statistics panel: a side panel (ui/sidePanel.js) over the tree panel and its tabs, toggled
-// with C or the arrow above POINTS AVAILABLE, which stays visible.
+// with D or the arrow above POINTS AVAILABLE, which stays visible.
 // Its Points section is the one place that sets the points budget (core/budget.js): a total that
 // Level, Places of power and Other add up to, or a custom total typed in, for New Game or NG+.
-// Then it shows what the build adds up to (core/stats.js): the build-wide totals, then a flat bar
-// per tree in its colour with its passive and points. Slotted skills and mutagens aren't listed:
+// Then it shows what the build adds up to (core/stats.js): once mutations are researched, the greater
+// mutagens their research takes, per colour; then the build-wide totals, then a flat bar per tree
+// in its colour with its passive and points. Slotted skills and mutagens aren't listed:
 // the slots show them, with the skill text in their tooltips.
 import { $, syncInput } from "./dom.js";
 import { createSidePanel, barList, statRows, subhead, note, switchRows } from "./sidePanel.js";
 import { bindOptionRows, bindOptionKeys } from "./options.js";
-import { TREE_ART } from "./gameArt.js";
+import { TREE_ART, MUTAGEN_COLOR_ORDER } from "./gameArt.js";
 import { SOURCE_FIELDS } from "../core/budget.js";
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
@@ -20,6 +21,8 @@ const FIELDS = { total: ["Total", 3], level: ["Level", 3], places: ["Places of p
 const UNUSED = "-";
 // The playthrough switch: a switch row like the Skill sets' (sidePanel.js, switchRows). It sets the
 // fields' limits (core/budget.js), not the points: switching keeps them, Set max fills them up.
+// Greater mutagen colours' row labels.
+const MUTAGEN_LABELS = { red: "Red", green: "Green", blue: "Blue" };
 const NG_PLUS = { key: "ngPlus", label: "Playthrough", choices: [{ value: false, label: "New Game" }, { value: true, label: "New Game+" }] };
 
 export function mountStatistics(app) {
@@ -56,8 +59,8 @@ export function mountStatistics(app) {
   <div class="gpoints">
     ${SOURCE_FIELDS.map(numField).join("")}
     ${numField("total")}
-    <div class="gpoint"><span class="gstat-value" id="statsSpent"></span><span class="gstat-label">Spent</span></div>
-    <div class="gpoint" id="statsLeftPair" data-hint-title="Points needed" data-hint-terms="Skills|Slots"><span class="gstat-value gpoint-lockable"><span id="statsLeft"></span><span class="gpoint-lock" id="statsLock" hidden></span></span><span class="gstat-label gpoint-swap" id="statsLeftLabel"><span>Available</span><span>Needed</span></span></div>
+    <div class="gpoint" id="statsSpentPair" data-hint-title="Points spent" data-hint-terms="Skills|Mutations"><span class="gstat-value" id="statsSpent"></span><span class="gstat-label">Spent</span></div>
+    <div class="gpoint" id="statsLeftPair" data-hint-title="Points needed" data-hint-terms="Skills|Mutations|Slots"><span class="gstat-value gpoint-lockable"><span id="statsLeft"></span><span class="gpoint-lock" id="statsLock" hidden></span></span><span class="gstat-label gpoint-swap" id="statsLeftLabel"><span>Available</span><span>Needed</span></span></div>
   </div>`;
 
   // One row per total: what always applies, "up to" the most with every condition met, and a value
@@ -76,6 +79,14 @@ export function mountStatistics(app) {
       : note("Slot skills or equip mutagens to see what they add up to.")) + "</div>";
   }
 
+  // The greater mutagens the researched mutations take (core/stats.js, mutationCost): a row per
+  // colour on its colour's band, all on one line. Shown once a mutation is researched.
+  function mutagensBlock(cost) {
+    if (!cost) return "";
+    const rows = MUTAGEN_COLOR_ORDER.map(color => ({ value: String(cost[color]), label: MUTAGEN_LABELS[color], color }));
+    return `<div class="gside-overview">${subhead("Greater mutagens needed")}${statRows(rows, { inline: true })}</div>`;
+  }
+
   // A tree's bar (barList): its passive bonus after the name, its spent points at the right end.
   function treeBar(t) {
     const { color, stat } = TREE_ART[t.id];
@@ -84,7 +95,7 @@ export function mountStatistics(app) {
   }
 
   const panel = createSidePanel(app, {
-    name: "stats", title: "Statistics", area: "tree", cover: $("treePanel"), key: "c",
+    name: "stats", title: "Statistics", area: "tree", cover: $("treePanel"), key: "d",
     hint: "Points, stat totals and tree bonuses of this build.",
     head,
     mount(body) {
@@ -118,9 +129,34 @@ export function mountStatistics(app) {
     },
     markup() {
       const s = stats.summary(state);
-      return totalsBlock(s.totals) + `<div class="gside-overview">${subhead("Trees")}${barList(s.trees.map(treeBar))}</div>`;
+      return mutagensBlock(s.mutations) + totalsBlock(s.totals) + `<div class="gside-overview">${subhead("Trees")}${barList(s.trees.map(treeBar))}</div>`;
     }
   });
+
+  const pointCount = v => `${v} ${v === 1 ? "point" : "points"}`;
+  /** What skills and mutations use, a line each, leaving out the ones at 0. */
+  const usedLines = (skills, mutations) => [
+    skills && `Skills used ${pointCount(skills)}.`,
+    mutations && `Mutations used ${pointCount(mutations)}.`
+  ].filter(Boolean);
+  /** The points spent, split: only when both skills and mutations use some. */
+  const spentHint = ({ skills, mutations }) => skills && mutations ? usedLines(skills, mutations).join("\n") : "";
+  /**
+   * What makes up the points needed: what skills and mutations use and, when the slots set it,
+   * what they need. Shown when the slots set it or both skills and mutations use points.
+   */
+  function neededHint({ skills, mutations, slots, left, bySlots }) {
+    if (left >= 0) return "";
+    const lines = usedLines(skills, mutations);
+    if (bySlots) return [...lines, `Slots need ${pointCount(slots)} to be unlocked.`].join("\n");
+    return lines.length > 1 ? lines.join("\n") : "";
+  }
+
+  /** Sets a counter's tooltip, or removes it when `hint` is empty. */
+  function setHint(el, hint) {
+    if (hint) el.dataset.hint = hint;
+    else delete el.dataset.hint;
+  }
 
   function render() {
     const { body } = panel;
@@ -129,12 +165,12 @@ export function mountStatistics(app) {
     syncInput(body.querySelector('[data-points="total"]'), state.budget);
     SOURCE_FIELDS.forEach(k => syncInput(body.querySelector(`[data-points="${k}"]`), p.custom ? "" : p[k]));
     ngPlusRow.redraw();
-    const { spent, slots, left, bySlots } = stats.points(state, app.lockMode());
+    const points = stats.points(state, app.lockMode());
+    const { spent, left, bySlots } = points;
     body.querySelector("#statsSpent").textContent = spent;
+    setHint(body.querySelector("#statsSpentPair"), spentHint(points));
     body.querySelector("#statsLock").hidden = !bySlots;
-    const pair = body.querySelector("#statsLeftPair");
-    if (bySlots) pair.dataset.hint = `Skills need ${spent} points.\nSlots need ${slots} points to be unlocked.`;
-    else delete pair.dataset.hint;
+    setHint(body.querySelector("#statsLeftPair"), neededHint(points));
     body.querySelector("#statsLeft").textContent = Math.abs(left);
     // Both labels stay in the cell, so its width doesn't change when one replaces the other (styles.css, .gpoint-swap).
     body.querySelector("#statsLeftLabel").classList.toggle("over", left < 0);
