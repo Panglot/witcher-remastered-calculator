@@ -130,7 +130,7 @@ Many slices are 2x assets drawn at 0.5 scale (tree backgrounds, frame, separator
 | `skills/` | `<tree>/<skill id>.png` (137) + `skills.json` (`skill`, `tree`, `core`, `iconPath`, `file`) |
 | `slots/` | `fill-<color>`, `glow-<colors>`, `divider-ornament` (PNG), `frame.svg`, `lock.svg`, `divider.svg` |
 | `mutagens/` | `item-<color>-<lesser/normal/greater>.png`, `diamond-frame.svg`, `connectors/corner-<color>.svg`, `connectors/line-<colors>.svg` |
-| `mutations/` | `mutation_<n>.png` (icons), `panel-bg.jpg`, `orb-<default/red/green/blue/yellow>.png`, `cell.png`, `cell-big.png`, `node-<color/gray>.png`, `icon-bg-<color/gray>.png`, `icon-equipped.png`, `equipped.png`, `selected.png`, `master-selected.png`, `connector-<color/gray>.png` (see [Mutations](#mutations)) |
+| `mutations/` | `mutation_<n>.png` (icons), `bg-base.jpg`, `bg-cell-<small/a/b>.webp`, `bg-silhouette.webp`, `bg-vignette.webp` (panel background layers), `orb-<default/red/green/blue/yellow>.png`, `cell.png`, `cell-big.png`, `node-<color/gray>.png`, `icon-bg-<color/gray>.png`, `icon-equipped.png`, `equipped.png`, `selected.png`, `master-selected.png`, `connector-<color/gray>.png` (see [Mutations](#mutations)) |
 | `bonus/` | `bar-<color>.png`, `shield.png`, `glyph-<sword/sign/plus/person>.png` |
 | `stats/` | `shield.png`, `icon-<attack-steel/spell-power/toxicity/additional>.png` (from `panel_inventory`, in `startup.bundle`) |
 | `tooltip/` | `header.png`, `header-frame.png` |
@@ -546,8 +546,19 @@ Rules in `core/mutations.js`, data in `public/data/mutations.js`. Regenerate the
 
 ### Mutations panel (`MutationPanelRef`, sprite 403, `layout/mutation-panel.json`)
 
-- Full screen, at (-23.6, 8.55) (`MUT_PANEL_DEF_X/Y`). `mutations/panel-bg.jpg` is `mcMutationBackground` (sprite 310)
-  rendered at frame 1 in panel units by the builder's `render` source.
+- Full screen, at (-23.6, 8.55) (`MUT_PANEL_DEF_X/Y`).
+- Background: `mcMutationBackground` (sprite 310, one frame) is animated on the timeline only, no code. Its layers,
+  back to front, each a looping sprite (40 fps) that moves one still bitmap:
+  - the base (sprite 291, `bg-base.jpg`): zooms 1 to 1.05 and back over 271 frames;
+  - small cells (295, x2, alpha 0.74): turn 0 to -2.9 degrees and back over 70 frames;
+  - cells (299, x6, some at alpha 0.36 or 0.74): drift about 5 px and turn 0.9 degrees over 156 frames, then hold to 216;
+  - cells (303, x4): drift about 7 px and shrink to 0.985 over 166 frames;
+  - silhouettes (307, `bg-silhouette.webp`, x2, the second mirrored at 1.37x, alpha 0.85): slide 7 px left and back over 254 frames;
+  - the vignette (shape 309, `bg-vignette.webp`), still. Its faint black gradient fill (alpha 0.2 to 0.1) is not drawn.
+
+  `layout/mutation-background.json` (the builder's `timeline` source) holds the layers and each motion's matrices,
+  thinned to the frames where it changes course. `ui/motion.js` loops them with the Web Animations API. Flash steps
+  frame by frame; the planner interpolates between keys, which is smoother.
 - `mcMutationN.mutationId` (`MutationPanelRef.__setProp_mcMutationN`) maps nodes to mutations: N, except node 3 shows
   mutation 8 and node 8 mutation 3 (`MUTATION_NODES` in `gameArt.js`). `mcMutation13` is Strengthened Synapses.
 - A connector `mcMutConnectorA_B` belongs to node A (`mutationRendererName`) and takes A's art colour once A is

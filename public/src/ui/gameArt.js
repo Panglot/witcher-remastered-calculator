@@ -7,7 +7,7 @@ const BASE = "assets/ui";
 const LAYOUTS = ["screen", "tree-panel", "tree-node", "tab", "tooltip", "legend-button",
   "mutagen-panel", "mutagen-slots", "mutagen-socket", "mutagen-diamond", "pip",
   "mutagen-slots-mutation", "equipped-mutation", "mutation-orb", "mutation-orb-default", "mutation-cells",
-  "mutation-panel", "mutation-node", "mutation-master"];
+  "mutation-panel", "mutation-node", "mutation-master", "mutation-background"];
 
 // Vector files have no size in the manifest. `origin` is where the piece's own (0, 0) sits inside
 // the file: place the file at -origin and the piece lands where its layout matrix puts it.
@@ -189,8 +189,18 @@ export function doubleLine(a, b, gap = 3) {
  * @property {(file: string) => number[]} fill      Matrix that places an atlas slice in the shape that
  *   draws it (manifest "fill", from the shape's bitmap fill), else identity.
  * @property {(name: string) => Record<string, any>} layout  Named children of a layout file.
+ * @property {(name: string) => { fps: number, motions: Record<string, Motion> }} timeline  The looping
+ *   motions of a timeline layout file (its children name them by "motion").
  * @property {(folder: string, core?: boolean) => string[]} skillIcons  Icon files of a skill folder.
  * @property {(prefix: string) => string[]} files  Manifest files starting with `prefix`.
+ */
+
+/**
+ * @typedef {Object} Motion  A child that moves every frame, looping (tools/build_ui_assets.py, TimelineSource).
+ * @property {number} frames   Loop length in frames.
+ * @property {number[][]} keys [frame, a, b, c, d, tx, ty]: the child's matrix, linear between keys.
+ * @property {number[]} content Matrix of the still art under the moving child.
+ * @property {string} art      The art file.
  */
 
 let loading = null;
@@ -217,7 +227,7 @@ async function getJson(file) {
 }
 
 function createArt(files, skills, layouts) {
-  const byName = Object.fromEntries(LAYOUTS.map((n, i) => [n, layouts[i].children]));
+  const byName = Object.fromEntries(LAYOUTS.map((n, i) => [n, layouts[i]]));
   const vector = file => (VECTORS.find(([re]) => re.test(file)) || [])[1];
   return {
     size(file) {
@@ -235,7 +245,11 @@ function createArt(files, skills, layouts) {
     },
     layout(name) {
       if (!byName[name]) throw new Error(`Unknown layout "${name}"`);
-      return byName[name];
+      return byName[name].children;
+    },
+    timeline(name) {
+      if (!byName[name] || !byName[name].motions) throw new Error(`Unknown timeline layout "${name}"`);
+      return { fps: byName[name].fps, motions: byName[name].motions };
     },
     skillIcons: (folder, core = false) => skills
       .filter(s => s.file.startsWith(`${folder}/`) && Boolean(s.core) === core)

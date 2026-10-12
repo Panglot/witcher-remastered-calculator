@@ -9,13 +9,14 @@
 // cascade removal setting (their backgrounds fade out; ui/cascade.js previews what would go).
 // Strengthened Synapses shows its stage. Phones and portrait screens get the planner's tall layout
 // (ui/mutationLayouts.js), switched as the window changes. The background covers the whole screen
-// in both (.gbackdrop).
+// in both (.gbackdrop); it is drawn on first open and its layers move as in the game (ui/motion.js).
 import { esc, isLongPress, keyTarget, patchHtml, afterAnimation, STACKED_QUERY } from "./dom.js";
 import { createCascade } from "./cascade.js";
 import { createHold } from "./hold.js";
 import { createTipHost } from "./tipHost.js";
 import { mutationTip, masterTip } from "./tooltip.js";
-import { artUrl, mutationArtColor, MUTATION_NODES } from "./gameArt.js";
+import { mutationArtColor, MUTATION_NODES, SCREEN } from "./gameArt.js";
+import { playMotions } from "./motion.js";
 import { MUTATIONS_KEY } from "./slots.js";
 
 const ROMAN = ["", "I", "II", "III", "IV"];
@@ -34,9 +35,10 @@ export function mountMutations(app) {
   root.setAttribute("aria-modal", "true");
   root.setAttribute("aria-label", labels.title || "Mutations");
   root.tabIndex = -1;
-  root.innerHTML = `<div class="gbackdrop" style="--backdrop:url('${artUrl("mutations/panel-bg.jpg")}')"></div><div class="gmut-view" data-panel></div><div class="gmut-legend"></div><div class="gmut-tip" hidden></div>`;
+  root.innerHTML = `<div class="gbackdrop"></div><div class="gmut-view" data-panel></div><div class="gmut-legend"></div><div class="gmut-tip" hidden></div>`;
   document.body.append(root);
   const view = root.querySelector(".gmut-view"), legendEl = root.querySelector(".gmut-legend");
+  const backdrop = root.querySelector(".gbackdrop");
 
   // What is selected in the panel: a mutation id, MASTER or null. Not part of the build.
   let sel = null;
@@ -66,6 +68,7 @@ export function mountMutations(app) {
     root.classList.remove(LEAVE);
     root.hidden = false;
     app.layers.open(layer);
+    drawBackdrop();
     render();
     root.focus({ preventScroll: true });
   }
@@ -81,6 +84,13 @@ export function mountMutations(app) {
     app.render();
   }
   const LEAVE = "gmut-leave";
+
+  // The background, once: its art loads only when the panel is first opened.
+  function drawBackdrop() {
+    if (backdrop.firstChild) return;
+    backdrop.innerHTML = `<svg viewBox="0 0 ${SCREEN.w} ${SCREEN.h}" preserveAspectRatio="xMidYMid slice">${app.game.pieces.mutationBackground()}</svg>`;
+    playMotions(backdrop, app.game.art);
+  }
 
   // Selects in place, so the pressed element stays (holds and double-clicks need it).
   function select(id) {

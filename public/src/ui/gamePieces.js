@@ -303,6 +303,26 @@ export function createPieces(art) {
       + placed(S.mcBackgroundImage, img("backdrop/dna.png", 0, 0));
   }
 
+  /**
+   * The Mutations panel background (mcMutationBackground, sprite 310) in panel units over black:
+   * the base, the cells, the silhouettes and the vignette, back to front. The moving layers start on
+   * their first frame; ui/motion.js loops them (the group's data-timeline names their motions).
+   */
+  function mutationBackground() {
+    const name = "mutation-background";
+    const { motions } = art.timeline(name);
+    const layers = Object.values(art.layout(name)).map(L => {
+      const alpha = L.cxform ? ` opacity="${fmt(L.cxform.mult[3])}"` : "";
+      const M = L.motion && motions[L.motion];
+      const inner = M
+        ? `<g data-motion="${L.motion}" transform="${matrix(M.keys[0].slice(1))}"><g transform="${matrix(M.content)}">${filled(M.art)}</g></g>`
+        : filled(L.art);
+      return `<g transform="${matrix(L.matrix)}"${alpha}>${inner}</g>`;
+    }).join("");
+    return `<rect width="${SCREEN.w}" height="${SCREEN.h}" fill="#000"/>`
+      + placed(art.layout("mutation-panel").mcMutationBackground, layers, ` data-timeline="${name}"`);
+  }
+
   // One fog layer, drawn at its start and slid to `to` by styles.css (.gfog).
   function fogLayer({ x, to, y, secs, alpha }) {
     const [w, h] = FOG.size;
@@ -436,7 +456,7 @@ export function createPieces(art) {
   }
 
   return { box, img, imgAt, piece, treeNode, stepButton, socket, diamond, item, divider, connector, tab, backdrop, text,
-    orb, mutationNode, mutationConnector, tintDefs };
+    orb, mutationNode, mutationConnector, mutationBackground, tintDefs };
 }
 
 // A colour transform's filter id: the same numbers give the same id.

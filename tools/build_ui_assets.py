@@ -20,8 +20,11 @@ The recipe (tools/asset-recipe.json) maps every output file to where it comes fr
   {"from": "placements", "movie": "<alias>", "sprite": 710}    JSON of a sprite's named children: matrix, text style
       optional "names": {"5": "frame"}                         names for unnamed children, by depth
       optional "frame": "selected_up"                          the frame to read (number or label, default 1)
-Every source may carry a "note" that is copied into the manifest. Images are written as PNG, or as JPEG
-when the output name ends in .jpg (for large opaque art).
+  {"from": "timeline", "movie": "<alias>", "sprite": 310, "art": {"289": "mutations/bg-base.jpg"}}
+      JSON of a sprite's layers and their children's looping motion (see TimelineSource); "art" maps shapes to files
+Every source may carry a "note" that is copied into the manifest. Images are written as PNG, as JPEG
+when the output name ends in .jpg (for large opaque art), or as lossy WebP with alpha for .webp (large
+soft-edged art).
 
 Movie aliases are defined in the recipe's "movies" map (alias -> path inside the UI bundles, see gfx_movie.GameMovies).
 Writes <out_dir>/manifest.json describing every file, and lists files in <out_dir> that the
@@ -58,6 +61,8 @@ ALIGN = {0: 'left', 1: 'right', 2: 'center', 3: 'justify'}
 def save_image(image, dest):
     if dest.lower().endswith('.jpg'):
         image.convert('RGB').save(dest, quality=JPEG_QUALITY, optimize=True)
+    elif dest.lower().endswith('.webp'):
+        image.save(dest, quality=JPEG_QUALITY, method=6)
     else:
         image.save(dest, optimize=True)
     return {'size': list(image.size)}
@@ -347,6 +352,96 @@ class PlacementsSource:
         return {'children': len(children)}
 
 
+IDENTITY = (1, 0, 0, 1, 0, 0)
+
+
+def multiply(m, n):
+    """SVG matrix m * n: n applied first."""
+    a, b, c, d, e, f = m
+    a2, b2, c2, d2, e2, f2 = n
+    return (a * a2 + c * b2, b * a2 + d * b2, a * c2 + c * d2, b * c2 + d * d2,
+            a * e2 + c * f2 + e, b * e2 + d * f2 + f)
+
+
+class TimelineSource:
+    """A sprite's layers with the looping motion of their children, for art the game animates on the
+    timeline (no code). Each layer at frame 1 is a shape, or a sprite whose one child moves frame by
+    frame over a still shape (still one-child sprites in between are folded into its matrix). "art"
+    names the output file of each shape's bitmap (an atlas source with that "shape").
+    Writes "children" like a placements source ("layer<depth>"), plus "motions" by animated sprite:
+    its frame count and the child's matrix on the frames where the motion changes course (between
+    them it is linear to within MOTION_TOLERANCE)."""
+
+    # Allowed error: one twip (the movie's position step) for the translation, and for scale and skew
+    # what moves a point 1000 px out by half a twip.
+    MOTION_TOLERANCE = (0.000025, 0.000025, 0.000025, 0.000025, 0.05, 0.05)
+
+    def build(self, ctx, src, dest):
+        movie = ctx.movie(src['movie'])
+        art = {int(shape): file for shape, file in src['art'].items()}
+        children, motions = {}, {}
+        for p in movie.display_list(src['sprite'], 1).values():
+            child = {'character': p.character, 'matrix': self.rounded(p.matrix or IDENTITY)}
+            if p.cxform:
+                child['cxform'] = p.cxform
+            sprite = movie.sprites.get(p.character)
+            if sprite and sprite.frame_count > 1:
+                child['motion'] = str(p.character)
+                if child['motion'] not in motions:
+                    motions[child['motion']] = self.motion(movie, sprite, art)
+            else:
+                child['art'], _ = self.still(movie, p.character, art)
+            children[f'layer{p.depth}'] = child
+        with open(dest, 'w') as f:
+            json.dump({'_about': 'Units: px. matrix = SVG matrix(a, b, c, d, tx, ty); cxform as in placements. '
+                                 'A layer draws "art" (its file, placed by the manifest fill) or loops a motion: '
+                                 '"frames" at "fps", "keys" = [frame, a, b, c, d, tx, ty] of the moving child, '
+                                 'linear between keys, then "content" (the still matrix under it) and "art".',
+                       'sprite': movie.class_name(src['sprite']) or src['sprite'], 'fps': movie.frame_rate,
+                       'children': children, 'motions': motions}, f, indent=1)
+        return {'children': len(children), 'motions': len(motions)}
+
+    def motion(self, movie, sprite, art):
+        depths = {p.depth for p in sprite.placements}
+        if len(depths) != 1:
+            sys.exit(f'sprite {sprite.id}: a motion needs one child, found depths {sorted(depths)}')
+        depth = depths.pop()
+        frames = [movie.display_list(sprite.id, f)[depth] for f in range(1, sprite.frame_count + 1)]
+        matrices = [p.matrix or IDENTITY for p in frames]
+        file, content = self.still(movie, frames[0].character, art)
+        keys = self.keyframes(matrices, 0, len(matrices) - 1)
+        return {'frames': sprite.frame_count, 'keys': [[i + 1, *self.rounded(matrices[i])] for i in keys],
+                'content': content, 'art': file}
+
+    def still(self, movie, character, art, matrix=IDENTITY):
+        """(art file, matrix) of a shape, through still one-child sprites."""
+        if character in movie.shapes:
+            if character not in art:
+                sys.exit(f'shape {character} has no "art" file in the recipe')
+            return art[character], self.rounded(matrix)
+        children = list(movie.display_list(character, 1).values())
+        if len(children) != 1 or movie.sprites[character].frame_count > 1:
+            sys.exit(f'sprite {character}: expected one still child')
+        return self.still(movie, children[0].character, art, multiply(matrix, children[0].matrix or IDENTITY))
+
+    def keyframes(self, matrices, first, last):
+        """Indices to keep between first and last (Ramer-Douglas-Peucker on the six matrix values)."""
+        worst, at = 1, None
+        for i in range(first + 1, last):
+            t = (i - first) / (last - first)
+            off = max(abs(m - (a + (b - a) * t)) / tol for m, a, b, tol
+                      in zip(matrices[i], matrices[first], matrices[last], self.MOTION_TOLERANCE))
+            if off > worst:
+                worst, at = off, i
+        if at is None:
+            return [first, last] if last > first else [first]
+        return self.keyframes(matrices, first, at)[:-1] + self.keyframes(matrices, at, last)
+
+    @staticmethod
+    def rounded(matrix):
+        return [round(v, 5) for v in matrix]
+
+
 HANDLERS = {
     'atlas': AtlasSource,
     'cache': CacheSource,
@@ -355,6 +450,7 @@ HANDLERS = {
     'cursor': CursorSource,
     'skills': SkillsSource,
     'placements': PlacementsSource,
+    'timeline': TimelineSource,
 }
 
 

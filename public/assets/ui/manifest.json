@@ -1582,20 +1582,133 @@
     64
    ]
   },
-  "mutations/panel-bg.jpg": {
-   "from": "render",
+  "mutations/bg-base.jpg": {
+   "from": "atlas",
    "movie": "panel_character_dupe.redswf",
-   "sprite": 310,
+   "sub": 288,
+   "shape": 289,
+   "size": [
+    1920,
+    1023
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -960.0,
+    -511.5
+   ],
+   "note": "MutationPanelRef.mcMutationBackground (sprite 310) layers, animated by layout/mutation-background.json: the base, slowly zooming"
+  },
+  "mutations/bg-cell-small.webp": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 292,
+   "shape": 293,
+   "size": [
+    190,
+    183
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -95.0,
+    -91.5
+   ],
+   "note": "cells, drifting and turning"
+  },
+  "mutations/bg-cell-a.webp": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 296,
+   "shape": 297,
+   "size": [
+    557,
+    560
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -278.5,
+    -280.0
+   ]
+  },
+  "mutations/bg-cell-b.webp": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 300,
+   "shape": 301,
+   "size": [
+    561,
+    564
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -280.5,
+    -282.0
+   ]
+  },
+  "mutations/bg-silhouette.webp": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 304,
+   "shape": 305,
+   "size": [
+    1920,
+    999
+   ],
+   "fill": [
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    -960.0,
+    -499.5
+   ],
+   "note": "the silhouette, sliding sideways"
+  },
+  "mutations/bg-vignette.webp": {
+   "from": "atlas",
+   "movie": "panel_character_dupe.redswf",
+   "sub": 308,
+   "shape": 309,
    "size": [
     1920,
     1080
    ],
-   "at": [
-    984.95,
-    532.85
+   "fill": [
+    1.01755,
+    0.0,
+    0.0,
+    1.0,
+    -977.75,
+    -542.0
    ],
-   "fill": "#000000",
-   "note": "MutationPanelRef.mcMutationBackground (silhouette, vignette and cells) at frame 1, placed at its panel position"
+   "note": "the vignette on top, still. Shape 309 also has a faint black linear gradient fill (alpha 0.2 to 0.1) whose region is not drawn"
+  },
+  "layout/mutation-background.json": {
+   "from": "timeline",
+   "movie": "panel_character_dupe.redswf",
+   "sprite": 310,
+   "art": {
+    "289": "mutations/bg-base.jpg",
+    "293": "mutations/bg-cell-small.webp",
+    "297": "mutations/bg-cell-a.webp",
+    "301": "mutations/bg-cell-b.webp",
+    "305": "mutations/bg-silhouette.webp",
+    "309": "mutations/bg-vignette.webp"
+   },
+   "children": 16,
+   "motions": 5,
+   "note": "mcMutationBackground: its origin sits at (984.95, 532.85) on the 1920x1080 screen"
   },
   "mutations/orb-default.png": {
    "from": "atlas",
