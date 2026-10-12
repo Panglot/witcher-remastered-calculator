@@ -7,7 +7,7 @@
 // An option's `hint` shows as a tooltip on its row, titled with its label; a line of it that starts
 // with a choice's name has the name marked (one line per choice: "All highlights ...").
 // Pointer: pressing or dragging on a slider picks the nearest choice (CLIK's trackPress and drag);
-// a click on a toggle row flips it (activate). Keys: the caller routes them to step().
+// a click on a row's name or value steps to the next choice, wrapping round (activate). Keys: the caller routes them to step().
 import { esc } from "./dom.js";
 
 // initToggleSlider: the slider's width, and the margins the thumb's centre stays within. thumbHit
@@ -114,8 +114,8 @@ export function bindOptionRows(root, options, store) {
     box.addEventListener("lostpointercapture", end);
   });
   root.addEventListener("click", e => {
-    const row = e.target.closest(".gopt.toggle");
-    if (row && !e.target.closest(".gopt-slider")) step(row, 1, true);
+    const text = e.target.closest(".gopt :is(.gopt-label, .gopt-value)");
+    if (text) step(text.closest(".gopt"), 1, true);
   });
 
   const redraw = () => root.querySelectorAll(".gopt[data-key]").forEach(draw);

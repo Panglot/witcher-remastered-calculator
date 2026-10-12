@@ -6,7 +6,8 @@
 // build), following renames. Unlike the rail, the drawer's Export file and Load code use these
 // fields instead of asking in a popup.
 //
-// A drawer is { markup(), mount(el), pick(el), step(el, dir) } for the menu: pick runs the tool `el`
+// A drawer is { markup(), mount(el), refresh(), pick(el), step(el, dir) } for the menu: refresh
+// updates it in place for the current build, pick runs the tool `el`
 // and step moves along the tools (the arrows left and right); both return false for anything else.
 // The focused tool is the menu's arrow stop for the row (class gmenu-stop, tabindex 0).
 import { esc } from "./dom.js";
@@ -27,7 +28,7 @@ const TOOLS = RAIL_TOOLS.map(t => ({ ...t, key: undefined, hint: HINTS[t.id] || 
  */
 export function createBuildDrawer(app, { renamed = () => {} } = {}) {
   const share = createBuildShare(app);
-  // Kept across redraws (the menu redraws after a load): the paste field's text (null: untouched, it
+  // Kept across redraws (the menu redraws on changing pages): the paste field's text (null: untouched, it
   // shows the current code) and the tool that has the row's stop.
   let draft = null, stop = TOOLS[0].id;
   let root = null;
@@ -125,9 +126,18 @@ export function createBuildDrawer(app, { renamed = () => {} } = {}) {
     });
   }
 
+  // After a load or a rename elsewhere: the fields follow the build, the one being typed in excepted.
+  function refresh() {
+    if (!root) return;
+    const name = root.querySelector(".gbuild-name");
+    if (document.activeElement !== name) name.value = app.state.name || "";
+    if (draft === null && document.activeElement !== paste()) paste().value = currentCode();
+  }
+
   return {
     markup,
     mount,
+    refresh,
     pick(el) {
       const b = el && el.closest(TOOL);
       if (!b || !root || !root.contains(b)) return false;

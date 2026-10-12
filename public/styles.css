@@ -499,7 +499,7 @@ button.gbtn { user-select: none; -webkit-user-select: none; -webkit-touch-callou
   background: url("assets/ui/menu/option-edge.png") 0 0 / calc(8 * var(--u)) 100% no-repeat, linear-gradient(90deg, rgb(255 255 255 / .039) 21.6%, rgb(255 255 255 / .031) 57.3%, transparent); }
 .gopt:focus { outline: none; color: #ffffff; }
 .gopt:focus::before { inset: calc(-3 * var(--u)); height: auto; translate: none; }
-.gopt.toggle { cursor: var(--cursor-pointer); }
+.gopt :is(.gopt-label, .gopt-value) { cursor: var(--cursor-pointer); }
 .gopt-label { position: absolute; left: calc(31 * var(--u)); }
 .gopt-value { position: absolute; right: calc((1167 - 829) * var(--u)); color: #ffffff; font-size: calc(26 * var(--u)); }
 .gopt.off .gopt-value { color: #808080; }

@@ -281,10 +281,15 @@ export function mountMenu(app) {
         return true;
     });
 
-    // Redraws an open menu (the build name may have changed).
+    // Updates an open menu in place (the build or a setting may have changed). No full redraw, which
+    // would rebuild the page and flash it.
     function render() {
         if (!app.layers.isOpen(layer) || app.layers.top() !== layer) return;
-        draw(Math.max(0, items().indexOf(current)));
+        showName();
+        if (optionRows) optionRows.redraw();
+        drawers().forEach(d => d.refresh());
+        drawLegend();
+        tip.render();
     }
 
     return { render, open, close };
