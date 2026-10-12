@@ -7,6 +7,7 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 | # | Item | Left |
 | --- | --- | --- |
 | 1 | Full asset rebuild fails | Find the cause |
+| 2 | Revise mutations design | Check in game once mutations unlock |
 
 ## 1. Full asset rebuild fails
 
@@ -22,3 +23,13 @@ Only open work, in the order to do it. Finished work lives in the commits. Each 
 
 - Find the current texture id for `menu/sheet.png` (`"image": 694`, the Esc menu's torn sheet in `panel_ingamemenu.redswf`), e.g. with `tools/map_ui_atlas.py`.
 - Compare the new `tree/separator.png` with the committed one, and keep whichever matches the game.
+
+## 2. Revise mutations design
+
+**Goal:** the mutations UI matches how the game presents and behaves for mutations.
+
+**Blocked on:** reaching the point in the game where mutations unlock. They can't be checked in game yet, so the current design was built without an in-game reference.
+
+**Left:**
+
+- Once mutations are unlocked, compare the game's mutations screen with ours (layout, art, unlock flow, extra slots, tooltips) and revise the design to match.
