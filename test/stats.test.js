@@ -117,6 +117,38 @@ test("totals: slotted skills at their rank, times their count; mutagens raised b
   assert.deepEqual([vit.value, vit.max], [0, 8]);
 });
 
+test("a total within a broader one: hidden while it matches it, listed once it differs", () => {
+  const cat = createCatalog({
+    rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 4, treeOrder: ["t"] },
+    mutagens: { stats: {}, items: [] },
+    trees: {
+      t: {
+        name: "Tee", mutagen: null, passive: { label: "Gain", per: 1, unit: "%" },
+        skills: [{ id: "r", name: "Root", game: "g_r", root: true, col: 0, row: 0 }, { id: "ea", name: "Attune", game: "g_ea", col: 0, row: 1 }, { id: "vip", name: "Viper", game: "g_vip", col: 0, row: 2 }],
+        links: ["r-ea", "ea-vip"]
+      }
+    },
+    skillSets: [],
+    skillText: {
+      g_r: { name: "Root", maxRank: 3, text: "" },
+      g_ea: { name: "Attune", maxRank: 3, text: "", values: { dmg: [3, 6, 9] } },
+      g_vip: { name: "Viper", maxRank: 3, text: "", values: { p: [2, 4, 6] } }
+    },
+    totals: {
+      stats: [
+        { id: "elem", label: "Elemental", unit: "%", sources: [{ skill: "ea", value: "dmg" }] },
+        { id: "poison", label: "Poison", unit: "%", within: "elem", sources: [{ skill: "ea", value: "dmg" }, { skill: "vip", value: "p", when: "armor" }] }
+      ]
+    }
+  });
+  assert.deepEqual(cat.problems, []);
+  const s = createStats(cat, createPlanner(cat));
+  const ids = b => s.totals(b).map(t => t.id);
+  assert.deepEqual(ids(build({ pts: { r: 1, ea: 3 }, slots: ["ea", null, null, null] })), ["elem"]);
+  // Viper raises only the "up to": it differs, so both are listed.
+  assert.deepEqual(ids(build({ pts: { r: 1, ea: 3, vip: 1 }, slots: ["ea", "vip", null, null] })), ["elem", "poison"]);
+});
+
 test("totals of an empty build: nothing listed", () => {
   assert.deepEqual(stats.totals(build({})), []);
 });

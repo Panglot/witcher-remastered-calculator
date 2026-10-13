@@ -189,7 +189,7 @@ Children, back to front:
 
 1. `colorBorder`: `node/border-<color>`, or `grey` when not learned.
 2. `iconLock`: `node/lock.svg` at 0.5 scale.
-3. `equipedIcon`: `node/equipped-<color>` full-color square when the skill is equipped. **Unverified** whether `equipped-overlay` is also visible.
+3. `equipedIcon`: `node/equipped-<color>` full-color square when the skill is equipped. A learned skill that is not equipped shows the square under `equipped-overlay` at about 0.5 alpha (fitted to an in-game screenshot), an open one adds a black shade too (`gamePieces.js`, `NODE_FILL`).
 4. `coreFrame`: `node/core-border-<color>` (core skills only).
 5. `mcColorBackground`: `slots/fill-<color>`.
 6. `mcSkillPoints`: rank pips centered at (32, 62). `SlotPointIndicator.setCount` adds one `SkillPointIndicatorSingle` (`layout/pip.json`, sprite 31) per rank, spaced by its width: the 40px `node/pip-<color>` turned 45° at 0.249 scale (about 10px a side, 14.1px corner to corner), so neighbouring pips touch. Frame `on` adds `node/pip-fill` on top.

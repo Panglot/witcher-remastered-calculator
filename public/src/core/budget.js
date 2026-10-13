@@ -35,8 +35,8 @@ export function createBudget(rules) {
   }
   const maxed = ngPlus => atLimit(ngPlus, 1);
 
-  /** A new build's progress: New Game, everything at its max. */
-  const defaults = () => ({ ngPlus: false, ...maxed(false), custom: false });
+  /** A new build's progress: New Game, everything at its min (as after reset()). */
+  const defaults = () => ({ ngPlus: false, ...atLimit(false, 0), custom: false });
 
   /** The budget the progress gives (custom: the typed total, clamped). */
   const budgetOf = (p, typed) => p.custom ? clamp(typed, limits(p.ngPlus).total) : totalOf(p);
@@ -89,11 +89,17 @@ export function createBudget(rules) {
   /** Back to calculated, every field at its min: level 1, no other points, a total of 0. */
   function reset(state) { setAll(state, 0); }
 
+  /** A new build's progress (defaults()): New Game, every field at its min. */
+  function restoreDefaults(state) {
+    Object.assign(state.progress, defaults());
+    state.budget = totalOf(state.progress);
+  }
+
   function setAll(state, end) {
     const p = state.progress;
     Object.assign(p, { custom: false }, atLimit(p.ngPlus, end));
     state.budget = totalOf(p);
   }
 
-  return { limits, totalOf, defaults, normalize, budgetOf, setField, setTotal, setNgPlus, setMax, reset };
+  return { limits, totalOf, defaults, normalize, budgetOf, setField, setTotal, setNgPlus, setMax, reset, restoreDefaults };
 }

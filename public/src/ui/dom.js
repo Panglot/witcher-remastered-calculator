@@ -146,3 +146,15 @@ export function afterAnimation(el, fn) {
     fn();
   });
 }
+
+// Calls change(id) whenever the pointer moves onto another item of `el` matching `selector`, or off
+// them all (id null). idOf(item) names an item.
+export function trackHover(el, selector, idOf, change) {
+  let hovered = null;
+  const set = id => { if (id !== hovered) { hovered = id; change(id); } };
+  el.addEventListener("pointerover", e => {
+    const item = e.target.closest && e.target.closest(selector);
+    set(item ? idOf(item) : null);
+  });
+  el.addEventListener("pointerleave", () => set(null));
+}

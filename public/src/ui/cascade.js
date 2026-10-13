@@ -6,6 +6,7 @@
 //   off (the panel draws its `fading` items with a ghost of that background, styles.css .gfade).
 // The panel puts cls(id) and fading(id) in its items' views, and calls refresh() after changing the
 // selection in place and took(r) with a removal's result before redrawing.
+import { trackHover } from "./dom.js";
 
 /**
  * @param {{ el: Element, selector: string, idOf: (item: Element) => string, on: () => boolean,
@@ -26,12 +27,7 @@ export function createCascade({ el, selector, idOf, on, takes, selected }) {
     el.querySelectorAll(selector).forEach(item => item.classList.toggle("doomed", set.has(idOf(item))));
   }
 
-  el.addEventListener("pointerover", e => {
-    const item = e.target.closest && e.target.closest(selector);
-    const id = item ? idOf(item) : null;
-    if (id !== hovered) { hovered = id; refresh(); }
-  });
-  el.addEventListener("pointerleave", () => { if (hovered) { hovered = null; refresh(); } });
+  trackHover(el, selector, idOf, id => { hovered = id; refresh(); });
   el.addEventListener("animationend", e => { if (e.animationName === "gfade-out") fading = new Set(); });
 
   // For a redraw: one call gives every item's state, read from the same preview.

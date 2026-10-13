@@ -16,8 +16,8 @@
  *   parts: the ones that always apply first.
  * @typedef {{ total: number, spent: number, skills: number, mutations: number, slots: number, left: number, bySlots: boolean }} Points
  *   spent: on skills and mutation research, split into skills and mutations; slots: the total the slots in use need to be open (0
- *   without locks); left: points left to spend, negative for the points needed; bySlots: the slots,
- *   not the skills, set what is needed.
+ *   without locks), counted in left only with locking on; left: points left to spend, negative for
+ *   the points needed; bySlots: the slots, not the skills, set what is needed.
  * @typedef {{ researched: number, points: number, red: number, green: number, blue: number }} MutationCost
  *   what the researched mutations cost: skill points and greater mutagens per colour.
  */
@@ -37,13 +37,14 @@ export function createStats(catalog, planner, locks = null, mutations = null) {
    * Points: the budget, how many are spent and how many are left. With locks (`mode`, settings.js
    * slotLocking) a slot in use that the budget doesn't open needs points too: what is needed is
    * the larger of the two, so a slot that opens at 45 with 40 spent and a total of 0 needs 45.
+   * Without locking the slots' need is still reported (slots), for the tooltip, but not counted.
    * @returns {Points}
    */
   function points(b, mode = LOCK_NONE) {
     const skills = planner.spentAll(b), research = mutations ? mutations.cost(b).points : 0;
     const spent = skills + research, total = b.budget;
-    const slots = locks && mode !== LOCK_NONE ? locks.required(b) : 0;
-    const short = slots > total;
+    const slots = locks ? locks.required(b) : 0;
+    const short = mode !== LOCK_NONE && slots > total;
     return { total, spent, skills, mutations: research, slots, left: short ? total - Math.max(spent, slots) : total - spent, bySlots: short && slots > spent };
   }
 
@@ -101,18 +102,21 @@ export function createStats(catalog, planner, locks = null, mutations = null) {
   /**
    * The build-wide totals: each stat of data/totals.js that something other than a tree passive
    * raises in this build, with what makes it up. Conditional parts (armor, Adrenaline, stacks)
-   * count only towards `max`.
+   * count only towards `max`. A stat `within` a broader one is left out while it matches it.
    * @returns {Total[]}
    */
   function totals(b) {
     const sum = parts => round(parts.reduce((total, p) => p.counted ? total + p.value : total, 0));
-    return totalsData.stats.flatMap(st => {
+    const listed = totalsData.stats.flatMap(st => {
       const all = totalParts(b, st);
       if (!all.some(p => p.type !== "passive")) return [];
       const always = all.filter(p => !p.when);
       const parts = always.concat(all.filter(p => p.when));
-      return [{ id: st.id, label: st.label, unit: st.unit, color: st.color || "", value: sum(always), max: sum(all), parts }];
+      return [{ id: st.id, label: st.label, unit: st.unit, color: st.color || "", value: sum(always), max: sum(all), parts, within: st.within }];
     });
+    const byId = Object.fromEntries(listed.map(t => [t.id, t]));
+    const repeats = t => byId[t.within] && byId[t.within].value === t.value && byId[t.within].max === t.max;
+    return listed.filter(t => !repeats(t)).map(({ within, ...t }) => t);
   }
 
   /** @returns {MutationCost | null} What the researched mutations cost; null when none is researched. */

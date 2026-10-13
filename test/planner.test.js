@@ -146,3 +146,49 @@ test("passive and spent totals", () => {
   assert.equal(planner.spentAll(b), 5);
   assert.equal(planner.passiveValue(b, "t"), 7.5);
 });
+
+// r1 - x - y - goal and r2 - goal: two ways to goal from two roots.
+const paths = createCatalog({
+  rules: { maxRank: 3, slotGroups: 1, slotsPerGroup: 2, treeOrder: ["t"] },
+  mutagens: { stats: { red: { label: "Attack", unit: "%" } }, items: [] },
+  trees: {
+    t: {
+      mutagen: "red", passive: { per: 1 },
+      skills: [
+        { id: "r1", name: "R1", root: true, col: 0, row: 0 },
+        { id: "r2", name: "R2", root: true, col: 2, row: 0 },
+        { id: "x", name: "X", col: 0, row: 1 },
+        { id: "y", name: "Y", col: 0, row: 2 },
+        { id: "goal", name: "Goal", col: 1, row: 3 }
+      ],
+      links: ["r1-x", "x-y", "y-goal", "r2-goal"]
+    }
+  },
+  skillSets: []
+});
+const pathPlanner = createPlanner(paths);
+
+test("the path to a locked skill takes the fewest new skills", () => {
+  assert.deepEqual(pathPlanner.pathTo(build(), "goal"), ["r2", "goal"]);
+  // Learned skills cost nothing: with r1, x and y learned, goal is one new skill away.
+  assert.deepEqual(pathPlanner.pathTo(build({ r1: 1, x: 1, y: 1 }), "goal"), ["y", "goal"]);
+  assert.equal(pathPlanner.pathSkills(build({ r1: 1, x: 1 }), "goal").length, 2);
+  // A learned skill has no path.
+  assert.deepEqual(pathPlanner.pathTo(build({ r2: 1, goal: 1 }), "goal"), []);
+});
+
+test("learning a path puts a point in each new skill on it, the target last", () => {
+  const b = build({ r1: 2 });
+  assert.equal(pathPlanner.canLearnPath(b, "y"), true);
+  const r = pathPlanner.learnPath(b, "y");
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.learned, ["x", "y"]);
+  assert.deepEqual(b.pts, { r1: 2, x: 1, y: 1 });
+});
+
+test("an open skill takes a point, not a path", () => {
+  const b = build({ r1: 1 });
+  assert.equal(pathPlanner.canLearnPath(b, "x"), false);
+  assert.equal(pathPlanner.learnPath(b, "x").ok, false);
+  assert.deepEqual(b.pts, { r1: 1 });
+});

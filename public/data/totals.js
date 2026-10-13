@@ -8,10 +8,12 @@
 // Bear armor styles). Effects that only hit a subset (Catalyst: Aard and Igni only), one attack
 // (Counterattack) or scale with a live value (High Tolerance: current Toxicity) are left out.
 //
-// Stat fields: id, label, unit, color, sources (in the order the panel lists them).
+// Stat fields: id, label, unit, color, within?, sources (in the order the panel lists them).
 //   color: the band behind the row, like the slot groups' bonus labels: the mutagen colour that
 //   raises the stat, else the colour of the tree whose skills or passive do (combat red, signs blue,
 //   alchemy green).
+//   within: the id of a broader stat this one is part of (poison damage is elemental damage). The
+//   stat is hidden while its total and "up to" match that stat's, since it would only repeat it.
 // Source kinds:
 //   { mutagen: "<colour>" }  the equipped mutagens of that colour, raised by `synergy` below
 //   { passive: "<tree>" }    a tree's passive bonus. Counts only next to another source, since the
@@ -76,6 +78,7 @@ export default {
     {
       id: "vitality-max", label: "Maximum Vitality", unit: "%", color: "green",
       sources: [
+        { passive: "general" },
         { skill: "g_si", value: "vitality" },
         { skill: "a_ep", value: "vitality", when: "Toxicity above the safety threshold" },
         { skill: "g_bear", value: "vitality", times: ARMOR_PIECES, when: "4 Heavy Armor pieces", armor: "heavy" },
@@ -97,7 +100,13 @@ export default {
       ]
     },
     {
-      id: "poison-damage", label: "Poison damage", unit: "%", color: "green",
+      id: "elemental-damage", label: "Elemental damage (fire, frost, force, magic, poison)", unit: "%", color: "blue",
+      sources: [
+        { skill: "g_ea", value: "damage_multiplier" }
+      ]
+    },
+    {
+      id: "poison-damage", label: "Poison damage", unit: "%", color: "green", within: "elemental-damage",
       sources: [
         // Raises all non-physical damage, poison included.
         { skill: "g_ea", value: "damage_multiplier" },

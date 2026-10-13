@@ -13,7 +13,7 @@ export const matrix = m => `matrix(${m.map(fmt).join(" ")})`;
 export const placed = (child, inner, attrs = "") => `<g transform="${matrix(child.matrix)}"${attrs}>${inner}</g>`;
 
 // Icon alpha per tree node state (by eye).
-const ICON_ALPHA = { locked: 0.3, open: 1, learned: 1 };
+const ICON_ALPHA = { locked: 0.3, open: 1, learned: 1, slotted: 1 };
 // Skill icons sit inside the 64px border.
 const ICON_INSET = 4;
 // mcStateSelectedActive differs by holder. Tree nodes place sprite 465: node/selected.png filling a
@@ -22,10 +22,11 @@ const ICON_INSET = 4;
 const NODE_SELECTED_SCALE = 0.25;
 const SLOT_SELECTED = "slots/selected.svg";
 export const DIAMOND_FRAME = "mutagens/diamond-frame.svg";
-// Open (available, unlearned) skills: the colour fill under node/equipped-overlay.png's vignette
-// at OPEN_VIGNETTE alpha and a black shade at OPEN_SHADE alpha. Both fitted to an in-game
-// screenshot of an open red skill (fill pixels within about 1 level of brightness).
-const OPEN_VIGNETTE = 0.5;
+// Learned skills that are not slotted: the colour fill under node/equipped-overlay.png's vignette
+// at VIGNETTE alpha (fitted to an in-game screenshot of a learned, unslotted red skill: 0.52).
+// Open (available, unlearned) skills add a black shade at OPEN_SHADE alpha. Both fitted to an
+// in-game screenshot of an open red skill (fill pixels within about 1 level of brightness).
+const VIGNETTE = 0.5;
 const OPEN_SHADE = 0.45;
 // mcHoldAnimBlock: a white square shown while a skill (in the tree or a socket) is held to acquire
 // it (ui/hold.js). The game grows it from y 64 to 2 (SlotSkillGrid.startPurchaseAnimation);
@@ -69,8 +70,10 @@ const LOCK_TINT_ID = "glock-tint";
 const STEP = { size: 24, hit: { in: 16, out: 23, half: SOCKET / 2 }, ink: "#f8f8f8", rim: "#100808" };
 // On an open (unlearned) skill the button looks like that skill: the rings in the grey border's
 // tone (node/border-grey.png, brightened: thin rings read darker), and the fill darkened by the
-// same vignette (OPEN_VIGNETTE times node/equipped-overlay.png's mean cover, 0.66) and shade.
-const STEP_OPEN = { rim: "#d4d2d4", shade: 1 - (1 - OPEN_VIGNETTE * 0.66) * (1 - OPEN_SHADE) };
+// same vignette (VIGNETTE times node/equipped-overlay.png's mean cover, 0.66) and shade. On a
+// learned, unslotted skill only the vignette darkens it.
+const STEP_VIGNETTE = VIGNETTE * 0.66;
+const STEP_OPEN = { rim: "#d4d2d4", shade: 1 - (1 - STEP_VIGNETTE) * (1 - OPEN_SHADE) };
 const STEP_ARROW_ID = "gstep-arrow";
 const STEP_TURN = { add: 180, remove: 0 };
 
@@ -120,8 +123,10 @@ export function createPieces(art) {
   // filtered, since a filter re-rasterizes it and blurs icons at fractional positions. The copy keeps the
   // icon's alpha, so a faded icon glows faintly, as the game's loader does around its faded content.
   const glowable = (inner, kind = "skill") => `<g class="gglow" filter="url(#${GLOW_ID[kind]})">${inner}</g>${inner}`;
+  // A faded part (class "gdim"), which styles.css can bring out (.gpath, ui/autoPath.js).
+  const DIM = alpha => ` class="gdim" opacity="${alpha}"`;
   const icon = (file, alpha = 1) =>
-    glowable(img(file, ICON_INSET, ICON_INSET, (SOCKET - 2 * ICON_INSET) / SOCKET, alpha < 1 ? ` opacity="${alpha}"` : ""));
+    glowable(img(file, ICON_INSET, ICON_INSET, (SOCKET - 2 * ICON_INSET) / SOCKET, alpha < 1 ? DIM(alpha) : ""));
 
   // Rank pips centred on the layout's mcSkillPoints (SlotPointIndicator.setCount): one
   // SkillPointIndicatorSingle per rank (layout "pip"), spaced by its width, so their corners touch.
@@ -156,29 +161,30 @@ export function createPieces(art) {
   // Background per tree node state, under the icon.
   const NODE_FILL = {
     locked: () => "",
-    open: color => img(`node/equipped-${color}.png`, 0, 0, 0.5) + img("node/equipped-overlay.png", 0, 0, 0.5, ` opacity="${OPEN_VIGNETTE}"`)
-      + `<rect class="gshade" width="${SOCKET}" height="${SOCKET}" fill="#000" opacity="${OPEN_SHADE}"/>`,
-    learned: color => img(`node/equipped-${color}.png`, 0, 0, 0.5)
+    open: color => NODE_FILL.learned(color) + `<rect class="gshade" width="${SOCKET}" height="${SOCKET}" fill="#000" opacity="${OPEN_SHADE}"/>`,
+    learned: color => NODE_FILL.slotted(color) + img("node/equipped-overlay.png", 0, 0, 0.5, ` opacity="${VIGNETTE}"`),
+    slotted: color => img(`node/equipped-${color}.png`, 0, 0, 0.5)
   };
 
   /**
    * A skill in the tree. The state art is read from the reference screenshots:
    * locked = no fill, dim icon, faded grey border (LOCKED_BORDER_ALPHA, close to the dark lines);
-   * open = darkened tree colour fill, grey border; learned = fill + coloured border + pips.
-   * Open and learned skills carry the hold block, under the border (by eye).
-   * @param {{ icon: string, color: string, state: "locked" | "open" | "learned",
+   * open = darkened tree colour fill, grey border; learned = vignetted fill + coloured border + pips;
+   * slotted = full fill + coloured border + pips. Every skill carries the hold block, under the
+   * border (by eye): a locked one fills when held to learn its path (ui/autoPath.js).
+   * @param {{ icon: string, color: string, state: "locked" | "open" | "learned" | "slotted",
    *   rank?: number, core?: boolean, selected?: boolean }} o
    */
   function treeNode({ icon: file, color, state, rank = 0, core = false, selected = false, fading = false }) {
     const L = art.layout("tree-node");
-    const learned = state === "learned";
+    const learned = state === "learned" || state === "slotted";
     const edge = learned ? color : "grey";
-    const edgeAlpha = state === "locked" ? ` opacity="${LOCKED_BORDER_ALPHA}"` : "";
+    const edgeAlpha = state === "locked" ? DIM(LOCKED_BORDER_ALPHA) : "";
     return NODE_FILL[state](color)
-      // Planner-only: a skill a cascade just took keeps a ghost of its learned fill, fading out (ui/cascade.js).
-      + (fading ? `<g class="gfade">${NODE_FILL.learned(color)}</g>` : "")
+      // Planner-only: a skill a cascade just took keeps a ghost of its full fill, fading out (ui/cascade.js).
+      + (fading ? `<g class="gfade">${NODE_FILL.slotted(color)}</g>` : "")
       + icon(file, ICON_ALPHA[state])
-      + (state === "locked" ? "" : BUY_BLOCK)
+      + BUY_BLOCK
       + img(core ? coreBorder(edge) : `node/border-${edge}.png`, 0, 0, 0.5, edgeAlpha)
       + (learned ? pips(L.mcSkillPoints, rank, color) : "")
       + (selected ? selectedFrame(L.mcStateSelectedActive) : "");
@@ -349,12 +355,12 @@ export function createPieces(art) {
 
   /**
    * A touch button centred on (0, 0), a skill's edge, on the skill's background colour (SKILL_FILL):
-   * an up arrow adds a point, a down arrow removes one. On an open skill it takes that skill's look
-   * (STEP_OPEN). Class "gstep": styles.css shows it only on touch screens. Its arrow needs stepDefs
+   * an up arrow adds a point, a down arrow removes one. On an open or a learned, unslotted skill it
+   * is darkened like that skill (STEP_OPEN, STEP_VIGNETTE). Class "gstep": styles.css shows it only on touch screens. Its arrow needs stepDefs
    * on the page.
    * @param {"add" | "remove"} step
    * @param {string} color tree colour
-   * @param {"open" | "learned"} state the skill's state (treeNode)
+   * @param {"open" | "learned" | "slotted"} state the skill's state (treeNode)
    * @param {-1 | 1} out the side the skill's edge faces: -1 left, 1 right
    */
   function stepButton(step, color, state, out, attrs = "") {
@@ -364,7 +370,7 @@ export function createPieces(art) {
     return `<g class="gstep"${attrs}><rect x="${x0}" y="${-half}" width="${inside + outside}" height="${2 * half}" fill="transparent"/>`
       + `<g transform="scale(${fmt(STEP.size / 28)})">`
       + `<circle class="gstep-disc" r="13.5" fill="${SKILL_FILL[color]}"/>`
-      + (open ? `<circle r="13.5" fill="#000" opacity="${fmt(STEP_OPEN.shade)}"/>` : "")
+      + (state === "slotted" ? "" : `<circle r="13.5" fill="#000" opacity="${fmt(open ? STEP_OPEN.shade : STEP_VIGNETTE)}"/>`)
       + `<circle r="13.5" fill="none" stroke="${rim}" stroke-width="1"/>`
       + `<circle r="11.25" fill="none" stroke="${rim}" stroke-width="1.5"/>`
       + `<g fill="${STEP.ink}" transform="rotate(${STEP_TURN[step]})">${dropdownArrow(STEP_ARROW_ID)}</g></g></g>`;

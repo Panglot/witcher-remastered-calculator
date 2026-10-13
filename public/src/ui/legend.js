@@ -55,7 +55,7 @@ const itemSet = general => {
 const ITEMS_PLAIN = itemSet(GENERAL), ITEMS_MUTATIONS = itemSet(WITH_MUTATIONS);
 
 export function mountLegend(app) {
-  const { planner, state, kinds } = app;
+  const { planner, state, kinds, catalog } = app;
   const el = $("legend");
   let drawn = null, asking = false;
 
@@ -66,18 +66,26 @@ export function mountLegend(app) {
     return state.sel && planner.rank(state, state.sel) > 0 ? ITEMS.learned : ITEMS.unlearned;
   }
 
+  // A reset also clears the build name and puts the points back to a new build's (core/budget.js);
+  // it does nothing on a build that is already new.
+  const defaultProgress = catalog.budget.defaults();
+  const isFresh = () => !Object.keys(state.pts).length && !state.mut.some(Boolean) && !app.mutations.researchedCount(state)
+    && !state.name && Object.keys(defaultProgress).every(k => state.progress[k] === defaultProgress[k]);
+
   async function reset() {
-    if (asking || !app.game || (!Object.keys(state.pts).length && !state.mut.some(Boolean) && !app.mutations.researchedCount(state))) return;
+    if (asking || !app.game || isFresh()) return;
     asking = true;
     const yes = await confirmPopup(app, {
       title: "Reset abilities",
       text: app.mutations.isOn(state)
-        ? "Reset all abilities and mutation research and refund spent skill points? All skills, mutagens and the active mutation will be unequipped."
-        : "Reset all abilities and refund spent skill points? All skills and mutagens will be unequipped."
+        ? "Reset all abilities and mutation research, the build name and the points? All skills, mutagens and the active mutation will be unequipped."
+        : "Reset all abilities, the build name and the points? All skills and mutagens will be unequipped."
     });
     asking = false;
     if (!yes) return;
     planner.clearAll(state);
+    state.name = "";
+    catalog.budget.restoreDefaults(state);
     app.msg = ""; app.render();
   }
 

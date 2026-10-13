@@ -44,6 +44,47 @@ export function createPlanner(catalog) {
   // The skills a cascade would take with the next point out of `id`: only its last point cuts any off.
   const cascadeOf = (b, id) => rank(b, id) === 1 ? strandedIfRemoved(b, id) : [];
 
+  /**
+   * The shortest way to open `id`: the skills along links from a learned skill (or a root) to `id`,
+   * in learning order, fewest new skills first. It starts with the learned skill it leads from, if
+   * any, and ends with `id`; [] when `id` is learned or nothing leads to it. Learned skills cost
+   * nothing to pass through, so a path through them wins over a shorter one through new skills.
+   */
+  function pathTo(b, id) {
+    if (rank(b, id) > 0) return [];
+    const cost = n => rank(b, n) > 0 ? 0 : 1;
+    const ids = catalog.skillsIn(nodes[id].tree).map(n => n.id);
+    const dist = new Map(), prev = new Map(), queue = [];
+    ids.forEach(n => { if (rank(b, n) > 0 || nodes[n].root) { dist.set(n, cost(n)); queue.push(n); } });
+    // Dijkstra over a tree of a few dozen skills: picking the nearest by a scan is enough.
+    while (queue.length) {
+      queue.sort((x, y) => dist.get(x) - dist.get(y));
+      const n = queue.shift();
+      nodes[n].to.forEach(m => {
+        const d = dist.get(n) + cost(m);
+        if (d < (dist.get(m) ?? Infinity)) { dist.set(m, d); prev.set(m, n); if (!queue.includes(m)) queue.push(m); }
+      });
+    }
+    if (!dist.has(id)) return [];
+    const path = [id];
+    for (let n = id; prev.has(n) && rank(b, n) === 0; ) { n = prev.get(n); path.unshift(n); }
+    return path;
+  }
+
+  // The skills learning `id` along its shortest path (pathTo) would put a point in, `id` last.
+  const pathSkills = (b, id) => pathTo(b, id).filter(n => rank(b, n) === 0);
+  // A locked skill something leads to can be learned with its path (learnPath).
+  const canLearnPath = (b, id) => !isOpen(b, id) && pathSkills(b, id).length > 0;
+
+  // Puts one point in each skill of the shortest path to the locked skill `id`, `id` included, so it
+  // opens and is learned. `learned` lists them.
+  function learnPath(b, id) {
+    if (!canLearnPath(b, id)) return { ...refuse(`Nothing leads to ${nodes[id].name}.`), learned: [] };
+    const learned = pathSkills(b, id);
+    learned.forEach(n => { b.pts[n] = 1; });
+    return { ...done, learned };
+  }
+
   function addPoint(b, id) {
     if (rank(b, id) >= maxRank) return refuse(`${nodes[id].name} is already at rank ${maxRank}.`);
     if (!isOpen(b, id)) return refuse(`Locked. Put a point in a skill that leads to it first: ${nodes[id].from.map(n => nodes[n].name).join(", ")}.`);
@@ -165,7 +206,7 @@ export function createPlanner(catalog) {
 
   return {
     rank, isOpen, canAddPoint, canRemovePoint, cascadeOf, isSlotted, spentIn, spentAll, strandedIfRemoved,
-    addPoint, removePoint, toggleSlot, canEquipSkill, equipSkill, clearSlot, clearTree, clearAll,
+    pathTo, pathSkills, canLearnPath, learnPath, addPoint, removePoint, toggleSlot, canEquipSkill, equipSkill, clearSlot, clearTree, clearAll,
     canEquipMutagen, equipMutagen, clearMutagen, unequipMutagen, groupSlots, groupBonus, passiveValue,
     skillNumber, synergyPercent
   };

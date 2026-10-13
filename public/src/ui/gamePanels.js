@@ -35,12 +35,13 @@ const CASCADE_MASK = `<rect class="gcascade-mask" width="${SOCKET}" height="${SO
 // skill sets) or found (by the search, ui/search.js). Coloured by how many highlighted sets the
 // skill is in: 1 (also for a found one in none), 2, or MARK_LEVELS and more (styles.css, --mark-n);
 // a found one pulses. Just outside a tree node, socket or diamond (the diamond's turns with it);
-// inside an inventory cell, which touches its neighbours.
+// inside an inventory cell, which touches its neighbours. Keyed (ui/dom.js, patchHtml): unkeyed, the cascade
+// mask after it would take over the removed frame's rect and fade from full black (its opacity transition).
 const MARK_LEVELS = 3;
 const MARK_OUTSIDE = { at: -6, size: SOCKET + 12 };
 const MARK_INSIDE = { at: 2, size: INVENTORY.cell - 4 };
 const mark = ({ marked = 0, found = false }, { at, size } = MARK_OUTSIDE) => marked || found
-  ? `<rect class="${classes("gmark", found && "found")}" data-sets="${Math.min(Math.max(marked, 1), MARK_LEVELS)}" x="${at}" y="${at}" width="${size}" height="${size}"/>` : "";
+  ? `<rect class="${classes("gmark", found && "found")}" data-patch-key="mark" data-sets="${Math.min(Math.max(marked, 1), MARK_LEVELS)}" x="${at}" y="${at}" width="${size}" height="${size}"/>` : "";
 // Tab shape bounds around its origin (see pieces.tab).
 const TAB_HIT = hit(-30, -5, 66, 52);
 const LINE_STROKE = { open: LINE_COLORS.open, closed: LINE_COLORS.closed };
@@ -55,14 +56,15 @@ const STEP_SIDES = [["remove", 0, -1], ["add", SOCKET, 1]];
  * View models. `cls` adds classes and `attrs` adds attributes to the part's group.
  * @typedef {{ id: string, open: boolean, found?: boolean, count?: number, attrs?: string }} TabView  id: a GAME_TABS id.
  *   found: it lists a search match, so its icon pulses.
- * @typedef {{ col: number, row: number, icon: string, state: "locked" | "open" | "learned",
+ * @typedef {{ col: number, row: number, icon: string, state: "locked" | "open" | "learned" | "slotted",
  *   rank?: number, selected?: boolean, marked?: number, found?: boolean, fading?: boolean, mid?: boolean, cls?: string, attrs?: string,
  *   steps?: { remove?: string, add?: string } }} NodeView
  *   col/row in game grid units; mid: lines end at the node's vertical middle; marked: framed as part
  *   of that many highlighted skill sets (0 = none); found: framed as a search match; fading: a cascade
  *   just took it, so its learned fill fades out (ui/cascade.js); steps: the touch buttons on its left (remove, a down arrow) and
  *   right (add, an up arrow) side, each drawn when given, with its attrs.
- * @typedef {{ a: number, b: number, state: "lit" | "open" | "closed" }} LinkView  a, b: node indexes.
+ * @typedef {{ a: number, b: number, state: "lit" | "open" | "closed", cls?: string, attrs?: string }} LinkView  a, b: node indexes.
+ *   cls and attrs go on both strokes of the line.
  * @typedef {{ icon?: string, color?: string, rank?: number, locked?: boolean, selected?: boolean, marked?: number, found?: boolean, cls?: string, attrs?: string }} SocketView
  *   No icon = empty socket. marked, found: framed like a tree node. locked: the slot is locked
  *   (core/slotLocks.js); a full one still shows its skill, with the lock warning over it.
@@ -155,11 +157,11 @@ export function createPanels(art, pieces) {
    */
   function skillGrid({ color, nodes, links }) {
     const pos = nodes.map(n => gridPos(n.col, n.row));
-    const lines = links.map(({ a, b, state }) => {
+    const lines = links.map(({ a, b, state, cls, attrs = "" }) => {
       const [p, q] = lineEnds(pos[a], pos[b], nodes[a].mid, nodes[b].mid);
       const stroke = state === "lit" ? LINE_COLORS[color] : LINE_STROKE[state];
       return doubleLine(p, q).map(([s, e]) =>
-        `<line class="gline ${state}" x1="${fmt(s.x)}" y1="${fmt(s.y)}" x2="${fmt(e.x)}" y2="${fmt(e.y)}" stroke="${stroke}"/>`).join("");
+        `<line class="${classes("gline", state, cls)}"${attrs} x1="${fmt(s.x)}" y1="${fmt(s.y)}" x2="${fmt(e.x)}" y2="${fmt(e.y)}" stroke="${stroke}"/>`).join("");
     }).join("");
     const cells = nodes.map((n, i) =>
       `<g class="${classes("gnode", n.selected && "selected", n.cls)}" transform="translate(${fmt(pos[i].x)} ${fmt(pos[i].y)})"${n.attrs || ""}>`

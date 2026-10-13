@@ -5,11 +5,12 @@ import { createBudget } from "../public/src/core/budget.js";
 // The game's numbers (data/rules.js): level 100, 30 places of power, 3 points from items.
 const budget = createBudget({ maxLevel: 100, placesOfPower: 30, items: [{ points: 2 }, { points: 1 }] });
 const fresh = () => { const progress = budget.defaults(); return { progress, budget: budget.totalOf(progress) }; };
+const maxed = () => { const s = fresh(); budget.setMax(s); return s; };
 
-test("a new build: New Game at every max, level 100 giving 99 points", () => {
+test("a new build: New Game at every min, a total of 0", () => {
   const s = fresh();
-  assert.deepEqual(s.progress, { ngPlus: false, level: 100, places: 30, other: 3, custom: false });
-  assert.equal(s.budget, 132);
+  assert.deepEqual(s.progress, { ngPlus: false, level: 1, places: 0, other: 0, custom: false });
+  assert.equal(s.budget, 0);
 });
 
 test("limits: NG+ doubles places of power and items, not the level", () => {
@@ -18,7 +19,7 @@ test("limits: NG+ doubles places of power and items, not the level", () => {
 });
 
 test("a source field: clamped, and the total follows", () => {
-  const s = fresh();
+  const s = maxed();
   budget.setField(s, "level", 35);
   assert.equal(s.budget, 34 + 30 + 3);
   budget.setField(s, "places", 99);
@@ -28,7 +29,7 @@ test("a source field: clamped, and the total follows", () => {
 });
 
 test("a custom total: clamped; typing a source field brings the fields back", () => {
-  const s = fresh();
+  const s = maxed();
   budget.setField(s, "level", 40);
   budget.setTotal(s, 500);
   assert.deepEqual([s.progress.custom, s.budget], [true, 132]);
@@ -37,7 +38,7 @@ test("a custom total: clamped; typing a source field brings the fields back", ()
 });
 
 test("switching the playthrough keeps the points, clamped to what it can reach", () => {
-  const s = fresh();
+  const s = maxed();
   budget.setNgPlus(s, true);
   assert.deepEqual([s.progress.places, s.progress.other, s.budget], [30, 3, 132]);
   budget.setMax(s);
@@ -63,6 +64,15 @@ test("reset: every field at its min, a total of 0; a custom total is dropped", (
   budget.setTotal(s, 50);
   budget.reset(s);
   assert.deepEqual(s.progress, { ngPlus: true, level: 1, places: 0, other: 0, custom: false });
+  assert.equal(s.budget, 0);
+});
+
+test("restoreDefaults: a new build's progress, New Game at every min; a custom total is dropped", () => {
+  const s = fresh();
+  budget.setNgPlus(s, true);
+  budget.setTotal(s, 50);
+  budget.restoreDefaults(s);
+  assert.deepEqual(s.progress, { ngPlus: false, level: 1, places: 0, other: 0, custom: false });
   assert.equal(s.budget, 0);
 });
 

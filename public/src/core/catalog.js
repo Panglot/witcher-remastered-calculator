@@ -154,6 +154,9 @@ export function createCatalog(data) {
     else if (!Object.hasOwn(nodes[src.skill].values, src.value)) problems.push(`${where} reads "${src.value}", which skill "${src.skill}" has no number for.`);
   };
   if (totals.synergy) checkSkillNumber(totals.synergy, "Totals synergy");
+  totals.stats.forEach(st => {
+    if (st.within && !totals.stats.some(o => o.id === st.within && o !== st)) problems.push(`Total "${st.id}" is within unknown total "${st.within}".`);
+  });
   totals.stats.forEach(st => st.sources.forEach(src => {
     const where = `Total "${st.id}"`;
     if (src.skill) {

@@ -5,11 +5,13 @@
 // click follows (ui/reselect.js); holding the left button or E (on the focused or selected skill) adds a
 // point, as the game's "[Hold] Acquire Ability" does (ui/hold.js); right-click removes one (the last
 // point of a skill others need: refused, or with the cascade removal setting taken with them, their
-// backgrounds fading out; ui/cascade.js previews what would go). Space or
+// backgrounds fading out; ui/cascade.js previews what would go). Learning a locked skill asks to learn
+// the shortest path to it (ui/autoPath.js, which also shows the hovered skill's path). Space or
 // a double-click on a learned skill equips it through apply mode (ui/applyMode.js). With a skill
 // focused, Enter selects or deselects and + / - change rank. On touch screens, arrow buttons on a skill's sides
 // take a point out (left, down) or put one in (right, up); styles.css shows them only there.
 import { $, esc, keyTarget, isLongPress, patchHtml } from "./dom.js";
+import { createAutoPath } from "./autoPath.js";
 import { createCascade } from "./cascade.js";
 import { createHold } from "./hold.js";
 import { createReselect } from "./reselect.js";
@@ -133,6 +135,8 @@ function createSkillTree(app, el) {
     el, selector: ".gnode[data-id]", idOf: g => g.dataset.id, on: app.cascade,
     takes: id => planner.cascadeOf(state, id), selected: () => kind.selected(state)
   });
+  // The path learning a locked skill would take (ui/autoPath.js).
+  const autoPath = createAutoPath({ el, app, path: id => planner.canLearnPath(state, id) ? planner.pathTo(state, id) : [] });
   // Removing a point follows the removal setting (settings.js).
   const removePoint = (s, id) => planner.removePoint(s, id, { cascade: app.cascade() });
   const skillOf = e => { const g = e.target.closest("[data-id]"); return g && g.dataset.id; };
@@ -148,9 +152,15 @@ function createSkillTree(app, el) {
   }
   const reselect = createReselect();
   const framed = id => kind.framedInPanel(state, id);
-  // Hold to acquire: the game only starts the fill on a skill that can take a point.
+  // Hold to acquire: the game only starts the fill on a skill that can take a point; here also on
+  // a locked one with a path to it.
   const hold = createHold(() => app.settings.holdMs);
-  const acquire = id => act(id, planner.addPoint);
+  const learnable = id => planner.canAddPoint(state, id) || planner.canLearnPath(state, id);
+  // Adds a point, or for a locked skill with a path to it, asks to learn that path.
+  async function acquire(id) {
+    if (!planner.canLearnPath(state, id)) { act(id, planner.addPoint); return; }
+    if (await autoPath.ask()) act(id, planner.learnPath); else focusNode(id);
+  }
   // The skill E and Space act on: the focused one, else the selection when the panel frames it.
   const target = () => keyTarget(el, ".gnode[data-id]",
     () => state.sel && kind.framedInPanel(state, state.sel) ? nodeEl(state.sel) : null);
@@ -172,7 +182,7 @@ function createSkillTree(app, el) {
     const rank = planner.rank(state, n.id), open = planner.isOpen(state, n.id);
     return {
       col: n.col, row: n.row, mid: n.midLines, icon: skillIcon(n.tree, n.game), rank,
-      state: rank > 0 ? "learned" : open ? "open" : "locked", selected: kind.framedInPanel(state, n.id),
+      state: rank === 0 ? (open ? "open" : "locked") : planner.isSlotted(state, n.id) ? "slotted" : "learned", selected: kind.framedInPanel(state, n.id),
       attrs: ` data-id="${n.id}" data-tip="${n.id}" data-drag="skill" data-drag-item="${n.id}" tabindex="0" role="button" aria-label="${esc(n.name)}, rank ${rank} of ${maxRank}${open ? "" : ", locked"}"`
     };
   }
@@ -194,7 +204,7 @@ function createSkillTree(app, el) {
       const id = g.dataset.id;
       reselect.press(framed(id));
       selectInPlace(g);
-      if (planner.canAddPoint(state, id)) hold.press(e, g, () => { reselect.held(); acquire(id); });
+      if (learnable(id)) hold.press(e, g, () => { reselect.held(); acquire(id); });
     },
     // A touch button selects its skill and changes its rank. Focus stays put, so the tooltip doesn't
     // open over the buttons around it.
@@ -229,7 +239,7 @@ function createSkillTree(app, el) {
       reselect.cancel();
       if (key === " ") { equip(id); return true; }
       selectInPlace(g); g.focus({ preventScroll: true });
-      if (planner.canAddPoint(state, id)) hold.key(e, g, () => acquire(id));
+      if (learnable(id)) hold.key(e, g, () => acquire(id));
       return true;
     },
     keydown(e) {
@@ -241,7 +251,7 @@ function createSkillTree(app, el) {
         if (!was) selectNode(id);
         app.msg = ""; app.render(); focusNode(id);
       }
-      else if (e.key === "+" || e.key === "=") { e.preventDefault(); act(id, planner.addPoint); }
+      else if (e.key === "+" || e.key === "=") { e.preventDefault(); acquire(id); }
       else if (e.key === "-" || e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); act(id, removePoint); }
     },
     liftView: id => ({ color: TREE_ART[nodes[id].tree].color, node: nodeView(nodes[id]) }),
@@ -252,12 +262,12 @@ function createSkillTree(app, el) {
       const T = catalog.trees[state.tab];
       const list = catalog.skillsIn(state.tab);
       const index = Object.fromEntries(list.map((n, i) => [n.id, i]));
-      const marked = highlighted(), found = app.found().skill, c = cascade.view();
+      const marked = highlighted(), found = app.found().skill, c = cascade.view(), p = autoPath.view();
       const grid = {
         color: TREE_ART[state.tab].color,
-        nodes: list.map(n => ({ ...nodeView(n), cls: c.cls(n.id), fading: c.fading(n.id), marked: marked.get(n.id) || 0, found: found.has(n.id), steps: steps(n.id) })),
+        nodes: list.map(n => ({ ...nodeView(n), cls: [c.cls(n.id), p.node(n.id)].filter(Boolean).join(" "), fading: c.fading(n.id), marked: marked.get(n.id) || 0, found: found.has(n.id), steps: steps(n.id) })),
         links: edges.filter(([a]) => nodes[a].tree === state.tab)
-          .map(([a, b]) => ({ a: index[a], b: index[b], state: linkState(a, b) }))
+          .map(([a, b]) => ({ a: index[a], b: index[b], state: linkState(a, b), cls: p.link(a, b), attrs: ` data-link="${a}>${b}"` }))
       };
       return { bg: state.tab, title: T.name, grid };
     }

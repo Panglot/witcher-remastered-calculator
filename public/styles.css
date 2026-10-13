@@ -103,12 +103,13 @@ input[type="text"], textarea { cursor: text; }
   container-type: inline-size; position: relative; display: grid; align-items: start;
   grid-template-columns: minmax(0, 616.35fr) var(--gap) minmax(0, 937fr);
   grid-template-areas: ". . ." "tree . slots" "points . slots" ". . ." "legend legend legend";
-  /* Fit the viewport height too: the screen is about 932 game px tall (panels y 130 to 970, then the
-     legend row with its padding), so it is never wider than that height allows. Centred when capped.
+  /* Fit the viewport height too: the screen is about 934 game px tall (panels y 130 to 970, then the
+     legend row with its padding, 40 + 54), so it is never wider than that height allows. It is set 1 over
+     the measured height: the content may not exceed the window, or a page scrollbar appears and shifts everything. Centred when capped.
      Capped by the width instead (windows narrower than the game's 16:9 to the 4:5 that stacks), it still
      fills the window's height: the panels are centred in the room above the legend, which stays on the
      window's bottom edge, like the game letterboxed on a 4:3 or 16:10 monitor. */
-  --screen-h: 932;
+  --screen-h: 935;
   width: min(100%, var(--fit-h) * 1553.35 / var(--screen-h) + var(--gap)); justify-self: center;
   min-height: calc(100dvh - var(--wrap-top)); grid-template-rows: 1fr auto auto 1fr auto;
 }
@@ -200,6 +201,10 @@ input[type="text"], textarea { cursor: text; }
 /* Cascade removal (ui/cascade.js): a faint black mask over what removing the hovered or selected item would take, */
 .gcascade-mask { fill: #000; opacity: 0; pointer-events: none; transition: opacity .15s; }
 .doomed .gcascade-mask { opacity: .25; }
+/* Auto path (ui/autoPath.js): the path to the hovered locked skill comes out, its locked skills and dark lines a little brighter. */
+.gnode .gdim, .gline { transition: opacity .15s, stroke .15s; }
+.gnode.gpath .gdim { opacity: .6; }
+.gline.closed.gpath { stroke: #666; }
 /* and the lit background of what a cascade took fading out, as if its light went off. */
 .gfade { animation: gfade-out .9s ease-out forwards; pointer-events: none; }
 /* It starts below full: the ghost sits over the item's new, see-through fill, so at full they add up brighter than lit. */
