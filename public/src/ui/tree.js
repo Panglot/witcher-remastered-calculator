@@ -5,8 +5,8 @@
 // click follows (ui/reselect.js); holding the left button or E (on the focused or selected skill) adds a
 // point, as the game's "[Hold] Acquire Ability" does (ui/hold.js); right-click removes one (the last
 // point of a skill others need: refused, or with the cascade removal setting taken with them, their
-// backgrounds fading out; ui/cascade.js previews what would go). Learning a locked skill asks to learn
-// the shortest path to it (ui/autoPath.js, which also shows the hovered skill's path). Space or
+// backgrounds fading out; ui/cascade.js previews what would go). Learning a locked skill learns the
+// shortest path to it (ui/autoPath.js, which also shows the hovered skill's path). Space or
 // a double-click on a learned skill equips it through apply mode (ui/applyMode.js). With a skill
 // focused, Enter selects or deselects and + / - change rank. On touch screens, arrow buttons on a skill's sides
 // take a point out (left, down) or put one in (right, up); styles.css shows them only there.
@@ -136,7 +136,7 @@ function createSkillTree(app, el) {
     takes: id => planner.cascadeOf(state, id), selected: () => kind.selected(state)
   });
   // The path learning a locked skill would take (ui/autoPath.js).
-  const autoPath = createAutoPath({ el, app, path: id => planner.canLearnPath(state, id) ? planner.pathTo(state, id) : [] });
+  const autoPath = createAutoPath({ el, path: id => planner.canLearnPath(state, id) ? planner.pathTo(state, id) : [] });
   // Removing a point follows the removal setting (settings.js).
   const removePoint = (s, id) => planner.removePoint(s, id, { cascade: app.cascade() });
   const skillOf = e => { const g = e.target.closest("[data-id]"); return g && g.dataset.id; };
@@ -156,11 +156,8 @@ function createSkillTree(app, el) {
   // a locked one with a path to it.
   const hold = createHold(() => app.settings.holdMs);
   const learnable = id => planner.canAddPoint(state, id) || planner.canLearnPath(state, id);
-  // Adds a point, or for a locked skill with a path to it, asks to learn that path.
-  async function acquire(id) {
-    if (!planner.canLearnPath(state, id)) { act(id, planner.addPoint); return; }
-    if (await autoPath.ask()) act(id, planner.learnPath); else focusNode(id);
-  }
+  // Adds a point, or for a locked skill with a path to it, learns that path.
+  const acquire = id => act(id, planner.canLearnPath(state, id) ? planner.learnPath : planner.addPoint);
   // The skill E and Space act on: the focused one, else the selection when the panel frames it.
   const target = () => keyTarget(el, ".gnode[data-id]",
     () => state.sel && kind.framedInPanel(state, state.sel) ? nodeEl(state.sel) : null);
